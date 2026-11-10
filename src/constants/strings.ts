@@ -27,7 +27,11 @@ export const strings = {
   regenerate: '再生成',
   retry: 'もう一度試す',
   stopped: '（ここで停止しました）',
-  errorGeneric: '回答を受け取れませんでした。通信状態を確認して、もう一度試してください。',
+  errorGeneric: '回答を受け取れませんでした。もう一度試してください。',
+  errorNetwork: '通信が切れました。接続を確認して、もう一度試してください。',
+  errorRateLimited: '送信が多すぎます。少し待ってから、もう一度試してください。',
+  errorUnavailable: '今はNOVAを利用できません。時間をおいて、もう一度試してください。',
+  errorInvalid: 'この内容は送れませんでした。長すぎる場合は短くしてください。',
   disclaimer: 'NOVAは間違えることがあります。重要な判断は自分でも確認してください。',
   demoNotice: 'デモ表示中：AIはまだ接続されていません',
 } as const;

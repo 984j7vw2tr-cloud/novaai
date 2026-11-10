@@ -15,6 +15,7 @@ import { NovaText } from '@/components/nova-text';
 import { Wordmark } from '@/components/wordmark';
 import { strings } from '@/constants/strings';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { isDemoMode } from '@/lib/config';
 import { isActive } from '@/lib/pressable';
 
 /** ホーム画面：最初の質問を入れると、チャット画面に移って回答が始まる */
@@ -84,7 +85,7 @@ export default function HomeScreen() {
 
         <View style={styles.footer}>
           <NovaText variant="caption" tone="muted" style={styles.center}>
-            {strings.demoNotice}
+            {isDemoMode ? strings.demoNotice : strings.disclaimer}
           </NovaText>
         </View>
       </KeyboardAvoidingView>

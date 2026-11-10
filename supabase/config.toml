@@ -1,0 +1,7 @@
+# Supabase の設定（Edge Function 関連のみ）
+
+[functions.chat]
+# 新しい形式のAPIキー（sb_publishable_...）でも呼べるように、
+# Supabase側の自動ログイン確認はオフにしている。
+# PHASE 7（ログイン機能）で、関数の中でユーザーの確認を行う。
+verify_jwt = false

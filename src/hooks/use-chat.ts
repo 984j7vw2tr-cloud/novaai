@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ChatMessage, ReplySource } from '@/lib/chat-types';
+import { isDemoMode } from '@/lib/config';
 import { mockReply } from '@/lib/mock-reply';
+import { ChatError, type ChatErrorCode, serverReply } from '@/lib/nova-api';
+
+/** 画面に出すエラーの種類 */
+export type ChatErrorKind = ChatErrorCode | 'generic';
+
+/** 接続先が設定されていればサーバー（本物のAI）、なければデモ返答 */
+const defaultReplySource: ReplySource = isDemoMode ? mockReply : serverReply;
 
 let counter = 0;
 const newId = () => `${Date.now().toString(36)}-${(counter++).toString(36)}`;
@@ -10,10 +18,10 @@ const newId = () => `${Date.now().toString(36)}-${(counter++).toString(36)}`;
  * チャットの状態と操作（送信・停止・再生成・やり直し・新規チャット）をまとめたもの。
  * 回答の作り方（replySource）だけを差し替えれば、画面はそのまま使える。
  */
-export function useChat(replySource: ReplySource = mockReply) {
+export function useChat(replySource: ReplySource = defaultReplySource) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ChatErrorKind | null>(null);
 
   const messagesRef = useRef<ChatMessage[]>([]);
   const controllerRef = useRef<AbortController | null>(null);
@@ -55,7 +63,7 @@ export function useChat(replySource: ReplySource = mockReply) {
         } else {
           // 失敗：書きかけの回答を消してエラーを表示（詳しい内容は画面に出さない）
           update((prev) => prev.filter((m) => m.id !== assistantId));
-          setError('generic');
+          setError(e instanceof ChatError ? e.code : 'generic');
           if (__DEV__) console.warn('[NOVA] reply failed', e);
         }
       } finally {

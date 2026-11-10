@@ -18,8 +18,9 @@ import { NovaText } from '@/components/nova-text';
 import { Wordmark } from '@/components/wordmark';
 import { strings } from '@/constants/strings';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useChat } from '@/hooks/use-chat';
+import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
 import type { ChatMessage } from '@/lib/chat-types';
+import { isDemoMode } from '@/lib/config';
 import { isActive } from '@/lib/pressable';
 
 /** チャット画面 */
@@ -108,7 +109,7 @@ export default function ChatScreen() {
             {error ? (
               <View style={styles.error} accessibilityRole="alert">
                 <NovaText variant="small" tone="danger" style={styles.flex}>
-                  {strings.errorGeneric}
+                  {errorMessage(error)}
                 </NovaText>
                 <Pressable
                   onPress={retry}
@@ -128,13 +129,28 @@ export default function ChatScreen() {
               autoFocus={Platform.OS === 'web'}
             />
             <NovaText variant="caption" tone="muted" style={[styles.center, styles.disclaimer]}>
-              {strings.demoNotice} ・ {strings.disclaimer}
+              {isDemoMode ? `${strings.demoNotice} ・ ${strings.disclaimer}` : strings.disclaimer}
             </NovaText>
           </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+function errorMessage(kind: ChatErrorKind) {
+  switch (kind) {
+    case 'network':
+      return strings.errorNetwork;
+    case 'rate_limited':
+      return strings.errorRateLimited;
+    case 'service_unavailable':
+      return strings.errorUnavailable;
+    case 'invalid_request':
+      return strings.errorInvalid;
+    default:
+      return strings.errorGeneric;
+  }
 }
 
 function HeaderButton({
