@@ -95,4 +95,12 @@ export const zhHans: Strings = {
   deleteAccount: '删除账号',
   deleteAccountConfirm: '要删除账号及全部对话历史吗？删除后无法恢复。',
   actionFailed: '操作失败，请重试。',
+  settings: '设置',
+  account: '账号',
+  today: '今天',
+  previous7Days: '过去 7 天',
+  older: '更早',
+  openSidebar: '打开菜单',
+  closeSidebar: '关闭菜单',
+  viewAllHistory: '全部历史',
 };

@@ -1,10 +1,11 @@
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/auth';
+import { Notice } from '@/components/form';
+import { Icon } from '@/components/icons';
 import { NovaText } from '@/components/nova-text';
-import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { PageScreen } from '@/components/page-screen';
+import { Colors, Spacing } from '@/constants/theme';
 import { type LanguagePreference, useI18n } from '@/i18n';
 import { LANGUAGES } from '@/i18n/languages';
 import { isActive } from '@/lib/pressable';
@@ -12,15 +13,8 @@ import { updateProfile } from '@/lib/profile';
 
 /** 言語設定画面：表示言語とNOVAの回答言語を別々に選ぶ */
 export default function LanguageScreen() {
-  const {
-    t,
-    isRTL,
-    uiPreference,
-    replyPreference,
-    setUiPreference,
-    setReplyPreference,
-    needsRestart,
-  } = useI18n();
+  const { t, uiPreference, replyPreference, setUiPreference, setReplyPreference, needsRestart } =
+    useI18n();
   const { session } = useAuth();
   const userId = session?.user.id;
 
@@ -30,61 +24,28 @@ export default function LanguageScreen() {
     if (userId) updateProfile(userId, { preferredLanguage: p }).catch(() => {});
   };
 
-  const goBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
-  };
-
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={goBack}
-          accessibilityRole="button"
-          accessibilityLabel={t.back}
-          hitSlop={8}
-          style={(state) => [styles.headerButton, isActive(state) && styles.rowActive]}>
-          <NovaText variant="small" tone="secondary">
-            {`${isRTL ? '›' : '‹'}  ${t.back}`}
-          </NovaText>
-        </Pressable>
-        <NovaText variant="small" style={styles.headerTitle} accessibilityRole="header">
-          {t.languageTitle}
-        </NovaText>
-        <View style={styles.headerButton} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.column}>
-          {needsRestart ? (
-            <View style={styles.notice} accessibilityRole="alert">
-              <NovaText variant="small" tone="accent">
-                {t.restartNotice}
-              </NovaText>
-            </View>
-          ) : null}
-
-          <Section
-            title={t.displayLanguage}
-            hint={t.displayLanguageHint}
-            autoLabel={t.autoDisplay}
-            value={uiPreference}
-            onChange={changeUiLanguage}
-          />
-          <Section
-            title={t.replyLanguage}
-            hint={t.replyLanguageHint}
-            autoLabel={t.autoReply}
-            value={replyPreference}
-            onChange={setReplyPreference}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <PageScreen title={t.languageTitle}>
+      {needsRestart ? <Notice tone="info" text={t.restartNotice} /> : null}
+      <LanguageSection
+        title={t.displayLanguage}
+        hint={t.displayLanguageHint}
+        autoLabel={t.autoDisplay}
+        value={uiPreference}
+        onChange={changeUiLanguage}
+      />
+      <LanguageSection
+        title={t.replyLanguage}
+        hint={t.replyLanguageHint}
+        autoLabel={t.autoReply}
+        value={replyPreference}
+        onChange={setReplyPreference}
+      />
+    </PageScreen>
   );
 }
 
-function Section({
+function LanguageSection({
   title,
   hint,
   autoLabel,
@@ -103,10 +64,10 @@ function Section({
   ];
   return (
     <View style={styles.section}>
-      <NovaText variant="label" tone="muted">
+      <NovaText variant="label" tone="muted" style={styles.sectionTitle}>
         {title.toUpperCase()}
       </NovaText>
-      <NovaText variant="small" tone="secondary">
+      <NovaText variant="small" tone="secondary" style={styles.sectionTitle}>
         {hint}
       </NovaText>
       <View style={styles.list} accessibilityRole="radiogroup" accessibilityLabel={title}>
@@ -125,7 +86,11 @@ function Section({
                 isActive(state) && styles.rowActive,
               ]}>
               <View style={styles.rowText}>
-                <NovaText tone={selected ? 'primary' : 'secondary'}>{o.label}</NovaText>
+                <NovaText
+                  variant={selected ? 'bodyMedium' : 'body'}
+                  tone={selected ? 'primary' : 'secondary'}>
+                  {o.label}
+                </NovaText>
                 {o.sub && o.sub !== o.label ? (
                   <NovaText variant="caption" tone="muted">
                     {o.sub}
@@ -133,9 +98,7 @@ function Section({
                 ) : null}
               </View>
               {selected ? (
-                <NovaText tone="accent" style={styles.check}>
-                  ✓
-                </NovaText>
+                <Icon name="check" size={18} color={Colors.text} strokeWidth={2.25} />
               ) : null}
             </Pressable>
           );
@@ -146,49 +109,25 @@ function Section({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  headerButton: {
-    minWidth: 72,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
-  },
-  headerTitle: { fontWeight: '600' },
-  scroll: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.xl },
-  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', gap: Spacing.xxl },
-  notice: {
-    borderWidth: 1,
-    borderColor: Colors.accentMuted,
-    borderRadius: Radius.md,
-    padding: Spacing.lg,
-  },
   section: { gap: Spacing.sm },
+  sectionTitle: { paddingHorizontal: Spacing.xs },
   list: {
     marginTop: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
+    borderColor: Colors.borderSubtle,
+    borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: Colors.surface,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.md - 2,
     minHeight: 52,
   },
   rowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
   rowActive: { backgroundColor: Colors.surfaceRaised },
-  rowText: { flex: 1, gap: 2 },
-  check: { fontWeight: '700' },
+  rowText: { flex: 1, gap: 1 },
 });

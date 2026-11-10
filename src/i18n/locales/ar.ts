@@ -95,4 +95,12 @@ export const ar: Strings = {
   deleteAccount: 'حذف الحساب',
   deleteAccountConfirm: 'هل تريد حذف حسابك وكل سجل المحادثات؟ لا يمكن التراجع عن ذلك.',
   actionFailed: 'لم ينجح ذلك. حاول مرة أخرى.',
+  settings: 'الإعدادات',
+  account: 'الحساب',
+  today: 'اليوم',
+  previous7Days: 'آخر 7 أيام',
+  older: 'أقدم',
+  openSidebar: 'فتح القائمة',
+  closeSidebar: 'إغلاق القائمة',
+  viewAllHistory: 'كل السجل',
 };

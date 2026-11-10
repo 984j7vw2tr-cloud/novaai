@@ -99,4 +99,12 @@ export const de: Strings = {
   deleteAccountConfirm:
     'Konto und gesamten Verlauf löschen? Das lässt sich nicht rückgängig machen.',
   actionFailed: 'Das hat nicht geklappt. Bitte versuch es erneut.',
+  settings: 'Einstellungen',
+  account: 'Konto',
+  today: 'Heute',
+  previous7Days: 'Letzte 7 Tage',
+  older: 'Älter',
+  openSidebar: 'Menü öffnen',
+  closeSidebar: 'Menü schließen',
+  viewAllHistory: 'Gesamter Verlauf',
 };

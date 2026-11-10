@@ -1,4 +1,4 @@
-import { useState, type Ref } from 'react';
+import { type Ref, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -8,10 +8,12 @@ import {
   type TextInputInstance,
   type TextInputKeyPressEvent,
 } from 'react-native';
+import Svg, { Rect } from 'react-native-svg';
 
-import { NovaText } from '@/components/nova-text';
+import { Icon } from '@/components/icons';
+import { Colors, Spacing, Type } from '@/constants/theme';
 import { useI18n } from '@/i18n';
-import { Colors, FontFamily, Radius, Spacing } from '@/constants/theme';
+import { isActive } from '@/lib/pressable';
 
 type Props = {
   value: string;
@@ -24,6 +26,11 @@ type Props = {
   autoFocus?: boolean;
   inputRef?: Ref<TextInputInstance>;
 };
+
+const BUTTON = 36;
+const LINE = 24;
+const MIN_HEIGHT = LINE + 16;
+const MAX_HEIGHT = 220;
 
 /** メッセージ入力欄＋送信（停止）ボタン */
 export function Composer({
@@ -93,8 +100,11 @@ export function Composer({
           onPress={onStop}
           accessibilityRole="button"
           accessibilityLabel={t.stop}
-          style={({ pressed }) => [styles.button, styles.buttonActive, pressed && styles.pressed]}>
-          <View style={styles.stopIcon} />
+          style={(state) => [styles.button, styles.buttonOn, isActive(state) && styles.pressed]}>
+          {/* 停止：塗りつぶしの四角 */}
+          <Svg width={12} height={12} viewBox="0 0 12 12">
+            <Rect x={0} y={0} width={12} height={12} rx={2.5} fill={Colors.onAccent} />
+          </Svg>
         </Pressable>
       ) : (
         <Pressable
@@ -103,21 +113,22 @@ export function Composer({
           accessibilityRole="button"
           accessibilityLabel={t.send}
           aria-disabled={!canSend}
-          style={({ pressed }) => [
+          style={(state) => [
             styles.button,
-            canSend ? styles.buttonActive : styles.buttonDisabled,
-            pressed && styles.pressed,
+            canSend ? styles.buttonOn : styles.buttonOff,
+            canSend && isActive(state) && styles.pressed,
           ]}>
-          <NovaText style={[styles.arrow, !canSend && styles.arrowDisabled]}>↑</NovaText>
+          <Icon
+            name="send"
+            size={18}
+            strokeWidth={2.25}
+            color={canSend ? Colors.onAccent : Colors.textMuted}
+          />
         </Pressable>
       )}
     </View>
   );
 }
-
-const BUTTON = 38;
-const MIN_HEIGHT = BUTTON;
-const MAX_HEIGHT = 180;
 
 const styles = StyleSheet.create({
   container: {
@@ -126,36 +137,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    paddingLeft: Spacing.lg,
-    paddingRight: Spacing.sm,
-    paddingVertical: Spacing.sm,
+    borderRadius: 28,
+    paddingStart: Spacing.xl - 4,
+    paddingEnd: Spacing.sm + 2,
+    paddingVertical: Spacing.sm + 2,
     gap: Spacing.sm,
   },
-  containerFocused: { borderColor: Colors.accentMuted },
+  containerFocused: { borderColor: Colors.focus },
   input: {
+    ...Type.body,
     flex: 1,
-    minHeight: MIN_HEIGHT,
+    minHeight: MIN_HEIGHT - 4,
     maxHeight: MAX_HEIGHT,
+    lineHeight: LINE,
     color: Colors.text,
-    fontFamily: FontFamily,
-    fontSize: 16,
-    lineHeight: 22,
-    paddingTop: Platform.OS === 'ios' ? 9 : 8,
-    paddingBottom: 8,
+    paddingTop: Platform.OS === 'ios' ? 8 : 6,
+    paddingBottom: 6,
     writingDirection: 'auto',
   },
   button: {
     width: BUTTON,
     height: BUTTON,
-    borderRadius: Radius.pill,
+    borderRadius: BUTTON / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 0,
   },
-  buttonActive: { backgroundColor: Colors.accent },
-  buttonDisabled: { backgroundColor: Colors.surfaceRaised },
-  pressed: { opacity: 0.7 },
-  arrow: { color: Colors.background, fontSize: 19, lineHeight: 22, fontWeight: '700' },
-  arrowDisabled: { color: Colors.textMuted },
-  stopIcon: { width: 12, height: 12, borderRadius: 2, backgroundColor: Colors.background },
+  buttonOn: { backgroundColor: Colors.accent },
+  buttonOff: { backgroundColor: Colors.surfaceRaised },
+  pressed: { opacity: 0.82 },
 });

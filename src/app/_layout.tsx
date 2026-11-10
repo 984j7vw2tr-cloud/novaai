@@ -1,3 +1,9 @@
+import { Inter_300Light } from '@expo-google-fonts/inter/300Light';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono/400Regular';
+import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
@@ -20,6 +26,19 @@ const novaTheme = {
 };
 
 export default function RootLayout() {
+  // 文字のフォント（Inter・コード用の JetBrains Mono）を読み込む
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_300Light,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    JetBrainsMono_400Regular,
+  });
+  // 読み込み中は背景だけ（文字がガタッと切り替わるのを防ぐ）。失敗したら標準のフォントで続ける
+  if (!fontsLoaded && !fontError) {
+    return <View style={{ flex: 1, backgroundColor: Colors.background }} />;
+  }
+
   return (
     <LanguageProvider>
       <AuthProvider>

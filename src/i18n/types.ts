@@ -89,4 +89,12 @@ export type Strings = {
   deleteAccount: string;
   deleteAccountConfirm: string;
   actionFailed: string;
+  settings: string;
+  account: string;
+  today: string;
+  previous7Days: string;
+  older: string;
+  openSidebar: string;
+  closeSidebar: string;
+  viewAllHistory: string;
 };

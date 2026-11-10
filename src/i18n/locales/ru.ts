@@ -97,4 +97,12 @@ export const ru: Strings = {
   deleteAccount: 'Удалить аккаунт',
   deleteAccountConfirm: 'Удалить аккаунт и всю историю? Отменить будет нельзя.',
   actionFailed: 'Не получилось. Попробуй ещё раз.',
+  settings: 'Настройки',
+  account: 'Аккаунт',
+  today: 'Сегодня',
+  previous7Days: 'Последние 7 дней',
+  older: 'Ранее',
+  openSidebar: 'Открыть меню',
+  closeSidebar: 'Закрыть меню',
+  viewAllHistory: 'Вся история',
 };

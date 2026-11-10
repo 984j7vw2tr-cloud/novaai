@@ -95,4 +95,12 @@ export const th: Strings = {
   deleteAccount: 'ลบบัญชี',
   deleteAccountConfirm: 'ลบบัญชีและประวัติการสนทนาทั้งหมดไหม ย้อนกลับไม่ได้',
   actionFailed: 'ไม่สำเร็จ โปรดลองอีกครั้ง',
+  settings: 'การตั้งค่า',
+  account: 'บัญชี',
+  today: 'วันนี้',
+  previous7Days: '7 วันที่ผ่านมา',
+  older: 'เก่ากว่านั้น',
+  openSidebar: 'เปิดเมนู',
+  closeSidebar: 'ปิดเมนู',
+  viewAllHistory: 'ประวัติทั้งหมด',
 };

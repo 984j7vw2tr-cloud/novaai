@@ -97,4 +97,12 @@ export const fr: Strings = {
   deleteAccount: 'Supprimer le compte',
   deleteAccountConfirm: 'Supprimer ton compte et tout l’historique ? C’est définitif.',
   actionFailed: 'Ça n’a pas marché. Réessaie.',
+  settings: 'Réglages',
+  account: 'Compte',
+  today: 'Aujourd’hui',
+  previous7Days: '7 derniers jours',
+  older: 'Plus ancien',
+  openSidebar: 'Ouvrir le menu',
+  closeSidebar: 'Fermer le menu',
+  viewAllHistory: 'Tout l’historique',
 };

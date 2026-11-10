@@ -1,11 +1,11 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/form';
+import { Button, IconButton } from '@/components/form';
 import { NovaText } from '@/components/nova-text';
-import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { PageScreen } from '@/components/page-screen';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 import { confirmAsync } from '@/lib/confirm';
 import {
@@ -17,7 +17,7 @@ import { isActive } from '@/lib/pressable';
 
 /** 会話の履歴：一覧・開く・削除 */
 export default function HistoryScreen() {
-  const { t, isRTL, uiLanguage } = useI18n();
+  const { t, uiLanguage } = useI18n();
   const [items, setItems] = useState<ConversationSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -70,30 +70,8 @@ export default function HistoryScreen() {
     }
   };
 
-  const goBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
-  };
-
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={goBack}
-          accessibilityRole="button"
-          accessibilityLabel={t.back}
-          hitSlop={8}
-          style={(state) => [styles.headerButton, isActive(state) && styles.active]}>
-          <NovaText variant="small" tone="secondary">
-            {`${isRTL ? '›' : '‹'}  ${t.back}`}
-          </NovaText>
-        </Pressable>
-        <NovaText variant="small" style={styles.headerTitle} accessibilityRole="header">
-          {t.historyTitle}
-        </NovaText>
-        <View style={styles.headerButton} />
-      </View>
-
+    <PageScreen title={t.historyTitle} scroll={false}>
       {items === null && !failed ? (
         <View style={styles.center}>
           <ActivityIndicator color={Colors.accent} />
@@ -121,7 +99,7 @@ export default function HistoryScreen() {
           renderItem={({ item }) => (
             <View style={[styles.column, styles.row]}>
               <Pressable
-                onPress={() => router.push({ pathname: '/chat', params: { id: item.id } })}
+                onPress={() => router.push({ pathname: '/', params: { id: item.id } })}
                 accessibilityRole="button"
                 accessibilityLabel={item.title || t.untitled}
                 style={(state) => [styles.rowMain, isActive(state) && styles.active]}>
@@ -130,67 +108,39 @@ export default function HistoryScreen() {
                   {formatDate(item.updatedAt)}
                 </NovaText>
               </Pressable>
-              <Pressable
-                onPress={() => remove(item)}
-                disabled={deleting === item.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${t.deleteLabel}: ${item.title || t.untitled}`}
-                hitSlop={6}
-                style={(state) => [styles.deleteButton, isActive(state) && styles.active]}>
-                {deleting === item.id ? (
+              {deleting === item.id ? (
+                <View style={styles.deleteButton}>
                   <ActivityIndicator color={Colors.textSecondary} />
-                ) : (
-                  <NovaText variant="caption" tone="secondary">
-                    {t.deleteLabel}
-                  </NovaText>
-                )}
-              </Pressable>
+                </View>
+              ) : (
+                <IconButton
+                  icon="trash"
+                  label={`${t.deleteLabel}: ${item.title || t.untitled}`}
+                  onPress={() => remove(item)}
+                />
+              )}
             </View>
           )}
         />
       )}
-    </SafeAreaView>
+    </PageScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  headerButton: {
-    minWidth: 72,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
-  },
-  headerTitle: { fontWeight: '600' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, gap: Spacing.xs },
-  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  list: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, gap: 2 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   failed: { gap: Spacing.md, marginBottom: Spacing.lg },
   emptyText: { textAlign: 'center', marginTop: Spacing.xxxl },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   rowMain: {
     flex: 1,
-    gap: 2,
+    gap: 3,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
   },
-  deleteButton: {
-    minWidth: 56,
-    minHeight: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.sm,
-  },
-  active: { backgroundColor: Colors.surfaceRaised },
+  deleteButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  active: { backgroundColor: Colors.surface },
 });

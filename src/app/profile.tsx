@@ -1,24 +1,21 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { type AuthErrorKind, useAuth } from '@/auth';
-import { Button, Field, Notice } from '@/components/form';
-import { NovaText } from '@/components/nova-text';
-import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { Button, Field, Notice, Section } from '@/components/form';
+import { Group, ListRow, PageScreen } from '@/components/page-screen';
 import { useI18n } from '@/i18n';
 import { getLanguage } from '@/i18n/languages';
 import { authErrorMessage } from '@/lib/auth-messages';
-import { isActive } from '@/lib/pressable';
 import { getProfile, updateProfile } from '@/lib/profile';
 import { deleteMyAccount } from '@/lib/account';
 import { confirmAsync } from '@/lib/confirm';
 import { deleteAllConversations } from '@/lib/conversations';
 
-/** プロフィール画面：メールアドレス・表示名・言語・ログアウト */
+/** 設定画面：アカウント（メールアドレス・表示名）・言語・データ（履歴とアカウントの削除）・ログアウト */
 export default function ProfileScreen() {
-  const { t, isRTL, uiLanguage } = useI18n();
+  const { t, uiLanguage } = useI18n();
   const { session, signOut } = useAuth();
   const user = session?.user;
   const userId = user?.id;
@@ -48,11 +45,6 @@ export default function ProfileScreen() {
       active = false;
     };
   }, [userId]);
-
-  const goBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
-  };
 
   const save = async () => {
     setError(null);
@@ -116,134 +108,94 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={goBack}
-          accessibilityRole="button"
-          accessibilityLabel={t.back}
-          hitSlop={8}
-          style={(state) => [styles.headerButton, isActive(state) && styles.rowActive]}>
-          <NovaText variant="small" tone="secondary">
-            {`${isRTL ? '›' : '‹'}  ${t.back}`}
-          </NovaText>
-        </Pressable>
-        <NovaText variant="small" style={styles.headerTitle} accessibilityRole="header">
-          {t.profile}
-        </NovaText>
-        <View style={styles.headerButton} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.column}>
-          <View style={styles.section}>
-            <NovaText variant="label" tone="muted">
-              {t.signedInAs.toUpperCase()}
-            </NovaText>
-            <NovaText selectable>{user?.email ?? ''}</NovaText>
-          </View>
-
-          <View style={styles.section}>
-            {error ? <Notice tone="danger" text={authErrorMessage(error, t)} /> : null}
-            <Field
-              label={t.displayName}
-              value={name}
-              onChangeText={(v) => {
-                setName(v);
-                setSaved(false);
-              }}
-              maxLength={50}
-              autoComplete="name"
-              onSubmitEditing={save}
-            />
-            <Button
-              label={saved ? t.saved : t.save}
-              onPress={save}
-              busy={busy === 'save'}
-              disabled={!!busy || name.trim() === savedName.trim()}
-            />
-          </View>
-
-          <Pressable
-            onPress={() => router.push('/language')}
-            accessibilityRole="button"
-            accessibilityLabel={t.language}
-            style={(state) => [styles.row, isActive(state) && styles.rowActive]}>
-            <NovaText>{t.language}</NovaText>
-            <NovaText tone="secondary">{getLanguage(uiLanguage).nativeName}</NovaText>
-          </Pressable>
-
+    <PageScreen title={t.settings}>
+      {/* アカウント */}
+      <Section title={t.account}>
+        <Group>
+          <ListRow first label={t.signedInAs} value={user?.email ?? ''} />
+        </Group>
+        {error ? <Notice tone="danger" text={authErrorMessage(error, t)} /> : null}
+        <Field
+          label={t.displayName}
+          value={name}
+          onChangeText={(v) => {
+            setName(v);
+            setSaved(false);
+          }}
+          maxLength={50}
+          autoComplete="name"
+          onSubmitEditing={save}
+        />
+        <View style={styles.saveRow}>
           <Button
-            variant="secondary"
-            label={t.signOut}
-            onPress={logout}
-            busy={busy === 'signout'}
+            label={saved ? t.saved : t.save}
+            onPress={save}
+            busy={busy === 'save'}
+            disabled={!!busy || name.trim() === savedName.trim()}
+          />
+        </View>
+      </Section>
+
+      {/* 言語 */}
+      <Section title={t.language}>
+        <Group>
+          <ListRow
+            first
+            icon="language"
+            label={t.language}
+            value={getLanguage(uiLanguage).nativeName}
+            onPress={() => router.push('/language')}
+            chevron
+          />
+        </Group>
+      </Section>
+
+      {/* データ：会話履歴の削除・アカウントの削除 */}
+      <Section title={t.dataSection}>
+        {dataNotice ? (
+          <Notice
+            tone={dataNotice === 'failed' ? 'danger' : 'info'}
+            text={dataNotice === 'failed' ? t.actionFailed : t.historyDeleted}
+          />
+        ) : null}
+        <Group>
+          <ListRow
+            first
+            icon="history"
+            label={t.viewAllHistory}
+            onPress={() => router.push('/history')}
+            chevron
+          />
+          <ListRow
+            icon="trash"
+            label={t.deleteAllHistory}
+            onPress={deleteHistory}
+            busy={busy === 'history'}
             disabled={!!busy}
           />
+          <ListRow
+            icon="trash"
+            tone="danger"
+            label={t.deleteAccount}
+            onPress={deleteAccount}
+            busy={busy === 'account'}
+            disabled={!!busy}
+          />
+        </Group>
+      </Section>
 
-          {/* データ：会話履歴の削除・アカウントの削除 */}
-          <View style={styles.section}>
-            <NovaText variant="label" tone="muted">
-              {t.dataSection.toUpperCase()}
-            </NovaText>
-            {dataNotice ? (
-              <Notice
-                tone={dataNotice === 'failed' ? 'danger' : 'info'}
-                text={dataNotice === 'failed' ? t.actionFailed : t.historyDeleted}
-              />
-            ) : null}
-            <Button
-              variant="secondary"
-              label={t.deleteAllHistory}
-              onPress={deleteHistory}
-              busy={busy === 'history'}
-              disabled={!!busy}
-            />
-            <Button
-              variant="danger"
-              label={t.deleteAccount}
-              onPress={deleteAccount}
-              busy={busy === 'account'}
-              disabled={!!busy}
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      <Button
+        variant="secondary"
+        icon="logout"
+        label={t.signOut}
+        onPress={logout}
+        busy={busy === 'signout'}
+        disabled={!!busy}
+      />
+    </PageScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  headerButton: {
-    minWidth: 72,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
-  },
-  headerTitle: { fontWeight: '600' },
-  scroll: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.xl },
-  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', gap: Spacing.xxl },
-  section: { gap: Spacing.md },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.lg,
-    minHeight: 52,
-  },
-  rowActive: { backgroundColor: Colors.surfaceRaised },
+  saveRow: { alignItems: 'flex-end' },
 });

@@ -98,4 +98,12 @@ export const pt: Strings = {
   deleteAccount: 'Excluir conta',
   deleteAccountConfirm: 'Excluir sua conta e todo o histórico? Não dá para desfazer.',
   actionFailed: 'Não funcionou. Tente de novo.',
+  settings: 'Configurações',
+  account: 'Conta',
+  today: 'Hoje',
+  previous7Days: 'Últimos 7 dias',
+  older: 'Mais antigos',
+  openSidebar: 'Abrir menu',
+  closeSidebar: 'Fechar menu',
+  viewAllHistory: 'Todo o histórico',
 };

@@ -30,12 +30,11 @@ npx expo lint      # コードの書き方チェック
 
 | 画面 | ファイル |
 |---|---|
-| ホーム | `src/app/index.tsx` |
-| チャット | `src/app/chat.tsx` |
+| ホーム＝チャット | `src/app/index.tsx`（中身は `src/app/chat.tsx`） |
 | 言語設定 | `src/app/language.tsx` |
 | ログイン | `src/app/login.tsx` |
 | 新規登録 | `src/app/signup.tsx` |
-| プロフィール | `src/app/profile.tsx` |
+| 設定（アカウント・言語・データ） | `src/app/profile.tsx` |
 | 会話の履歴 | `src/app/history.tsx` |
 | ログイン後の戻り先 | `src/app/auth/callback.tsx` |
 
@@ -84,6 +83,15 @@ npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼�
 - Google / Apple のボタンは、Supabase側で有効にしたときだけ表示される
 
 評価スクリプトはログインが必要なので、`.env.local` に `NOVA_TEST_EMAIL` / `NOVA_TEST_PASSWORD`（テスト用アカウント）を書いておく。
+
+## デザインシステム
+
+- 色・文字・余白・角の丸み・レイアウト：`src/constants/theme.ts`（色は黒・グレー・白・シルバーのみ）
+- 文字：英字は Inter、コードは JetBrains Mono、日本語などは各OSの標準フォント（`NovaText` の `variant` で階層を指定）
+- アイコン：Lucide（`src/components/icons.tsx` で太さと大きさを統一）
+- 共通部品：ボタン・アイコンボタン・入力欄・お知らせ（`src/components/form.tsx`）、ページの枠と設定の行（`src/components/page-screen.tsx`）
+- AIの回答：Markdown を表示（見出し・リスト・表・コード・引用。`src/components/markdown.tsx`）
+- PC（幅1024px以上）はサイドバーを常に表示、スマホはメニューから引き出す（`src/components/sidebar.tsx`）
 
 ## データベース（PHASE 8）
 

@@ -95,4 +95,12 @@ export const hi: Strings = {
   deleteAccount: 'खाता हटाएँ',
   deleteAccountConfirm: 'अपना खाता और पूरा इतिहास हटाएँ? इसे वापस नहीं लाया जा सकता।',
   actionFailed: 'नहीं हो पाया। फिर से कोशिश करें।',
+  settings: 'सेटिंग्स',
+  account: 'खाता',
+  today: 'आज',
+  previous7Days: 'पिछले 7 दिन',
+  older: 'पुराने',
+  openSidebar: 'मेनू खोलें',
+  closeSidebar: 'मेनू बंद करें',
+  viewAllHistory: 'पूरा इतिहास',
 };

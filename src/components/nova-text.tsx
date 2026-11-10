@@ -1,31 +1,23 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Colors, FontFamily } from '@/constants/theme';
+import { Colors, Type, type TypeVariant } from '@/constants/theme';
 
-type Variant = 'body' | 'small' | 'caption' | 'title' | 'label';
-type Tone = 'primary' | 'secondary' | 'muted' | 'accent' | 'danger';
+type Tone = 'primary' | 'secondary' | 'muted' | 'accent' | 'danger' | 'onAccent';
 
 export type NovaTextProps = TextProps & {
-  variant?: Variant;
+  /** 文字の階層（display / title / heading / body / small / caption / label など） */
+  variant?: TypeVariant;
   tone?: Tone;
 };
 
-/** アプリ全体で使う文字。フォント・色・大きさをここで統一する。 */
+/** アプリ全体で使う文字。フォント・大きさ・行間・色をデザインシステムに合わせる。 */
 export function NovaText({ variant = 'body', tone = 'primary', style, ...rest }: NovaTextProps) {
-  return <Text style={[styles.base, styles[variant], toneStyles[tone], style]} {...rest} />;
+  return <Text style={[styles.base, Type[variant], toneStyles[tone], style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({
-  base: {
-    fontFamily: FontFamily,
-    // 右から左に書く言語（アラビア語など）でも自然に並ぶように
-    writingDirection: 'auto',
-  },
-  body: { fontSize: 16, lineHeight: 26 },
-  small: { fontSize: 14, lineHeight: 21 },
-  caption: { fontSize: 12, lineHeight: 17 },
-  title: { fontSize: 28, lineHeight: 36, fontWeight: '600', letterSpacing: -0.4 },
-  label: { fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 2.2 },
+  // 右から左に書く言語（アラビア語など）でも自然に並ぶように
+  base: { writingDirection: 'auto' },
 });
 
 const toneStyles = StyleSheet.create({
@@ -34,4 +26,5 @@ const toneStyles = StyleSheet.create({
   muted: { color: Colors.textMuted },
   accent: { color: Colors.accent },
   danger: { color: Colors.danger },
+  onAccent: { color: Colors.onAccent },
 });

@@ -96,4 +96,12 @@ export const ko: Strings = {
   deleteAccount: '계정 삭제',
   deleteAccountConfirm: '계정과 모든 대화 기록을 삭제할까요? 되돌릴 수 없습니다.',
   actionFailed: '실패했습니다. 다시 시도해 주세요.',
+  settings: '설정',
+  account: '계정',
+  today: '오늘',
+  previous7Days: '지난 7일',
+  older: '이전',
+  openSidebar: '메뉴 열기',
+  closeSidebar: '메뉴 닫기',
+  viewAllHistory: '전체 기록',
 };

@@ -99,4 +99,12 @@ export const es: Strings = {
   deleteAccount: 'Eliminar cuenta',
   deleteAccountConfirm: '¿Eliminar tu cuenta y todo el historial? No se puede deshacer.',
   actionFailed: 'No funcionó. Inténtalo de nuevo.',
+  settings: 'Ajustes',
+  account: 'Cuenta',
+  today: 'Hoy',
+  previous7Days: 'Últimos 7 días',
+  older: 'Anteriores',
+  openSidebar: 'Abrir menú',
+  closeSidebar: 'Cerrar menú',
+  viewAllHistory: 'Todo el historial',
 };

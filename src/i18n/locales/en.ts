@@ -96,4 +96,12 @@ export const en: Strings = {
   deleteAccount: 'Delete account',
   deleteAccountConfirm: "Delete your account and all conversation history? This can't be undone.",
   actionFailed: "That didn't work. Please try again.",
+  settings: 'Settings',
+  account: 'Account',
+  today: 'Today',
+  previous7Days: 'Previous 7 days',
+  older: 'Older',
+  openSidebar: 'Open menu',
+  closeSidebar: 'Close menu',
+  viewAllHistory: 'All history',
 };

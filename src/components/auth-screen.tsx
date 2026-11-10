@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NovaText } from '@/components/nova-text';
-import { Wordmark } from '@/components/wordmark';
+import { Icon } from '@/components/icons';
+import { BrandMark } from '@/components/wordmark';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 import { getLanguage } from '@/i18n/languages';
@@ -32,7 +33,8 @@ export function AuthScreen({ title, children }: { title: string; children: React
           accessibilityLabel={t.language}
           hitSlop={8}
           style={(state) => [styles.langButton, isActive(state) && styles.langButtonActive]}>
-          <NovaText variant="caption" tone="secondary">
+          <Icon name="language" size={16} color={Colors.textSecondary} />
+          <NovaText variant="small" tone="secondary">
             {getLanguage(uiLanguage).nativeName}
           </NovaText>
         </Pressable>
@@ -43,8 +45,8 @@ export function AuthScreen({ title, children }: { title: string; children: React
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.column}>
             <View style={styles.hero}>
-              <Wordmark size={36} />
-              <NovaText variant="title" style={styles.center} accessibilityRole="header">
+              <BrandMark size={34} />
+              <NovaText variant="display" style={styles.center} accessibilityRole="header">
                 {title}
               </NovaText>
             </View>
@@ -66,11 +68,12 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
   },
   langButton: {
-    borderWidth: 1,
-    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     borderRadius: Radius.pill,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.sm,
   },
   langButtonActive: { backgroundColor: Colors.surfaceRaised },
   scroll: {
@@ -80,6 +83,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xxl,
   },
   column: { width: '100%', maxWidth: FORM_WIDTH, alignSelf: 'center', gap: Spacing.xl },
-  hero: { alignItems: 'center', gap: Spacing.lg, marginBottom: Spacing.sm },
+  hero: { alignItems: 'center', gap: Spacing.lg + 4, marginBottom: Spacing.md },
   center: { textAlign: 'center' },
 });

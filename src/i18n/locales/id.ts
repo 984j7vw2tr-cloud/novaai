@@ -96,4 +96,12 @@ export const id: Strings = {
   deleteAccount: 'Hapus akun',
   deleteAccountConfirm: 'Hapus akun dan semua riwayat? Tidak bisa dibatalkan.',
   actionFailed: 'Gagal. Silakan coba lagi.',
+  settings: 'Pengaturan',
+  account: 'Akun',
+  today: 'Hari ini',
+  previous7Days: '7 hari terakhir',
+  older: 'Lebih lama',
+  openSidebar: 'Buka menu',
+  closeSidebar: 'Tutup menu',
+  viewAllHistory: 'Semua riwayat',
 };

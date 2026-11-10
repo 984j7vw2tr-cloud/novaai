@@ -97,4 +97,12 @@ export const vi: Strings = {
   deleteAccount: 'Xóa tài khoản',
   deleteAccountConfirm: 'Xóa tài khoản và toàn bộ lịch sử? Không thể hoàn tác.',
   actionFailed: 'Không thành công. Vui lòng thử lại.',
+  settings: 'Cài đặt',
+  account: 'Tài khoản',
+  today: 'Hôm nay',
+  previous7Days: '7 ngày qua',
+  older: 'Cũ hơn',
+  openSidebar: 'Mở menu',
+  closeSidebar: 'Đóng menu',
+  viewAllHistory: 'Toàn bộ lịch sử',
 };

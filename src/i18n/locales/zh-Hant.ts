@@ -95,4 +95,12 @@ export const zhHant: Strings = {
   deleteAccount: '刪除帳號',
   deleteAccountConfirm: '要刪除帳號及全部對話紀錄嗎？刪除後無法復原。',
   actionFailed: '操作失敗，請再試一次。',
+  settings: '設定',
+  account: '帳號',
+  today: '今天',
+  previous7Days: '過去 7 天',
+  older: '更早',
+  openSidebar: '開啟選單',
+  closeSidebar: '關閉選單',
+  viewAllHistory: '全部紀錄',
 };

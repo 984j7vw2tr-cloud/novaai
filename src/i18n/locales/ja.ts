@@ -95,4 +95,12 @@ export const ja: Strings = {
   deleteAccount: 'アカウントを削除',
   deleteAccountConfirm: 'アカウントと、すべての会話履歴を削除しますか？元に戻せません。',
   actionFailed: 'うまくいきませんでした。もう一度試してください。',
+  settings: '設定',
+  account: 'アカウント',
+  today: '今日',
+  previous7Days: '過去7日間',
+  older: 'それ以前',
+  openSidebar: 'メニューを開く',
+  closeSidebar: 'メニューを閉じる',
+  viewAllHistory: 'すべての履歴',
 };

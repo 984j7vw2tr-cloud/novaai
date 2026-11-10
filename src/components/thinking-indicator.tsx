@@ -2,55 +2,55 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { NovaText } from '@/components/nova-text';
+import { BrandMark } from '@/components/wordmark';
+import { Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
-import { Colors, Spacing } from '@/constants/theme';
 
-/** AIが考え中のときに出す、控えめな「・・・」表示 */
+/**
+ * AIが考え中のときの表示：NOVAの星がゆっくり呼吸するように明滅する。
+ * 動きは小さく、ゆっくり（長く見ていても気にならないように）。
+ */
 export function ThinkingIndicator() {
   const { t } = useI18n();
-  const [dots] = useState(() => [0, 1, 2].map(() => new Animated.Value(0.25)));
+  const [pulse] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
-    const animations = dots.map((dot, i) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(i * 160),
-          Animated.timing(dot, {
-            toValue: 1,
-            duration: 420,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(dot, {
-            toValue: 0.25,
-            duration: 420,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.delay((2 - i) * 160),
-        ]),
-      ),
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 900,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 900,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
     );
-    animations.forEach((a) => a.start());
-    return () => animations.forEach((a) => a.stop());
-  }, [dots]);
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] });
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1] });
+  const rotate = pulse.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
 
   return (
     <View style={styles.row} accessibilityLabel={t.thinking} accessibilityRole="progressbar">
-      <NovaText variant="small" tone="secondary">
+      <Animated.View style={{ opacity, transform: [{ scale }, { rotate }] }}>
+        <BrandMark size={16} />
+      </Animated.View>
+      <NovaText variant="small" tone="muted">
         {t.thinking}
       </NovaText>
-      <View style={styles.dots}>
-        {dots.map((opacity, i) => (
-          <Animated.View key={i} style={[styles.dot, { opacity }]} />
-        ))}
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.xs },
-  dots: { flexDirection: 'row', gap: 4 },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.accent },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm + 2, paddingVertical: 3 },
 });

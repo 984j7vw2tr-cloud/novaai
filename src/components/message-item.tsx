@@ -1,13 +1,15 @@
 import * as Clipboard from 'expo-clipboard';
-import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 
+import { IconButton } from '@/components/form';
+import { Markdown } from '@/components/markdown';
 import { NovaText } from '@/components/nova-text';
 import { ThinkingIndicator } from '@/components/thinking-indicator';
+import { BrandMark } from '@/components/wordmark';
+import { Colors, Spacing, Type } from '@/constants/theme';
 import { useI18n } from '@/i18n';
-import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { ChatMessage } from '@/lib/chat-types';
-import { isActive } from '@/lib/pressable';
 
 type Props = {
   message: ChatMessage;
@@ -21,13 +23,20 @@ type Props = {
 /** Webで、文章の向き（アラビア語なら右から左）を中身に合わせて自動で決める */
 const autoDir = (Platform.OS === 'web' ? { dir: 'auto' } : {}) as object;
 
-export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: Props) {
+export const MessageItem = memo(function MessageItem({
+  message,
+  isLatestAssistant,
+  busy,
+  onRegenerate,
+}: Props) {
   const { t } = useI18n();
+
+  // ユーザーの発言：右側の吹き出し
   if (message.role === 'user') {
     return (
       <View style={styles.userRow}>
         <View style={styles.userBubble}>
-          <NovaText selectable {...autoDir}>
+          <NovaText style={styles.userText} selectable {...autoDir}>
             {message.content}
           </NovaText>
         </View>
@@ -35,24 +44,29 @@ export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: 
     );
   }
 
+  // NOVAの回答：吹き出しなしで、本文として読みやすく
   const streaming = message.status === 'streaming';
   const showActions = !streaming && message.content.length > 0;
 
   return (
-    <View style={styles.assistantRow}>
-      <NovaText variant="label" tone="accent" style={styles.assistantLabel}>
-        NOVA
-      </NovaText>
+    <View style={styles.assistant}>
+      <View style={styles.assistantHead}>
+        <BrandMark size={14} />
+        <NovaText variant="label" tone="secondary">
+          NOVA
+        </NovaText>
+      </View>
       {streaming && message.content.length === 0 ? (
         <ThinkingIndicator />
       ) : (
-        <NovaText selectable {...autoDir}>
-          {message.content}
-          {streaming ? <NovaText tone="accent">▍</NovaText> : null}
-        </NovaText>
+        <Markdown
+          content={message.content}
+          labels={{ copy: t.copy, copied: t.copied }}
+          trailing={streaming ? <NovaText style={styles.cursor}> ●</NovaText> : undefined}
+        />
       )}
       {message.status === 'stopped' ? (
-        <NovaText variant="caption" tone="muted" style={styles.stoppedNote}>
+        <NovaText variant="caption" tone="muted">
           {t.stopped}
         </NovaText>
       ) : null}
@@ -60,13 +74,13 @@ export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: 
         <View style={styles.actions}>
           <CopyButton text={message.content} />
           {isLatestAssistant && !busy ? (
-            <ActionButton label={t.regenerate} onPress={onRegenerate} />
+            <IconButton icon="regenerate" label={t.regenerate} onPress={onRegenerate} size="sm" />
           ) : null}
         </View>
       ) : null}
     </View>
   );
-}
+});
 
 function CopyButton({ text }: { text: string }) {
   const { t } = useI18n();
@@ -87,50 +101,40 @@ function CopyButton({ text }: { text: string }) {
     timer.current = setTimeout(() => setCopied(false), 1600);
   };
 
-  return <ActionButton label={copied ? t.copied : t.copy} onPress={copy} />;
-}
-
-function ActionButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      hitSlop={6}
-      style={(state) => [styles.actionButton, isActive(state) && styles.actionButtonActive]}>
-      <NovaText variant="caption" tone="secondary">
-        {label}
-      </NovaText>
-    </Pressable>
+    <IconButton
+      icon={copied ? 'check' : 'copy'}
+      label={copied ? t.copied : t.copy}
+      onPress={copy}
+      size="sm"
+      color={copied ? Colors.text : Colors.textSecondary}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   userRow: { alignItems: 'flex-end' },
   userBubble: {
-    maxWidth: '85%',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    borderBottomRightRadius: Radius.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    maxWidth: '82%',
+    backgroundColor: Colors.surfaceRaised,
+    borderRadius: 22,
+    paddingHorizontal: Spacing.lg + 2,
+    paddingVertical: Spacing.md - 1,
   },
-  assistantRow: { alignItems: 'stretch' },
+  userText: { ...Type.body, lineHeight: 25 },
+  assistant: { gap: Spacing.md },
   // 行の先頭側に寄せる（右から左の言語では右側）
-  assistantLabel: { marginBottom: Spacing.sm, alignSelf: 'flex-start' },
-  stoppedNote: { marginTop: Spacing.sm },
+  assistantHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  cursor: { color: Colors.textMuted, fontSize: 10 },
   actions: {
     flexDirection: 'row',
-    gap: Spacing.xs,
-    marginTop: Spacing.md,
-    marginLeft: -Spacing.sm,
+    gap: 2,
+    marginTop: -Spacing.xs,
+    marginStart: -Spacing.sm + 2,
   },
-  actionButton: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
-  },
-  actionButtonActive: { backgroundColor: Colors.surfaceRaised },
 });

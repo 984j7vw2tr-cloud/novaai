@@ -97,4 +97,12 @@ export const it: Strings = {
   deleteAccount: 'Elimina account',
   deleteAccountConfirm: "Eliminare l'account e tutta la cronologia? Non si può annullare.",
   actionFailed: 'Non ha funzionato. Riprova.',
+  settings: 'Impostazioni',
+  account: 'Account',
+  today: 'Oggi',
+  previous7Days: 'Ultimi 7 giorni',
+  older: 'Meno recenti',
+  openSidebar: 'Apri menu',
+  closeSidebar: 'Chiudi menu',
+  viewAllHistory: 'Tutta la cronologia',
 };
