@@ -60,6 +60,8 @@ Supabase の Edge Functions → Secrets に設定する値：
 | `ALLOWED_ORIGINS` | 呼び出しを許可するWebサイト（既定 `*`、公開時に絞る） | |
 | `AI_PROVIDER` | 使うAI会社（既定 `openai`） | |
 
+サーバーの設置（デプロイ）：`./scripts/deploy-chat.sh`（Edge Functions の書き込み権限つきトークンが必要）
+
 ```bash
 npm run typecheck     # アプリとサーバー両方の型チェック
 npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼ばない）
