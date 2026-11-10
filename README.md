@@ -25,3 +25,19 @@ npm start          # スマホのExpo Goアプリで表示（QRコードを読�
 npx tsc --noEmit   # 型チェック（TypeScriptの間違い探し）
 npx expo lint      # コードの書き方チェック
 ```
+
+## 画面の構成（現在）
+
+| 画面 | ファイル |
+|---|---|
+| ホーム | `src/app/index.tsx` |
+| チャット | `src/app/chat.tsx` |
+
+- 色・余白などのデザインの決まり：`src/constants/theme.ts`
+- 画面に出す文言：`src/constants/strings.ts`（PHASE 6で多言語化）
+- チャットの動き（送信・停止・再生成など）：`src/hooks/use-chat.ts`
+- 回答の作り方：今はデモ（`src/lib/mock-reply.ts`）。PHASE 4でサーバー経由のAIに差し替える
+
+### テスト用
+
+チャットで `/error` と送ると、わざと失敗してエラー表示を確認できます（デモ返答のときだけ）。

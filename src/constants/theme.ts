@@ -1,65 +1,59 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
+ * NOVA AI のデザインの決まり（色・余白・角の丸み・文字）。
+ * 色や余白を変えたいときは、このファイルだけを直せば全画面に反映されます。
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/** NOVAはダークモードが基本。色は1セットだけ持つ。 */
 export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
+  /** メイン背景：ブラック */
+  background: '#000000',
+  /** サブ背景：ダークグレー（入力欄・ユーザーの吹き出しなど） */
+  surface: '#111113',
+  /** サブ背景より一段明るい面（押したとき・候補チップなど） */
+  surfaceRaised: '#1B1B1E',
+  /** 細い区切り線 */
+  border: '#2A2A2E',
+  /** 文字：ホワイト */
+  text: '#FFFFFF',
+  /** 補助文字：グレー */
+  textSecondary: '#9A9AA0',
+  /** さらに控えめな文字（注意書きなど） */
+  textMuted: '#616168',
+  /** アクセント：シルバー */
+  accent: '#C8CBD0',
+  /** アクセントの暗い版（押せないボタンなど） */
+  accentMuted: '#4A4B4F',
+  /** エラー表示 */
+  danger: '#FF7A7A',
+  dangerSurface: '#2A1414',
 } as const;
-
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
 
 export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
+  xxxl: 48,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Radius = {
+  sm: 8,
+  md: 14,
+  lg: 22,
+  pill: 999,
+} as const;
+
+/** PCなど広い画面でも、文章が読みやすい幅に収める */
+export const MaxContentWidth = 760;
+
+/** 多言語に対応できるよう、各OSの標準フォントを使う（Webは global.css で指定） */
+export const FontFamily = Platform.select({
+  web: 'var(--font-sans)',
+  default: undefined,
+});

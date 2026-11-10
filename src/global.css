@@ -1,9 +1,20 @@
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+  /* 多言語対応：日本語・中国語・韓国語・アラビア語・タイ語などはOS標準フォントに任せる */
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans',
+    'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', 'Noto Sans Arabic',
+    'Noto Sans Thai', 'Noto Sans Devanagari', Meiryo, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Noto Color Emoji';
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: #000000;
+}
+
+/* 入力欄にフォーカスしたときのブラウザ標準の青い枠を消す（代わりに枠線の色で表現） */
+textarea:focus,
+input:focus {
+  outline: none;
 }

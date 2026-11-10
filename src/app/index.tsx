@@ -1,98 +1,125 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Composer } from '@/components/composer';
+import { NovaText } from '@/components/nova-text';
+import { Wordmark } from '@/components/wordmark';
+import { strings } from '@/constants/strings';
+import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { isActive } from '@/lib/pressable';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
+/** ホーム画面：最初の質問を入れると、チャット画面に移って回答が始まる */
 export default function HomeScreen() {
+  const [text, setText] = useState('');
+
+  const startChat = (question: string) => {
+    const q = question.trim();
+    if (!q) return;
+    setText('');
+    router.push({ pathname: '/chat', params: { q } });
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.column}>
+            <View style={styles.hero}>
+              <Wordmark size={52} />
+              <NovaText variant="label" tone="muted" style={styles.tagline}>
+                {strings.brandTagline}
+              </NovaText>
+            </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+            <View style={styles.headlineBlock}>
+              <NovaText variant="title" style={styles.center}>
+                {strings.homeHeadline}
+              </NovaText>
+              <NovaText variant="small" tone="secondary" style={styles.center}>
+                {strings.homeSubline}
+              </NovaText>
+            </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+            <Composer
+              value={text}
+              onChangeText={setText}
+              onSubmit={() => startChat(text)}
+              autoFocus={Platform.OS === 'web'}
+            />
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+            <View style={styles.suggestions}>
+              <NovaText variant="label" tone="muted">
+                {strings.suggestionsTitle}
+              </NovaText>
+              <View style={styles.chips}>
+                {strings.suggestions.map((s) => (
+                  <Pressable
+                    key={s}
+                    onPress={() => startChat(s)}
+                    accessibilityRole="button"
+                    style={(state) => [styles.chip, isActive(state) && styles.chipActive]}>
+                    <NovaText variant="small" tone="secondary">
+                      {s}
+                    </NovaText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <NovaText variant="caption" tone="muted" style={styles.center}>
+            {strings.demoNotice}
+          </NovaText>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  safe: { flex: 1, backgroundColor: Colors.background },
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
-    flexDirection: 'row',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxxl,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
+  column: {
+    width: '100%',
     maxWidth: MaxContentWidth,
+    alignSelf: 'center',
+    gap: Spacing.xxl,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  hero: { alignItems: 'center', gap: Spacing.lg },
+  tagline: { textAlign: 'center' },
+  headlineBlock: { gap: Spacing.sm },
+  center: { textAlign: 'center' },
+  suggestions: { gap: Spacing.md },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  chip: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  chipActive: { backgroundColor: Colors.surfaceRaised, borderColor: Colors.accentMuted },
+  footer: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md },
 });
