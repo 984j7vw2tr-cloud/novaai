@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { NovaText } from '@/components/nova-text';
-import { strings } from '@/constants/strings';
+import { useI18n } from '@/i18n';
 import { Colors, FontFamily, Radius, Spacing } from '@/constants/theme';
 
 type Props = {
@@ -26,7 +26,16 @@ type Props = {
 };
 
 /** メッセージ入力欄＋送信（停止）ボタン */
-export function Composer({ value, onChangeText, onSubmit, onStop, busy, autoFocus, inputRef }: Props) {
+export function Composer({
+  value,
+  onChangeText,
+  onSubmit,
+  onStop,
+  busy,
+  autoFocus,
+  inputRef,
+}: Props) {
+  const { t } = useI18n();
   const [focused, setFocused] = useState(false);
   // Web では入力欄が自動で伸びないので、文字の量に合わせて高さを計算する
   const [webHeight, setWebHeight] = useState(MIN_HEIGHT);
@@ -68,7 +77,7 @@ export function Composer({ value, onChangeText, onSubmit, onStop, busy, autoFocu
         }}
         value={value}
         onChangeText={onChangeText}
-        placeholder={strings.composerPlaceholder}
+        placeholder={t.composerPlaceholder}
         placeholderTextColor={Colors.textMuted}
         multiline
         autoFocus={autoFocus}
@@ -77,13 +86,13 @@ export function Composer({ value, onChangeText, onSubmit, onStop, busy, autoFocu
         onBlur={() => setFocused(false)}
         selectionColor={Colors.accent}
         textAlignVertical="center"
-        accessibilityLabel={strings.composerPlaceholder}
+        accessibilityLabel={t.composerPlaceholder}
       />
       {busy ? (
         <Pressable
           onPress={onStop}
           accessibilityRole="button"
-          accessibilityLabel={strings.stop}
+          accessibilityLabel={t.stop}
           style={({ pressed }) => [styles.button, styles.buttonActive, pressed && styles.pressed]}>
           <View style={styles.stopIcon} />
         </Pressable>
@@ -92,8 +101,8 @@ export function Composer({ value, onChangeText, onSubmit, onStop, busy, autoFocu
           onPress={submit}
           disabled={!canSend}
           accessibilityRole="button"
-          accessibilityLabel={strings.send}
-          accessibilityState={{ disabled: !canSend }}
+          accessibilityLabel={t.send}
+          aria-disabled={!canSend}
           style={({ pressed }) => [
             styles.button,
             canSend ? styles.buttonActive : styles.buttonDisabled,
@@ -123,9 +132,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     gap: Spacing.sm,
   },
-  containerFocused: {
-    borderColor: Colors.accentMuted,
-  },
+  containerFocused: { borderColor: Colors.accentMuted },
   input: {
     flex: 1,
     minHeight: MIN_HEIGHT,

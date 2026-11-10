@@ -8,15 +8,40 @@
  * 日本語の例は、関西弁のツッコミの雰囲気を正しく伝えるために日本語のまま入れている。
  */
 
+/** アプリが対応している言語（コード → AIに伝える英語名） */
+export const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English',
+  ja: 'Japanese',
+  ko: 'Korean',
+  'zh-Hans': 'Simplified Chinese',
+  'zh-Hant': 'Traditional Chinese',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  it: 'Italian',
+  pt: 'Portuguese',
+  ru: 'Russian',
+  ar: 'Arabic',
+  hi: 'Hindi',
+  id: 'Indonesian',
+  th: 'Thai',
+  vi: 'Vietnamese',
+};
+
 export type PromptOptions = {
   /** 最新の入力に自傷の可能性があると判定されたか */
   selfHarmRisk: boolean;
+  /** ユーザーが指定した回答言語（なければ質問の言語で答える） */
+  replyLanguage?: string | null;
+  /** アプリの表示言語（質問の言語が判断できないときに使う） */
+  uiLanguage?: string | null;
 };
 
 const BASE = `You are NOVA, the AI of "NOVA AI" — ONE AI. EVERY LANGUAGE. NO FILTER.
 
 # Language
-- Reply in the language of the user's latest message, unless they ask for a specific language. If languages are mixed, use the main one.
+- Reply in the language of the user's latest message, unless they ask for a specific language. If languages are mixed, use the main one. If the user switches language mid-conversation, switch with them.
+- Match the script too: Traditional Chinese → reply in Traditional Chinese; Simplified Chinese → Simplified Chinese.
 - Write like a fluent native speaker of that language. No translationese.
 - Keep NOVA's personality in every language, adapted to how directness sounds natural in that culture.
 
@@ -77,8 +102,31 @@ If the user may be thinking about suicide or self-harm, drop all jokes, sarcasm,
 const SAFETY_OVERRIDE = `# SAFETY NOTICE FOR THIS REPLY
 An automatic check flagged the user's latest message as possibly related to self-harm or suicide. For this reply: Counter mode is OFF, no jokes or sarcasm, follow the "Self-harm" section. If, reading the whole conversation, it is clearly not about the user hurting themselves (for example, a question about a book or a medical fact), answer normally but kindly.`;
 
-export function buildSystemPrompt({ selfHarmRisk }: PromptOptions): string {
+export function buildSystemPrompt({
+  selfHarmRisk,
+  replyLanguage,
+  uiLanguage,
+}: PromptOptions): string {
   const parts = [BASE, COUNTER_MODE, SELF_HARM];
+  const languageRules: string[] = [];
+  const replyName = replyLanguage ? LANGUAGE_NAMES[replyLanguage] : undefined;
+  const uiName = uiLanguage ? LANGUAGE_NAMES[uiLanguage] : undefined;
+  if (replyName) {
+    // 回答言語の指定は「質問の言語で答える」という基本ルールより優先。
+    // 指示文の最後に置くだけでは守られないことがあったので、先頭にも置く。
+    parts.unshift(
+      `# REPLY LANGUAGE: ${replyName.toUpperCase()}\nThe user chose ${replyName} as NOVA's reply language in the app settings. Write your whole reply in ${replyName}, even if the user writes in another language. This overrides the "reply in the user's language" rule below. Only exception: the user's latest message explicitly asks for a different language for this answer.`,
+    );
+    languageRules.push(
+      `- Reminder: reply in ${replyName} (app setting), unless the latest message explicitly asks for another language.`,
+    );
+  }
+  if (uiName) {
+    languageRules.push(
+      `- If the language of the latest message is unclear (only emoji, numbers, a URL, or a single word shared by many languages)${replyName ? ' and no reply language is set' : ''}, reply in ${uiName} (the language of the user's app).`,
+    );
+  }
+  if (languageRules.length) parts.push(`# Language settings\n${languageRules.join('\n')}`);
   if (selfHarmRisk) parts.push(SAFETY_OVERRIDE);
   return parts.join('\n\n');
 }

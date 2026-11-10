@@ -2,6 +2,7 @@ import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 import { Colors } from '@/constants/theme';
+import { LanguageProvider } from '@/i18n';
 
 /** 画面の切り替え方の設定。NOVAは常にダークテーマ。 */
 const novaTheme = {
@@ -18,16 +19,19 @@ const novaTheme = {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={novaTheme}>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: Colors.background },
-        }}>
-        <Stack.Screen name="index" options={{ title: 'NOVA AI' }} />
-        <Stack.Screen name="chat" options={{ title: 'NOVA AI — Chat' }} />
-      </Stack>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider value={novaTheme}>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: Colors.background },
+          }}>
+          <Stack.Screen name="index" options={{ title: 'NOVA AI' }} />
+          <Stack.Screen name="chat" options={{ title: 'NOVA AI — Chat' }} />
+          <Stack.Screen name="language" options={{ title: 'NOVA AI — Language' }} />
+        </Stack>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }

@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { NovaText } from '@/components/nova-text';
-import { strings } from '@/constants/strings';
+import { useI18n } from '@/i18n';
 import { Colors, Spacing } from '@/constants/theme';
 
 /** AIが考え中のときに出す、控えめな「・・・」表示 */
 export function ThinkingIndicator() {
+  const { t } = useI18n();
   const [dots] = useState(() => [0, 1, 2].map(() => new Animated.Value(0.25)));
 
   useEffect(() => {
@@ -35,9 +36,9 @@ export function ThinkingIndicator() {
   }, [dots]);
 
   return (
-    <View style={styles.row} accessibilityLabel={strings.thinking} accessibilityRole="progressbar">
+    <View style={styles.row} accessibilityLabel={t.thinking} accessibilityRole="progressbar">
       <NovaText variant="small" tone="secondary">
-        {strings.thinking}
+        {t.thinking}
       </NovaText>
       <View style={styles.dots}>
         {dots.map((opacity, i) => (

@@ -1,6 +1,7 @@
 import { fetch } from 'expo/fetch';
 
 import type { ReplySource } from '@/lib/chat-types';
+import { getLanguageSettings } from '@/i18n';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
 
 /** サーバーから返ってくるエラーの種類 */
@@ -34,6 +35,7 @@ const toCode = (c: unknown): ChatErrorCode =>
  * APIキーはサーバー側にあるので、アプリには入っていない。
  */
 export const serverReply: ReplySource = async (history, { onDelta, onReplace, signal }) => {
+  const settings = await getLanguageSettings();
   let res;
   try {
     res = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
@@ -46,6 +48,7 @@ export const serverReply: ReplySource = async (history, { onDelta, onReplace, si
         messages: history
           .filter((m) => m.content.trim().length > 0)
           .map((m) => ({ role: m.role, content: m.content })),
+        settings,
       }),
       signal,
     });

@@ -1,0 +1,37 @@
+/** 画面に出す文言の一覧（全言語で同じ項目を持つ） */
+export type Strings = {
+  homeHeadline: string;
+  homeSubline: string;
+  composerPlaceholder: string;
+  send: string;
+  stop: string;
+  suggestionsTitle: string;
+  suggestions: readonly [string, string, string, string];
+  newChat: string;
+  back: string;
+  chatEmptyTitle: string;
+  chatEmptyBody: string;
+  thinking: string;
+  copy: string;
+  copied: string;
+  regenerate: string;
+  retry: string;
+  stopped: string;
+  errorGeneric: string;
+  errorNetwork: string;
+  errorRateLimited: string;
+  errorUnavailable: string;
+  errorInvalid: string;
+  disclaimer: string;
+  demoNotice: string;
+  language: string;
+  languageTitle: string;
+  displayLanguage: string;
+  displayLanguageHint: string;
+  replyLanguage: string;
+  replyLanguageHint: string;
+  autoDisplay: string;
+  autoReply: string;
+  restartNotice: string;
+  done: string;
+};

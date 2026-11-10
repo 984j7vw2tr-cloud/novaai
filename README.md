@@ -32,9 +32,11 @@ npx expo lint      # コードの書き方チェック
 |---|---|
 | ホーム | `src/app/index.tsx` |
 | チャット | `src/app/chat.tsx` |
+| 言語設定 | `src/app/language.tsx` |
 
 - 色・余白などのデザインの決まり：`src/constants/theme.ts`
-- 画面に出す文言：`src/constants/strings.ts`（PHASE 6で多言語化）
+- 画面に出す文言：`src/i18n/locales/`（16言語。言語ごとに1ファイル。項目は `src/i18n/types.ts`）
+- 言語の切り替え・保存：`src/i18n/index.tsx`（表示言語とNOVAの回答言語を別々に管理）
 - チャットの動き（送信・停止・再生成など）：`src/hooks/use-chat.ts`
 - 回答の作り方：`src/lib/nova-api.ts`（サーバーに送る）。接続先が未設定ならデモ（`src/lib/mock-reply.ts`）
 - 接続先の設定：`.env.example` をコピーして `.env.local` を作る（公開してよい値だけ）
@@ -68,6 +70,16 @@ Supabase の Edge Functions → Secrets に設定する値：
 npm run typecheck     # アプリとサーバー両方の型チェック
 npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼ばない）
 ```
+
+## 多言語の確認
+
+16言語で質問して、同じ言語で答えるか（簡体字・繁体字の区別、言語の切り替え、回答言語の設定、カウンターモード）を本物のAIで確認します。
+
+```bash
+NODE_USE_ENV_PROXY=1 node scripts/eval-languages.mjs
+```
+
+対応言語：英語、日本語、韓国語、中国語（簡体字・繁体字）、スペイン語、フランス語、ドイツ語、イタリア語、ポルトガル語、ロシア語、アラビア語（右から左）、ヒンディー語、インドネシア語、タイ語、ベトナム語
 
 ## 人格・カウンターモードの確認
 

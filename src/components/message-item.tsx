@@ -1,10 +1,10 @@
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { NovaText } from '@/components/nova-text';
 import { ThinkingIndicator } from '@/components/thinking-indicator';
-import { strings } from '@/constants/strings';
+import { useI18n } from '@/i18n';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { ChatMessage } from '@/lib/chat-types';
 import { isActive } from '@/lib/pressable';
@@ -18,12 +18,18 @@ type Props = {
   onRegenerate: () => void;
 };
 
+/** Webで、文章の向き（アラビア語なら右から左）を中身に合わせて自動で決める */
+const autoDir = (Platform.OS === 'web' ? { dir: 'auto' } : {}) as object;
+
 export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: Props) {
+  const { t } = useI18n();
   if (message.role === 'user') {
     return (
       <View style={styles.userRow}>
         <View style={styles.userBubble}>
-          <NovaText selectable>{message.content}</NovaText>
+          <NovaText selectable {...autoDir}>
+            {message.content}
+          </NovaText>
         </View>
       </View>
     );
@@ -40,21 +46,21 @@ export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: 
       {streaming && message.content.length === 0 ? (
         <ThinkingIndicator />
       ) : (
-        <NovaText selectable>
+        <NovaText selectable {...autoDir}>
           {message.content}
           {streaming ? <NovaText tone="accent">▍</NovaText> : null}
         </NovaText>
       )}
       {message.status === 'stopped' ? (
         <NovaText variant="caption" tone="muted" style={styles.stoppedNote}>
-          {strings.stopped}
+          {t.stopped}
         </NovaText>
       ) : null}
       {showActions ? (
         <View style={styles.actions}>
           <CopyButton text={message.content} />
           {isLatestAssistant && !busy ? (
-            <ActionButton label={strings.regenerate} onPress={onRegenerate} />
+            <ActionButton label={t.regenerate} onPress={onRegenerate} />
           ) : null}
         </View>
       ) : null}
@@ -63,12 +69,16 @@ export function MessageItem({ message, isLatestAssistant, busy, onRegenerate }: 
 }
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const copy = async () => {
     await Clipboard.setStringAsync(text);
@@ -77,7 +87,7 @@ function CopyButton({ text }: { text: string }) {
     timer.current = setTimeout(() => setCopied(false), 1600);
   };
 
-  return <ActionButton label={copied ? strings.copied : strings.copy} onPress={copy} />;
+  return <ActionButton label={copied ? t.copied : t.copy} onPress={copy} />;
 }
 
 function ActionButton({ label, onPress }: { label: string; onPress: () => void }) {
@@ -108,9 +118,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   assistantRow: { alignItems: 'stretch' },
-  assistantLabel: { marginBottom: Spacing.sm },
+  // 行の先頭側に寄せる（右から左の言語では右側）
+  assistantLabel: { marginBottom: Spacing.sm, alignSelf: 'flex-start' },
   stoppedNote: { marginTop: Spacing.sm },
-  actions: { flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.md, marginLeft: -Spacing.sm },
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginTop: Spacing.md,
+    marginLeft: -Spacing.sm,
+  },
   actionButton: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,

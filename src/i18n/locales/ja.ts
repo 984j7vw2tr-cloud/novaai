@@ -1,10 +1,6 @@
-/**
- * 画面に表示する文言。
- * PHASE 6（多言語対応）で、言語ごとのファイルに分けて切り替えられるようにします。
- * 今は日本語だけですが、画面のコードに文字を直接書かず、ここに集めておきます。
- */
-export const strings = {
-  brandTagline: 'ONE AI. EVERY LANGUAGE. NO FILTER.',
+import type { Strings } from '../types';
+
+export const ja: Strings = {
   homeHeadline: '忖度なしで答える。',
   homeSubline: '世界中の人々に、忖度のない知性を。',
   composerPlaceholder: '何でも聞いて。お世辞は言わない。',
@@ -34,4 +30,14 @@ export const strings = {
   errorInvalid: 'この内容は送れませんでした。長すぎる場合は短くしてください。',
   disclaimer: 'NOVAは間違えることがあります。重要な判断は自分でも確認してください。',
   demoNotice: 'デモ表示中：AIはまだ接続されていません',
-} as const;
+  language: '言語',
+  languageTitle: '言語設定',
+  displayLanguage: '表示言語',
+  displayLanguageHint: 'ボタンや案内など、アプリの表示に使う言語です。',
+  replyLanguage: 'NOVAの回答言語',
+  replyLanguageHint: '自動にすると、質問した言語で答えます。',
+  autoDisplay: '自動（端末の言語）',
+  autoReply: '自動（質問の言語）',
+  restartNotice: '右から左に書く表示に切り替えるには、アプリを再起動してください。',
+  done: '完了',
+};

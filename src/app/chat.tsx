@@ -16,9 +16,10 @@ import { Composer } from '@/components/composer';
 import { MessageItem } from '@/components/message-item';
 import { NovaText } from '@/components/nova-text';
 import { Wordmark } from '@/components/wordmark';
-import { strings } from '@/constants/strings';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
+import { useI18n } from '@/i18n';
+import type { Strings } from '@/i18n/types';
 import type { ChatMessage } from '@/lib/chat-types';
 import { isDemoMode } from '@/lib/config';
 import { isActive } from '@/lib/pressable';
@@ -27,6 +28,7 @@ import { isActive } from '@/lib/pressable';
 export default function ChatScreen() {
   const { q } = useLocalSearchParams<{ q?: string }>();
   const { messages, busy, error, send, stop, regenerate, retry, reset } = useChat();
+  const { t, isRTL } = useI18n();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const inputRef = useRef<TextInputInstance>(null);
@@ -63,9 +65,19 @@ export default function ChatScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.header}>
-        <HeaderButton label={`‹  ${strings.back}`} onPress={goBack} compactLabel="‹" />
+        <HeaderButton
+          label={`${isRTL ? '›' : '‹'}  ${t.back}`}
+          accessibilityLabel={t.back}
+          onPress={goBack}
+          compactLabel={isRTL ? '›' : '‹'}
+        />
         <Wordmark size={17} />
-        <HeaderButton label={`＋  ${strings.newChat}`} onPress={newChat} compactLabel="＋" />
+        <HeaderButton
+          label={`＋  ${t.newChat}`}
+          accessibilityLabel={t.newChat}
+          onPress={newChat}
+          compactLabel="＋"
+        />
       </View>
 
       <KeyboardAvoidingView
@@ -85,10 +97,10 @@ export default function ChatScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <NovaText variant="title" style={styles.center}>
-                {strings.chatEmptyTitle}
+                {t.chatEmptyTitle}
               </NovaText>
               <NovaText variant="small" tone="secondary" style={styles.center}>
-                {strings.chatEmptyBody}
+                {t.chatEmptyBody}
               </NovaText>
             </View>
           }
@@ -109,13 +121,13 @@ export default function ChatScreen() {
             {error ? (
               <View style={styles.error} accessibilityRole="alert">
                 <NovaText variant="small" tone="danger" style={styles.flex}>
-                  {errorMessage(error)}
+                  {errorMessage(error, t)}
                 </NovaText>
                 <Pressable
                   onPress={retry}
                   accessibilityRole="button"
                   style={({ pressed }) => [styles.retry, pressed && styles.pressed]}>
-                  <NovaText variant="small">{strings.retry}</NovaText>
+                  <NovaText variant="small">{t.retry}</NovaText>
                 </Pressable>
               </View>
             ) : null}
@@ -129,7 +141,7 @@ export default function ChatScreen() {
               autoFocus={Platform.OS === 'web'}
             />
             <NovaText variant="caption" tone="muted" style={[styles.center, styles.disclaimer]}>
-              {isDemoMode ? `${strings.demoNotice} ・ ${strings.disclaimer}` : strings.disclaimer}
+              {isDemoMode ? `${t.demoNotice} ・ ${t.disclaimer}` : t.disclaimer}
             </NovaText>
           </View>
         </View>
@@ -138,27 +150,29 @@ export default function ChatScreen() {
   );
 }
 
-function errorMessage(kind: ChatErrorKind) {
+function errorMessage(kind: ChatErrorKind, t: Strings) {
   switch (kind) {
     case 'network':
-      return strings.errorNetwork;
+      return t.errorNetwork;
     case 'rate_limited':
-      return strings.errorRateLimited;
+      return t.errorRateLimited;
     case 'service_unavailable':
-      return strings.errorUnavailable;
+      return t.errorUnavailable;
     case 'invalid_request':
-      return strings.errorInvalid;
+      return t.errorInvalid;
     default:
-      return strings.errorGeneric;
+      return t.errorGeneric;
   }
 }
 
 function HeaderButton({
   label,
+  accessibilityLabel,
   onPress,
   compactLabel,
 }: {
   label: string;
+  accessibilityLabel: string;
   onPress: () => void;
   compactLabel?: string;
 }) {
@@ -169,7 +183,7 @@ function HeaderButton({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label.replace(/^[‹＋]\s*/, '')}
+      accessibilityLabel={accessibilityLabel}
       hitSlop={8}
       style={(state) => [styles.headerButton, isActive(state) && styles.headerButtonActive]}>
       <NovaText variant={compact ? 'body' : 'small'} tone="secondary" numberOfLines={1}>
@@ -209,11 +223,7 @@ const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   empty: { gap: Spacing.sm },
   center: { textAlign: 'center' },
-  bottom: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.sm,
-  },
+  bottom: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.sm },
   error: {
     flexDirection: 'row',
     alignItems: 'center',

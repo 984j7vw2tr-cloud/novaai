@@ -411,3 +411,27 @@ test('安全チェック自体が失敗しても、チャットは止めない',
   assert.equal(res.status, 200);
   assert.deepEqual(lines, [{ type: 'delta', text: '普通の回答' }, { type: 'done' }]);
 });
+
+// ---- PHASE 6：言語設定 ----
+
+test('回答言語の指定と表示言語が指示文に入る。対応外の値や auto は無視', async () => {
+  const q = quiet();
+  const seen = { chat: [] as any[], moderation: [] as string[] };
+  const handle = createHandler({ env: makeEnv(), fetchImpl: fakeOpenAI({ seen }) });
+  const ask = (settings: unknown) =>
+    handle(chatRequest([{ role: 'user', content: 'hi' }], {}, undefined, settings)).then((r) => r.text());
+  await ask({ replyLanguage: 'ko', uiLanguage: 'ja' });
+  await ask({ replyLanguage: 'auto', uiLanguage: 'ar' });
+  await ask({ replyLanguage: 'klingon', uiLanguage: '<script>' });
+  await ask(undefined);
+  q.restore();
+  const p = seen.chat.map((c) => c.messages[0].content as string);
+  assert.match(p[0], /^# REPLY LANGUAGE: KOREAN/);
+  assert.match(p[0], /reply in Korean \(app setting\)/);
+  assert.match(p[0], /reply in Japanese \(the language of the user's app\)/);
+  assert.doesNotMatch(p[1], /Always reply in/);
+  assert.match(p[1], /reply in Arabic \(the language of the user's app\)/);
+  assert.doesNotMatch(p[2], /# Language settings/);
+  assert.doesNotMatch(p[2], /klingon|<script>/);
+  assert.doesNotMatch(p[3], /# Language settings/);
+});

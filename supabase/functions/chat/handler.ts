@@ -12,7 +12,7 @@
 import { type Env, getModel, getModerator, getProvider } from './providers/index.ts';
 import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
 import { type ProviderEvent, ProviderError, type ProviderMessage } from './providers/types.ts';
-import { buildSystemPrompt, safeFallback } from './system-prompt.ts';
+import { buildSystemPrompt, LANGUAGE_NAMES, safeFallback } from './system-prompt.ts';
 
 /** 安全チェックを待つ最大時間（これを過ぎたらチェックなしで進める） */
 const MODERATION_TIMEOUT_MS = 3000;
@@ -84,7 +84,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     }
 
     const messages: ProviderMessage[] = [
-      { role: 'system', content: buildSystemPrompt({ selfHarmRisk }) },
+      { role: 'system', content: buildSystemPrompt({ selfHarmRisk, ...readLanguages(body) }) },
       ...parsed.messages.slice(-MAX_HISTORY),
     ];
 
@@ -191,6 +191,13 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       },
     });
   };
+}
+
+/** アプリから届いた言語設定を読む（対応外の値は無視） */
+function readLanguages(body: unknown): { replyLanguage: string | null; uiLanguage: string | null } {
+  const s = (body as { settings?: { replyLanguage?: unknown; uiLanguage?: unknown } })?.settings;
+  const valid = (v: unknown) => (typeof v === 'string' && v in LANGUAGE_NAMES ? v : null);
+  return { replyLanguage: valid(s?.replyLanguage), uiLanguage: valid(s?.uiLanguage) };
 }
 
 /** 決めた時間内に終わらなければ null を返す */

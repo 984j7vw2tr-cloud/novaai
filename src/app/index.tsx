@@ -13,14 +13,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Composer } from '@/components/composer';
 import { NovaText } from '@/components/nova-text';
 import { Wordmark } from '@/components/wordmark';
-import { strings } from '@/constants/strings';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useI18n } from '@/i18n';
+import { getLanguage } from '@/i18n/languages';
 import { isDemoMode } from '@/lib/config';
 import { isActive } from '@/lib/pressable';
+
+const BRAND_TAGLINE = 'ONE AI. EVERY LANGUAGE. NO FILTER.';
 
 /** ホーム画面：最初の質問を入れると、チャット画面に移って回答が始まる */
 export default function HomeScreen() {
   const [text, setText] = useState('');
+  const { t, uiLanguage } = useI18n();
 
   const startChat = (question: string) => {
     const q = question.trim();
@@ -31,6 +35,18 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.push('/language')}
+          accessibilityRole="button"
+          accessibilityLabel={t.language}
+          hitSlop={8}
+          style={(state) => [styles.langButton, isActive(state) && styles.chipActive]}>
+          <NovaText variant="caption" tone="secondary">
+            {getLanguage(uiLanguage).nativeName}
+          </NovaText>
+        </Pressable>
+      </View>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -42,16 +58,16 @@ export default function HomeScreen() {
             <View style={styles.hero}>
               <Wordmark size={52} />
               <NovaText variant="label" tone="muted" style={styles.tagline}>
-                {strings.brandTagline}
+                {BRAND_TAGLINE}
               </NovaText>
             </View>
 
             <View style={styles.headlineBlock}>
               <NovaText variant="title" style={styles.center}>
-                {strings.homeHeadline}
+                {t.homeHeadline}
               </NovaText>
               <NovaText variant="small" tone="secondary" style={styles.center}>
-                {strings.homeSubline}
+                {t.homeSubline}
               </NovaText>
             </View>
 
@@ -64,10 +80,10 @@ export default function HomeScreen() {
 
             <View style={styles.suggestions}>
               <NovaText variant="label" tone="muted">
-                {strings.suggestionsTitle}
+                {t.suggestionsTitle}
               </NovaText>
               <View style={styles.chips}>
-                {strings.suggestions.map((s) => (
+                {t.suggestions.map((s) => (
                   <Pressable
                     key={s}
                     onPress={() => startChat(s)}
@@ -85,7 +101,7 @@ export default function HomeScreen() {
 
         <View style={styles.footer}>
           <NovaText variant="caption" tone="muted" style={styles.center}>
-            {isDemoMode ? strings.demoNotice : strings.disclaimer}
+            {isDemoMode ? t.demoNotice : t.disclaimer}
           </NovaText>
         </View>
       </KeyboardAvoidingView>
@@ -102,12 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xxxl,
   },
-  column: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    gap: Spacing.xxl,
-  },
+  column: { width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center', gap: Spacing.xxl },
   hero: { alignItems: 'center', gap: Spacing.lg },
   tagline: { textAlign: 'center' },
   headlineBlock: { gap: Spacing.sm },
@@ -122,5 +133,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   chipActive: { backgroundColor: Colors.surfaceRaised, borderColor: Colors.accentMuted },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+  },
+  langButton: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
   footer: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md },
 });
