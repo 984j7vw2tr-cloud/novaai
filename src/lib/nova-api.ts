@@ -12,14 +12,20 @@ export type ChatErrorCode =
   | 'service_unavailable'
   | 'upstream_error'
   | 'unauthorized'
+  | 'quota_exceeded'
   | 'network';
+
+/** 回数の上限に達したときの詳しい情報 */
+export type QuotaDetails = { limit?: number; resetAt?: string | null };
 
 export class ChatError extends Error {
   readonly code: ChatErrorCode;
-  constructor(code: ChatErrorCode) {
+  readonly details?: QuotaDetails;
+  constructor(code: ChatErrorCode, details?: QuotaDetails) {
     super(code);
     this.name = 'ChatError';
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -29,6 +35,7 @@ const KNOWN_CODES: ChatErrorCode[] = [
   'service_unavailable',
   'upstream_error',
   'unauthorized',
+  'quota_exceeded',
 ];
 const toCode = (c: unknown): ChatErrorCode =>
   KNOWN_CODES.includes(c as ChatErrorCode) ? (c as ChatErrorCode) : 'upstream_error';
@@ -39,7 +46,7 @@ const toCode = (c: unknown): ChatErrorCode =>
  */
 export const serverReply: ReplySource = async (
   history,
-  { onDelta, onReplace, signal, conversationId },
+  { onDelta, onReplace, onQuota, signal, conversationId },
 ) => {
   const settings = await getLanguageSettings();
   // ログインの鍵をつけて送る（サーバーはこれでログイン中の本人か確かめる）
@@ -69,12 +76,20 @@ export const serverReply: ReplySource = async (
 
   if (!res.ok || !res.body) {
     let code: unknown;
+    let data: { limit?: unknown; resetAt?: unknown } | null = null;
     try {
-      code = (await res.json())?.code;
+      data = await res.json();
+      code = (data as { code?: unknown })?.code;
     } catch {
       // JSONでない
     }
     if (res.status === 401) throw new ChatError('unauthorized');
+    if (code === 'quota_exceeded') {
+      throw new ChatError('quota_exceeded', {
+        limit: typeof data?.limit === 'number' ? data.limit : undefined,
+        resetAt: typeof data?.resetAt === 'string' ? data.resetAt : null,
+      });
+    }
     throw new ChatError(res.status === 429 ? 'rate_limited' : toCode(code));
   }
 
@@ -86,7 +101,7 @@ export const serverReply: ReplySource = async (
 
   const handleLine = (line: string) => {
     if (!line.trim()) return;
-    let ev: { type?: string; text?: string; code?: string };
+    let ev: { type?: string; text?: string; code?: string; limit?: number; remaining?: number };
     try {
       ev = JSON.parse(line);
     } catch {
@@ -94,6 +109,12 @@ export const serverReply: ReplySource = async (
     }
     if (ev.type === 'delta' && typeof ev.text === 'string') onDelta(ev.text);
     else if (ev.type === 'replace' && typeof ev.text === 'string') onReplace?.(ev.text);
+    else if (
+      ev.type === 'quota' &&
+      typeof ev.limit === 'number' &&
+      typeof ev.remaining === 'number'
+    )
+      onQuota?.({ limit: ev.limit, remaining: ev.remaining });
     else if (ev.type === 'done') finished = true;
     else if (ev.type === 'error') throw new ChatError(toCode(ev.code));
   };

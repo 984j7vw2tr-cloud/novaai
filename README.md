@@ -69,7 +69,7 @@ Supabase の Edge Functions → Secrets に設定する値：
 | `MODERATION` | 安全チェック（既定 `on`。`off` で停止） | |
 | `OPENAI_MODERATION_MODEL` | 安全チェックのモデル（既定 `omni-moderation-latest`） | |
 
-サーバーの設置（デプロイ）：`./scripts/deploy-chat.sh`（Edge Functions の書き込み権限つきトークンが必要）
+サーバーの設置（デプロイ）：`./scripts/deploy-function.sh chat`（アカウント削除は `account`）（Edge Functions の書き込み権限つきトークンが必要）
 
 ```bash
 npm run typecheck     # アプリとサーバー両方の型チェック
@@ -104,6 +104,17 @@ npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼�
 ```bash
 NODE_USE_ENV_PROXY=1 node scripts/test-rls.mjs   # 安全ルールの確認（テスト用アカウントが必要）
 ```
+
+## セキュリティ・利用制限（PHASE 9）
+
+- **回数制限**：直近24時間の質問回数をプランごとに制限（無料 10回 / PLUS 200回 / PRO 1000回）。
+  サーバーの環境変数 `QUOTA_FREE` / `QUOTA_PLUS` / `QUOTA_PRO` で変更できる（`supabase/functions/chat/quota.ts`）
+- 1分あたりの回数制限（人ごと、`RATE_LIMIT_PER_MINUTE`）も別にかかる
+- **データの削除**：プロフィールから「会話履歴をすべて削除」「アカウントを削除」（`supabase/functions/account`）
+- **料金の把握**：`./scripts/usage-report.sh`（日ごとの使用量と推定料金）。料金は `model_prices` の表に登録する
+- **プライバシーポリシー・利用規約**：`docs/` に下書き（公開前に専門家の確認が必要）
+
+サーバーの関数は `supabase/functions/<名前>/`、共通部品は `supabase/functions/_shared/`。
 
 ## 多言語の確認
 

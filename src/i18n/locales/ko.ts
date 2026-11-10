@@ -86,4 +86,14 @@ export const ko: Strings = {
   deleteConfirm: '이 대화를 삭제할까요? 되돌릴 수 없습니다.',
   loadFailed: '불러오지 못했습니다. 다시 시도해 주세요.',
   saveFailed: '대화를 저장하지 못했습니다. 계속 사용할 수 있지만 기록에 남지 않을 수 있습니다.',
+  quotaRemaining: '오늘 남은 횟수 {n}회',
+  quotaExceeded:
+    '오늘 사용할 수 있는 {limit}회를 모두 썼습니다. {time} 이후에 다시 사용할 수 있습니다.',
+  dataSection: '데이터',
+  deleteAllHistory: '대화 기록 모두 삭제',
+  deleteAllHistoryConfirm: '모든 대화 기록을 삭제할까요? 되돌릴 수 없습니다.',
+  historyDeleted: '대화 기록을 삭제했습니다',
+  deleteAccount: '계정 삭제',
+  deleteAccountConfirm: '계정과 모든 대화 기록을 삭제할까요? 되돌릴 수 없습니다.',
+  actionFailed: '실패했습니다. 다시 시도해 주세요.',
 };

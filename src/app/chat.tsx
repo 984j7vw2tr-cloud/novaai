@@ -22,6 +22,7 @@ import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
 import { useI18n } from '@/i18n';
 import type { Strings } from '@/i18n/types';
 import type { ChatMessage } from '@/lib/chat-types';
+import type { QuotaDetails } from '@/lib/nova-api';
 import { isDemoMode } from '@/lib/config';
 import { isActive } from '@/lib/pressable';
 
@@ -39,6 +40,8 @@ export default function ChatScreen() {
     messages,
     busy,
     error,
+    errorDetails,
+    quota,
     saveFailed,
     loading,
     loadFailed,
@@ -49,7 +52,7 @@ export default function ChatScreen() {
     reset,
     load,
   } = useChat({ onConversationCreated });
-  const { t, isRTL } = useI18n();
+  const { t, isRTL, uiLanguage } = useI18n();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const inputRef = useRef<TextInputInstance>(null);
@@ -168,15 +171,24 @@ export default function ChatScreen() {
             {error ? (
               <View style={styles.error} accessibilityRole="alert">
                 <NovaText variant="small" tone="danger" style={styles.flex}>
-                  {errorMessage(error, t)}
+                  {errorMessage(error, t, errorDetails, uiLanguage)}
                 </NovaText>
-                <Pressable
-                  onPress={retry}
-                  accessibilityRole="button"
-                  style={({ pressed }) => [styles.retry, pressed && styles.pressed]}>
-                  <NovaText variant="small">{t.retry}</NovaText>
-                </Pressable>
+                {/* 回数の上限に達したときは、やり直しても同じなのでボタンを出さない */}
+                {error !== 'quota_exceeded' ? (
+                  <Pressable
+                    onPress={retry}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [styles.retry, pressed && styles.pressed]}>
+                    <NovaText variant="small">{t.retry}</NovaText>
+                  </Pressable>
+                ) : null}
               </View>
+            ) : null}
+            {/* 残りが少なくなったら「今日の残り○回」を出す */}
+            {quota && quota.remaining <= LOW_QUOTA ? (
+              <NovaText variant="caption" tone="secondary" style={styles.saveNotice}>
+                {t.quotaRemaining.replace('{n}', String(quota.remaining))}
+              </NovaText>
             ) : null}
             <Composer
               value={text}
@@ -197,8 +209,22 @@ export default function ChatScreen() {
   );
 }
 
-function errorMessage(kind: ChatErrorKind, t: Strings) {
+/** この回数以下になったら「今日の残り」を表示する */
+const LOW_QUOTA = 10;
+
+function errorMessage(
+  kind: ChatErrorKind,
+  t: Strings,
+  details: QuotaDetails | null,
+  locale: string,
+) {
   switch (kind) {
+    case 'quota_exceeded': {
+      const time = details?.resetAt ? formatTime(details.resetAt, locale) : '—';
+      return t.quotaExceeded
+        .replace('{limit}', String(details?.limit ?? ''))
+        .replace('{time}', time);
+    }
     case 'network':
       return t.errorNetwork;
     case 'rate_limited':
@@ -211,6 +237,20 @@ function errorMessage(kind: ChatErrorKind, t: Strings) {
       return t.errorUnauthorized;
     default:
       return t.errorGeneric;
+  }
+}
+
+/** 次に使える時刻を、その人の言語と端末の時刻で表示する（例：11月11日 10:00） */
+function formatTime(iso: string, locale: string) {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso));
+  } catch {
+    return new Date(iso).toLocaleString();
   }
 }
 

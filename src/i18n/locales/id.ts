@@ -87,4 +87,13 @@ export const id: Strings = {
   deleteConfirm: 'Hapus percakapan ini? Tidak bisa dibatalkan.',
   loadFailed: 'Gagal memuat. Silakan coba lagi.',
   saveFailed: 'Percakapan gagal disimpan. Kamu bisa lanjut, tapi mungkin tidak muncul di riwayat.',
+  quotaRemaining: 'Sisa {n} hari ini',
+  quotaExceeded: 'Kamu sudah memakai {limit} pesan hari ini. Bisa lanjut lagi setelah {time}.',
+  dataSection: 'Data',
+  deleteAllHistory: 'Hapus semua riwayat',
+  deleteAllHistoryConfirm: 'Hapus semua riwayat percakapan? Tidak bisa dibatalkan.',
+  historyDeleted: 'Riwayat dihapus',
+  deleteAccount: 'Hapus akun',
+  deleteAccountConfirm: 'Hapus akun dan semua riwayat? Tidak bisa dibatalkan.',
+  actionFailed: 'Gagal. Silakan coba lagi.',
 };

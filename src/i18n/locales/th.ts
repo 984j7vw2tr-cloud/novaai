@@ -86,4 +86,13 @@ export const th: Strings = {
   deleteConfirm: 'ลบการสนทนานี้ไหม ย้อนกลับไม่ได้',
   loadFailed: 'โหลดไม่สำเร็จ โปรดลองอีกครั้ง',
   saveFailed: 'บันทึกการสนทนาไม่สำเร็จ ใช้ต่อได้ แต่อาจไม่แสดงในประวัติ',
+  quotaRemaining: 'วันนี้เหลือ {n} ครั้ง',
+  quotaExceeded: 'ใช้ครบ {limit} ครั้งของวันนี้แล้ว ใช้ได้อีกครั้งหลัง {time}',
+  dataSection: 'ข้อมูล',
+  deleteAllHistory: 'ลบประวัติทั้งหมด',
+  deleteAllHistoryConfirm: 'ลบประวัติการสนทนาทั้งหมดไหม ย้อนกลับไม่ได้',
+  historyDeleted: 'ลบประวัติแล้ว',
+  deleteAccount: 'ลบบัญชี',
+  deleteAccountConfirm: 'ลบบัญชีและประวัติการสนทนาทั้งหมดไหม ย้อนกลับไม่ได้',
+  actionFailed: 'ไม่สำเร็จ โปรดลองอีกครั้ง',
 };

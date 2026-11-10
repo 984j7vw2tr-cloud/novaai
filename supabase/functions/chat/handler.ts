@@ -9,7 +9,10 @@
  *
  * 秘密の情報（APIキーやAI会社のエラー本文）はアプリには返さず、ログにだけ出す。
  */
+import { authenticate, UUID_RE } from '../_shared/auth.ts';
+import { corsHeaders } from '../_shared/http.ts';
 import { type Env, getModel, getModerator, getProvider } from './providers/index.ts';
+import { getQuotaStatus } from './quota.ts';
 import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
 import { type ProviderEvent, ProviderError, type ProviderMessage } from './providers/types.ts';
 import { buildSystemPrompt, LANGUAGE_NAMES, safeFallback } from './system-prompt.ts';
@@ -31,7 +34,8 @@ export type ErrorCode =
   | 'rate_limited'
   | 'service_unavailable'
   | 'upstream_error'
-  | 'unauthorized';
+  | 'unauthorized'
+  | 'quota_exceeded';
 
 type Deps = {
   env: Env;
@@ -58,6 +62,16 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
 
     // 同じ人から短時間に大量に送られるのを防ぐ（1分あたりの回数）
     if (!limiter.allow(userId)) return errorResponse(429, 'rate_limited', cors);
+
+    // プランごとの1日（直近24時間）の回数制限
+    const quota = UUID_RE.test(userId) ? await getQuotaStatus(env, doFetch, userId, now()) : null;
+    if (quota && quota.used >= quota.limit) {
+      return errorResponse(429, 'quota_exceeded', cors, undefined, {
+        plan: quota.plan,
+        limit: quota.limit,
+        resetAt: quota.resetAt,
+      });
+    }
 
     let body: unknown;
     try {
@@ -112,7 +126,20 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         const send = (obj: unknown) => controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'));
-        const usage = { input: null as number | null, output: null as number | null };
+        const usage = {
+          input: null as number | null,
+          output: null as number | null,
+          cached: 0,
+        };
+        // 最初に、今日の残り回数を知らせる（アプリに「残り○回」を出すため）
+        if (quota) {
+          send({
+            type: 'quota',
+            plan: quota.plan,
+            limit: quota.limit,
+            remaining: Math.max(0, quota.limit - quota.used - 1),
+          });
+        }
         let fullText = '';
         let replaced = false;
         const handleEvent = (ev: ProviderEvent) => {
@@ -122,6 +149,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
           } else {
             usage.input = ev.inputTokens;
             usage.output = ev.outputTokens;
+            usage.cached = ev.cachedInputTokens;
           }
         };
         try {
@@ -171,6 +199,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
             model,
             inputTokens: usage.input ?? 0,
             outputTokens: usage.output ?? 0,
+            cachedInputTokens: usage.cached,
             aborted: upstream.signal.aborted,
           });
           console.log(
@@ -210,51 +239,6 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
   };
 }
 
-type AuthResult =
-  | { kind: 'ok'; userId: string }
-  | { kind: 'denied' }
-  | { kind: 'misconfigured' };
-
-/**
- * ログインの鍵（Authorization: Bearer ...）を Supabase に確認してもらい、本人のIDを得る。
- * REQUIRE_AUTH=false のときだけ、ログインなしで使える（テスト・開発用）。
- */
-async function authenticate(
-  req: Request,
-  env: Env,
-  doFetch: typeof fetch,
-  ip: string,
-): Promise<AuthResult> {
-  if ((env.get('REQUIRE_AUTH') ?? 'true').toLowerCase() === 'false') {
-    return { kind: 'ok', userId: `ip:${ip}` };
-  }
-  const header = req.headers.get('authorization') ?? '';
-  const token = header.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
-  if (!token) return { kind: 'denied' };
-
-  const supabaseUrl = env.get('SUPABASE_URL');
-  // アプリが送ってくる公開キー（なければサーバーの環境変数）を使う
-  const apikey = req.headers.get('apikey') ?? env.get('SUPABASE_ANON_KEY');
-  if (!supabaseUrl || !apikey) {
-    console.error('[chat] SUPABASE_URL or apikey is missing; cannot verify users');
-    return { kind: 'misconfigured' };
-  }
-  try {
-    const res = await doFetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return { kind: 'denied' };
-    const user = await res.json();
-    return typeof user?.id === 'string' ? { kind: 'ok', userId: user.id } : { kind: 'denied' };
-  } catch (e) {
-    console.error('[chat] auth check failed', e);
-    return { kind: 'misconfigured' };
-  }
-}
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /** アプリから届いた会話ID（使用量をどの会話のものか記録するため）。形がおかしければ無視 */
 function readConversationId(body: unknown): string | null {
   const id = (body as { conversationId?: unknown })?.conversationId;
@@ -275,6 +259,7 @@ async function recordUsage(
     model: string;
     inputTokens: number;
     outputTokens: number;
+    cachedInputTokens: number;
     aborted: boolean;
   },
 ) {
@@ -301,6 +286,7 @@ async function recordUsage(
         model: u.model,
         input_tokens: Math.max(0, Math.round(u.inputTokens)),
         output_tokens: Math.max(0, Math.round(u.outputTokens)),
+        cached_input_tokens: Math.max(0, Math.round(u.cachedInputTokens)),
         aborted: u.aborted,
       }),
       signal: AbortSignal.timeout(5000),
@@ -395,27 +381,13 @@ function errorResponse(
   code: ErrorCode,
   cors: Record<string, string>,
   reason?: string,
+  extra?: Record<string, unknown>,
 ) {
-  return new Response(JSON.stringify(reason ? { type: 'error', code, reason } : { type: 'error', code }), {
+  const body = { type: 'error', code, ...(reason ? { reason } : {}), ...(extra ?? {}) };
+  return new Response(JSON.stringify(body), {
     status,
     headers: { ...cors, 'Content-Type': 'application/json' },
   });
-}
-
-/** Webブラウザから呼べるようにするための設定（CORS） */
-function corsHeaders(req: Request, env: Env): Record<string, string> {
-  const allowed = (env.get('ALLOWED_ORIGINS') ?? '*')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const origin = req.headers.get('origin') ?? '';
-  const allowOrigin = allowed.includes('*') ? '*' : allowed.includes(origin) ? origin : allowed[0] ?? '';
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    Vary: 'Origin',
-  };
 }
 
 /** 1分あたりの回数制限（サーバーが再起動すると数え直しになる簡易版） */

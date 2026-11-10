@@ -57,6 +57,8 @@ export function createOpenAIProvider(options: {
             type: 'usage',
             inputTokens: chunk.usage.prompt_tokens ?? 0,
             outputTokens: chunk.usage.completion_tokens ?? 0,
+            // 同じ指示文のくり返しは「キャッシュ」として安くなる（料金計算用）
+            cachedInputTokens: chunk.usage.prompt_tokens_details?.cached_tokens ?? 0,
           };
         }
       }
@@ -66,7 +68,11 @@ export function createOpenAIProvider(options: {
 
 type OpenAIChunk = {
   choices?: { delta?: { content?: string | null } }[];
-  usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    prompt_tokens_details?: { cached_tokens?: number } | null;
+  } | null;
 };
 
 async function* readSseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {

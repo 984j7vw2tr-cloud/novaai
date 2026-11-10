@@ -12,6 +12,9 @@ import { getLanguage } from '@/i18n/languages';
 import { authErrorMessage } from '@/lib/auth-messages';
 import { isActive } from '@/lib/pressable';
 import { getProfile, updateProfile } from '@/lib/profile';
+import { deleteMyAccount } from '@/lib/account';
+import { confirmAsync } from '@/lib/confirm';
+import { deleteAllConversations } from '@/lib/conversations';
 
 /** プロフィール画面：メールアドレス・表示名・言語・ログアウト */
 export default function ProfileScreen() {
@@ -22,7 +25,9 @@ export default function ProfileScreen() {
   /** データベースに保存されている表示名（変更があるかの判定に使う） */
   const [savedName, setSavedName] = useState('');
   const [name, setName] = useState('');
-  const [busy, setBusy] = useState<null | 'save' | 'signout'>(null);
+  const [busy, setBusy] = useState<null | 'save' | 'signout' | 'history' | 'account'>(null);
+  /** データ削除の結果（成功・失敗のお知らせ） */
+  const [dataNotice, setDataNotice] = useState<null | 'historyDeleted' | 'failed'>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<AuthErrorKind | null>(null);
 
@@ -60,6 +65,46 @@ export default function ProfileScreen() {
     } catch {
       setError('generic');
     } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteHistory = async () => {
+    if (!userId) return;
+    const ok = await confirmAsync({
+      message: t.deleteAllHistoryConfirm,
+      confirmLabel: t.deleteLabel,
+      cancelLabel: t.cancel,
+      destructive: true,
+    });
+    if (!ok) return;
+    setDataNotice(null);
+    setBusy('history');
+    try {
+      await deleteAllConversations(userId);
+      setDataNotice('historyDeleted');
+    } catch {
+      setDataNotice('failed');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteAccount = async () => {
+    const ok = await confirmAsync({
+      message: t.deleteAccountConfirm,
+      confirmLabel: t.deleteLabel,
+      cancelLabel: t.cancel,
+      destructive: true,
+    });
+    if (!ok) return;
+    setDataNotice(null);
+    setBusy('account');
+    try {
+      await deleteMyAccount();
+      // ログイン状態が消えるので、自動でログイン画面に切り替わる
+    } catch {
+      setDataNotice('failed');
       setBusy(null);
     }
   };
@@ -135,6 +180,33 @@ export default function ProfileScreen() {
             busy={busy === 'signout'}
             disabled={!!busy}
           />
+
+          {/* データ：会話履歴の削除・アカウントの削除 */}
+          <View style={styles.section}>
+            <NovaText variant="label" tone="muted">
+              {t.dataSection.toUpperCase()}
+            </NovaText>
+            {dataNotice ? (
+              <Notice
+                tone={dataNotice === 'failed' ? 'danger' : 'info'}
+                text={dataNotice === 'failed' ? t.actionFailed : t.historyDeleted}
+              />
+            ) : null}
+            <Button
+              variant="secondary"
+              label={t.deleteAllHistory}
+              onPress={deleteHistory}
+              busy={busy === 'history'}
+              disabled={!!busy}
+            />
+            <Button
+              variant="danger"
+              label={t.deleteAccount}
+              onPress={deleteAccount}
+              busy={busy === 'account'}
+              disabled={!!busy}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

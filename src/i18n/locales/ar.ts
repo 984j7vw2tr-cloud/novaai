@@ -86,4 +86,13 @@ export const ar: Strings = {
   deleteConfirm: 'هل تريد حذف هذه المحادثة؟ لا يمكن التراجع عن ذلك.',
   loadFailed: 'تعذّر التحميل. حاول مرة أخرى.',
   saveFailed: 'تعذّر حفظ المحادثة. يمكنك المتابعة، لكنها قد لا تظهر في السجل.',
+  quotaRemaining: 'متبقٍ اليوم: {n}',
+  quotaExceeded: 'استخدمت كل رسائل اليوم ({limit}). يمكنك المتابعة بعد {time}.',
+  dataSection: 'البيانات',
+  deleteAllHistory: 'حذف كل سجل المحادثات',
+  deleteAllHistoryConfirm: 'هل تريد حذف كل سجل المحادثات؟ لا يمكن التراجع عن ذلك.',
+  historyDeleted: 'تم حذف السجل',
+  deleteAccount: 'حذف الحساب',
+  deleteAccountConfirm: 'هل تريد حذف حسابك وكل سجل المحادثات؟ لا يمكن التراجع عن ذلك.',
+  actionFailed: 'لم ينجح ذلك. حاول مرة أخرى.',
 };

@@ -80,4 +80,13 @@ export type Strings = {
   deleteConfirm: string;
   loadFailed: string;
   saveFailed: string;
+  quotaRemaining: string;
+  quotaExceeded: string;
+  dataSection: string;
+  deleteAllHistory: string;
+  deleteAllHistoryConfirm: string;
+  historyDeleted: string;
+  deleteAccount: string;
+  deleteAccountConfirm: string;
+  actionFailed: string;
 };

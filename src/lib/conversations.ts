@@ -79,3 +79,9 @@ export async function deleteConversation(id: string) {
   const { error } = await db().from('conversations').delete().eq('id', id);
   if (error) throw error;
 }
+
+/** 自分の会話をすべて削除する（中のメッセージも一緒に消える） */
+export async function deleteAllConversations(userId: string) {
+  const { error } = await db().from('conversations').delete().eq('user_id', userId);
+  if (error) throw error;
+}

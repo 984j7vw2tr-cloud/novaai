@@ -46,7 +46,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test:server": "node --test supabase/functions/chat/*.test.ts",
+    "test:server": "node --test supabase/functions/*/*.test.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p supabase/functions"
   },
   "private": true

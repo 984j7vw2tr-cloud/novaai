@@ -86,4 +86,13 @@ export const zhHant: Strings = {
   deleteConfirm: '要刪除這個對話嗎？刪除後無法復原。',
   loadFailed: '無法載入，請再試一次。',
   saveFailed: '無法儲存此對話。可以繼續使用，但可能不會出現在紀錄中。',
+  quotaRemaining: '今日剩餘 {n} 次',
+  quotaExceeded: '今天的 {limit} 次已用完。{time} 之後可以再次使用。',
+  dataSection: '資料',
+  deleteAllHistory: '刪除全部對話紀錄',
+  deleteAllHistoryConfirm: '要刪除全部對話紀錄嗎？刪除後無法復原。',
+  historyDeleted: '已刪除對話紀錄',
+  deleteAccount: '刪除帳號',
+  deleteAccountConfirm: '要刪除帳號及全部對話紀錄嗎？刪除後無法復原。',
+  actionFailed: '操作失敗，請再試一次。',
 };

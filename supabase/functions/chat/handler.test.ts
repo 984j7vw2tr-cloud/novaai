@@ -575,6 +575,7 @@ test('使用量を usage_events にサーバー専用の鍵で保存する（会
     model: 'test-model',
     input_tokens: 12,
     output_tokens: 5,
+    cached_input_tokens: 0,
     aborted: false,
   });
   assert.ok(!body.includes('service-secret'));
@@ -619,4 +620,131 @@ test('会話IDがおかしい・存在しないときは会話なしで保存。
   assert.equal(r1.status, 200);
   assert.equal(r2.status, 200);
   assert.equal(JSON.parse(r1.lines.at(-1)!).type, 'done');
+});
+
+// ---- PHASE 9：プランごとの回数制限 ----
+
+const USER = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+const NOW = Date.parse('2026-11-10T12:00:00Z');
+
+/** Supabase（ログイン確認・プラン・使用量）とOpenAIの偽物 */
+function fakeQuotaWorld(opts: {
+  used: number;
+  oldest?: string;
+  sub?: { plan: string; status: string; current_period_end: string | null } | null;
+  failDb?: boolean;
+  usageChunk?: string;
+}) {
+  const seen = { chat: 0, inserts: [] as any[], usageQuery: '' };
+  const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = String(url);
+    if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: USER }));
+    if (u.includes('/rest/v1/subscriptions')) {
+      if (opts.failDb) return new Response('{}', { status: 500 });
+      return new Response(JSON.stringify(opts.sub ? [opts.sub] : []));
+    }
+    if (u.includes('/rest/v1/usage_events') && (init?.method ?? 'GET') === 'GET') {
+      seen.usageQuery = u;
+      const rows = opts.used > 0 ? [{ created_at: opts.oldest ?? '2026-11-10T01:00:00Z' }] : [];
+      return new Response(JSON.stringify(rows), {
+        headers: { 'content-range': opts.used > 0 ? `0-0/${opts.used}` : '*/0' },
+      });
+    }
+    if (u.includes('/rest/v1/usage_events')) {
+      seen.inserts.push(JSON.parse(String(init?.body)));
+      return new Response(null, { status: 201 });
+    }
+    seen.chat++;
+    return sseResponse([delta('ok'), opts.usageChunk ?? usage, 'data: [DONE]\n\n']);
+  }) as typeof fetch;
+  return { seen, fetchImpl };
+}
+
+const authed = () =>
+  new Request('http://localhost/chat', {
+    method: 'POST',
+    headers: { authorization: 'Bearer t', apikey: 'pk' },
+    body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }] }),
+  });
+
+const quotaEnv = (vars: Record<string, string | undefined> = {}) =>
+  makeEnv({ REQUIRE_AUTH: 'true', SUPABASE_SERVICE_ROLE_KEY: 'svc', ...vars });
+
+test('無料プランで24時間に10回使ったら 429 quota_exceeded。AIは呼ばない。次に使える時刻を返す', async () => {
+  const q = quiet();
+  const { seen, fetchImpl } = fakeQuotaWorld({ used: 10, oldest: '2026-11-10T01:00:00Z' });
+  const handle = createHandler({ env: quotaEnv(), fetchImpl, now: () => NOW });
+  const res = await handle(authed());
+  const body = await res.json();
+  q.restore();
+  assert.equal(res.status, 429);
+  assert.deepEqual(body, {
+    type: 'error',
+    code: 'quota_exceeded',
+    plan: 'free',
+    limit: 10,
+    resetAt: '2026-11-11T01:00:00.000Z',
+  });
+  assert.equal(seen.chat, 0);
+  // 直近24時間の範囲で数えている
+  assert.match(decodeURIComponent(seen.usageQuery), /created_at=gte\.2026-11-09T12:00:00\.000Z/);
+});
+
+test('残りがあれば使える。最初の行で残り回数を知らせる（3回使用済み → 今回で残り6）', async () => {
+  const q = quiet();
+  const { seen, fetchImpl } = fakeQuotaWorld({ used: 3 });
+  const handle = createHandler({ env: quotaEnv(), fetchImpl, now: () => NOW });
+  const lines = await readLines(await handle(authed()));
+  q.restore();
+  assert.deepEqual(lines[0], { type: 'quota', plan: 'free', limit: 10, remaining: 6 });
+  assert.equal(lines.at(-1).type, 'done');
+  assert.equal(seen.chat, 1);
+});
+
+test('有効なPLUSなら上限200。期限切れ・停止中のPLUSは無料扱い', async () => {
+  const q = quiet();
+  const plus = fakeQuotaWorld({
+    used: 50,
+    sub: { plan: 'plus', status: 'active', current_period_end: '2026-12-01T00:00:00Z' },
+  });
+  const r1 = await readLines(await createHandler({ env: quotaEnv(), fetchImpl: plus.fetchImpl, now: () => NOW })(authed()));
+  const expired = fakeQuotaWorld({
+    used: 50,
+    sub: { plan: 'plus', status: 'active', current_period_end: '2026-11-01T00:00:00Z' },
+  });
+  const r2 = await createHandler({ env: quotaEnv(), fetchImpl: expired.fetchImpl, now: () => NOW })(authed());
+  const canceled = fakeQuotaWorld({
+    used: 50,
+    sub: { plan: 'pro', status: 'canceled', current_period_end: null },
+  });
+  const r3 = await createHandler({ env: quotaEnv(), fetchImpl: canceled.fetchImpl, now: () => NOW })(authed());
+  q.restore();
+  assert.deepEqual(r1[0], { type: 'quota', plan: 'plus', limit: 200, remaining: 149 });
+  assert.equal(r2.status, 429);
+  assert.equal((await r2.json()).plan, 'free');
+  assert.equal(r3.status, 429);
+});
+
+test('上限は環境変数で変えられる（QUOTA_FREE=3）', async () => {
+  const q = quiet();
+  const { fetchImpl } = fakeQuotaWorld({ used: 3 });
+  const res = await createHandler({ env: quotaEnv({ QUOTA_FREE: '3' }), fetchImpl, now: () => NOW })(authed());
+  q.restore();
+  assert.equal(res.status, 429);
+  assert.equal((await res.json()).limit, 3);
+});
+
+test('回数を調べられないとき（DB障害）は止めずに通す。キャッシュされたトークン数も記録する', async () => {
+  const q = quiet();
+  const cachedUsage = `data: ${JSON.stringify({
+    choices: [],
+    usage: { prompt_tokens: 1400, completion_tokens: 9, prompt_tokens_details: { cached_tokens: 1280 } },
+  })}\n\n`;
+  const { seen, fetchImpl } = fakeQuotaWorld({ used: 0, failDb: true, usageChunk: cachedUsage });
+  const lines = await readLines(await createHandler({ env: quotaEnv(), fetchImpl, now: () => NOW })(authed()));
+  q.restore();
+  assert.ok(!lines.some((l) => l.type === 'quota'));
+  assert.equal(lines.at(-1).type, 'done');
+  assert.equal(seen.inserts[0].cached_input_tokens, 1280);
+  assert.equal(seen.inserts[0].input_tokens, 1400);
 });

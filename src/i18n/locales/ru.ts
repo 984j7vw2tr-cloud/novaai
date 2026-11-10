@@ -88,4 +88,13 @@ export const ru: Strings = {
   loadFailed: 'Не удалось загрузить. Попробуй ещё раз.',
   saveFailed:
     'Не удалось сохранить разговор. Можно продолжать, но он может не появиться в истории.',
+  quotaRemaining: 'Сегодня осталось {n}',
+  quotaExceeded: 'Ты использовал все {limit} сообщений на сегодня. Снова можно будет после {time}.',
+  dataSection: 'Данные',
+  deleteAllHistory: 'Удалить всю историю',
+  deleteAllHistoryConfirm: 'Удалить всю историю чатов? Отменить будет нельзя.',
+  historyDeleted: 'История удалена',
+  deleteAccount: 'Удалить аккаунт',
+  deleteAccountConfirm: 'Удалить аккаунт и всю историю? Отменить будет нельзя.',
+  actionFailed: 'Не получилось. Попробуй ещё раз.',
 };

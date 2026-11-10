@@ -86,4 +86,13 @@ export const zhHans: Strings = {
   deleteConfirm: '要删除这个对话吗？删除后无法恢复。',
   loadFailed: '加载失败，请重试。',
   saveFailed: '无法保存此对话。可以继续使用，但可能不会出现在历史中。',
+  quotaRemaining: '今日剩余 {n} 次',
+  quotaExceeded: '今天的 {limit} 次已用完。{time} 之后可以再次使用。',
+  dataSection: '数据',
+  deleteAllHistory: '删除全部对话历史',
+  deleteAllHistoryConfirm: '要删除全部对话历史吗？删除后无法恢复。',
+  historyDeleted: '已删除对话历史',
+  deleteAccount: '删除账号',
+  deleteAccountConfirm: '要删除账号及全部对话历史吗？删除后无法恢复。',
+  actionFailed: '操作失败，请重试。',
 };

@@ -88,4 +88,14 @@ export const pt: Strings = {
   loadFailed: 'Não foi possível carregar. Tente de novo.',
   saveFailed:
     'Não foi possível salvar a conversa. Você pode continuar, mas ela pode não aparecer no histórico.',
+  quotaRemaining: 'Restam {n} hoje',
+  quotaExceeded:
+    'Você usou as {limit} mensagens de hoje. Poderá conversar de novo depois das {time}.',
+  dataSection: 'Dados',
+  deleteAllHistory: 'Excluir todo o histórico',
+  deleteAllHistoryConfirm: 'Excluir todo o histórico de conversas? Não dá para desfazer.',
+  historyDeleted: 'Histórico excluído',
+  deleteAccount: 'Excluir conta',
+  deleteAccountConfirm: 'Excluir sua conta e todo o histórico? Não dá para desfazer.',
+  actionFailed: 'Não funcionou. Tente de novo.',
 };

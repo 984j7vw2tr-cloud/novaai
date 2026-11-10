@@ -87,4 +87,13 @@ export const en: Strings = {
   loadFailed: "Couldn't load. Please try again.",
   saveFailed:
     "Couldn't save this conversation. You can keep chatting, but it may not appear in your history.",
+  quotaRemaining: '{n} left today',
+  quotaExceeded: "You've used all {limit} messages for today. You can chat again after {time}.",
+  dataSection: 'Data',
+  deleteAllHistory: 'Delete all conversation history',
+  deleteAllHistoryConfirm: "Delete all conversation history? This can't be undone.",
+  historyDeleted: 'Conversation history deleted',
+  deleteAccount: 'Delete account',
+  deleteAccountConfirm: "Delete your account and all conversation history? This can't be undone.",
+  actionFailed: "That didn't work. Please try again.",
 };

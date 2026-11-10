@@ -86,4 +86,13 @@ export const hi: Strings = {
   deleteConfirm: 'यह बातचीत हटाएँ? इसे वापस नहीं लाया जा सकता।',
   loadFailed: 'लोड नहीं हो सका। फिर से कोशिश करें।',
   saveFailed: 'बातचीत सेव नहीं हो सकी। आप जारी रख सकते हैं, पर यह इतिहास में शायद न दिखे।',
+  quotaRemaining: 'आज {n} बाकी',
+  quotaExceeded: 'आज के सभी {limit} संदेश इस्तेमाल हो गए। {time} के बाद फिर से चैट कर सकते हैं।',
+  dataSection: 'डेटा',
+  deleteAllHistory: 'पूरा इतिहास हटाएँ',
+  deleteAllHistoryConfirm: 'पूरा बातचीत इतिहास हटाएँ? इसे वापस नहीं लाया जा सकता।',
+  historyDeleted: 'इतिहास हटा दिया गया',
+  deleteAccount: 'खाता हटाएँ',
+  deleteAccountConfirm: 'अपना खाता और पूरा इतिहास हटाएँ? इसे वापस नहीं लाया जा सकता।',
+  actionFailed: 'नहीं हो पाया। फिर से कोशिश करें।',
 };

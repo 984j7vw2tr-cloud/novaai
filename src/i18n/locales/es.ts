@@ -89,4 +89,14 @@ export const es: Strings = {
   loadFailed: 'No se pudo cargar. Inténtalo de nuevo.',
   saveFailed:
     'No se pudo guardar la conversación. Puedes seguir, pero quizá no aparezca en el historial.',
+  quotaRemaining: 'Te quedan {n} hoy',
+  quotaExceeded:
+    'Ya usaste los {limit} mensajes de hoy. Podrás volver a chatear después de las {time}.',
+  dataSection: 'Datos',
+  deleteAllHistory: 'Eliminar todo el historial',
+  deleteAllHistoryConfirm: '¿Eliminar todo el historial de conversaciones? No se puede deshacer.',
+  historyDeleted: 'Historial eliminado',
+  deleteAccount: 'Eliminar cuenta',
+  deleteAccountConfirm: '¿Eliminar tu cuenta y todo el historial? No se puede deshacer.',
+  actionFailed: 'No funcionó. Inténtalo de nuevo.',
 };

@@ -89,4 +89,14 @@ export const de: Strings = {
   loadFailed: 'Laden fehlgeschlagen. Bitte versuch es erneut.',
   saveFailed:
     'Die Unterhaltung konnte nicht gespeichert werden. Du kannst weitermachen, aber sie erscheint evtl. nicht im Verlauf.',
+  quotaRemaining: 'Heute noch {n}',
+  quotaExceeded: 'Du hast heute alle {limit} Nachrichten genutzt. Ab {time} geht es wieder.',
+  dataSection: 'Daten',
+  deleteAllHistory: 'Gesamten Verlauf löschen',
+  deleteAllHistoryConfirm: 'Gesamten Chatverlauf löschen? Das lässt sich nicht rückgängig machen.',
+  historyDeleted: 'Verlauf gelöscht',
+  deleteAccount: 'Konto löschen',
+  deleteAccountConfirm:
+    'Konto und gesamten Verlauf löschen? Das lässt sich nicht rückgängig machen.',
+  actionFailed: 'Das hat nicht geklappt. Bitte versuch es erneut.',
 };

@@ -88,4 +88,13 @@ export const fr: Strings = {
   loadFailed: 'Chargement impossible. Réessaie.',
   saveFailed:
     'Impossible d’enregistrer la conversation. Tu peux continuer, mais elle risque de ne pas apparaître dans l’historique.',
+  quotaRemaining: 'Encore {n} aujourd’hui',
+  quotaExceeded: 'Tu as utilisé tes {limit} messages du jour. Tu pourras recommencer après {time}.',
+  dataSection: 'Données',
+  deleteAllHistory: 'Supprimer tout l’historique',
+  deleteAllHistoryConfirm: 'Supprimer tout l’historique des conversations ? C’est définitif.',
+  historyDeleted: 'Historique supprimé',
+  deleteAccount: 'Supprimer le compte',
+  deleteAccountConfirm: 'Supprimer ton compte et tout l’historique ? C’est définitif.',
+  actionFailed: 'Ça n’a pas marché. Réessaie.',
 };

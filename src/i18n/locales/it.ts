@@ -88,4 +88,13 @@ export const it: Strings = {
   loadFailed: 'Impossibile caricare. Riprova.',
   saveFailed:
     'Impossibile salvare la conversazione. Puoi continuare, ma potrebbe non comparire nella cronologia.',
+  quotaRemaining: 'Ancora {n} oggi',
+  quotaExceeded: 'Hai usato tutti i {limit} messaggi di oggi. Potrai riprendere dopo le {time}.',
+  dataSection: 'Dati',
+  deleteAllHistory: 'Elimina tutta la cronologia',
+  deleteAllHistoryConfirm: 'Eliminare tutta la cronologia delle chat? Non si può annullare.',
+  historyDeleted: 'Cronologia eliminata',
+  deleteAccount: 'Elimina account',
+  deleteAccountConfirm: "Eliminare l'account e tutta la cronologia? Non si può annullare.",
+  actionFailed: 'Non ha funzionato. Riprova.',
 };

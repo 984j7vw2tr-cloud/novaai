@@ -10,7 +10,7 @@ export type ProviderMessage = {
 
 export type ProviderEvent =
   | { type: 'delta'; text: string }
-  | { type: 'usage'; inputTokens: number; outputTokens: number };
+  | { type: 'usage'; inputTokens: number; outputTokens: number; cachedInputTokens: number };
 
 export type ProviderRequest = {
   model: string;

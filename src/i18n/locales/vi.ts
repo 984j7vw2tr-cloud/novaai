@@ -88,4 +88,13 @@ export const vi: Strings = {
   loadFailed: 'Không tải được. Vui lòng thử lại.',
   saveFailed:
     'Không lưu được cuộc trò chuyện. Bạn vẫn dùng tiếp được, nhưng có thể không xuất hiện trong lịch sử.',
+  quotaRemaining: 'Hôm nay còn {n} lượt',
+  quotaExceeded: 'Bạn đã dùng hết {limit} lượt hôm nay. Có thể dùng lại sau {time}.',
+  dataSection: 'Dữ liệu',
+  deleteAllHistory: 'Xóa toàn bộ lịch sử',
+  deleteAllHistoryConfirm: 'Xóa toàn bộ lịch sử trò chuyện? Không thể hoàn tác.',
+  historyDeleted: 'Đã xóa lịch sử',
+  deleteAccount: 'Xóa tài khoản',
+  deleteAccountConfirm: 'Xóa tài khoản và toàn bộ lịch sử? Không thể hoàn tác.',
+  actionFailed: 'Không thành công. Vui lòng thử lại.',
 };

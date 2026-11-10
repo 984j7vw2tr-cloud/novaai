@@ -86,4 +86,13 @@ export const ja: Strings = {
   deleteConfirm: 'この会話を削除しますか？元に戻せません。',
   loadFailed: '読み込めませんでした。もう一度試してください。',
   saveFailed: '会話を保存できませんでした。このまま使えますが、履歴に残らない可能性があります。',
+  quotaRemaining: '今日の残り {n}回',
+  quotaExceeded: '今日使える{limit}回を使い切りました。{time}以降に、また使えます。',
+  dataSection: 'データ',
+  deleteAllHistory: '会話履歴をすべて削除',
+  deleteAllHistoryConfirm: 'すべての会話履歴を削除しますか？元に戻せません。',
+  historyDeleted: '会話履歴を削除しました',
+  deleteAccount: 'アカウントを削除',
+  deleteAccountConfirm: 'アカウントと、すべての会話履歴を削除しますか？元に戻せません。',
+  actionFailed: 'うまくいきませんでした。もう一度試してください。',
 };

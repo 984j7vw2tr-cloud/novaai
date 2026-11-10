@@ -11,7 +11,7 @@ import {
   titleFrom,
 } from '@/lib/conversations';
 import { mockReply } from '@/lib/mock-reply';
-import { ChatError, type ChatErrorCode, serverReply } from '@/lib/nova-api';
+import { ChatError, type ChatErrorCode, type QuotaDetails, serverReply } from '@/lib/nova-api';
 
 /** 画面に出すエラーの種類 */
 export type ChatErrorKind = ChatErrorCode | 'generic';
@@ -39,6 +39,10 @@ export function useChat({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ChatErrorKind | null>(null);
+  /** 回数の上限に達したときの詳細（何回まで・いつから使えるか） */
+  const [errorDetails, setErrorDetails] = useState<QuotaDetails | null>(null);
+  /** 今日の残り回数（サーバーから届いたら表示する） */
+  const [quota, setQuota] = useState<{ limit: number; remaining: number } | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -88,6 +92,7 @@ export function useChat({
 
       const assistantId = randomUUID();
       setError(null);
+      setErrorDetails(null);
       setBusy(true);
       update((prev) => [
         ...prev,
@@ -103,6 +108,7 @@ export function useChat({
         await replySource(history, {
           signal: controller.signal,
           conversationId: conversationIdRef.current,
+          onQuota: setQuota,
           onDelta: (delta) =>
             update((prev) =>
               prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
@@ -125,6 +131,9 @@ export function useChat({
           // 失敗：書きかけの回答を消してエラーを表示（詳しい内容は画面に出さない）
           update((prev) => prev.filter((m) => m.id !== assistantId));
           setError(e instanceof ChatError ? e.code : 'generic');
+          setErrorDetails(e instanceof ChatError ? (e.details ?? null) : null);
+          // 上限に達したら、古い「残り○回」の表示は消す（上限のお知らせと食い違わないように）
+          if (e instanceof ChatError && e.code === 'quota_exceeded') setQuota(null);
           if (__DEV__) console.warn('[NOVA] reply failed', e);
         }
       } finally {
@@ -232,6 +241,8 @@ export function useChat({
     messages,
     busy,
     error,
+    errorDetails,
+    quota,
     saveFailed,
     loading,
     loadFailed,

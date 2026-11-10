@@ -57,12 +57,13 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
   busy?: boolean;
   disabled?: boolean;
 }) {
   const off = disabled || busy;
   const primary = variant === 'primary';
+  const danger = variant === 'danger';
   return (
     <Pressable
       onPress={onPress}
@@ -73,14 +74,18 @@ export function Button({
       aria-busy={busy}
       style={(state) => [
         styles.button,
-        primary ? styles.primary : styles.secondary,
+        primary ? styles.primary : danger ? styles.danger : styles.secondary,
         isActive(state) && (primary ? styles.primaryActive : styles.secondaryActive),
         off && styles.off,
       ]}>
       {busy ? (
         <ActivityIndicator color={primary ? Colors.background : Colors.accent} />
       ) : (
-        <NovaText style={[styles.label, primary ? styles.primaryLabel : styles.secondaryLabel]}>
+        <NovaText
+          style={[
+            styles.label,
+            primary ? styles.primaryLabel : danger ? styles.dangerLabel : styles.secondaryLabel,
+          ]}>
           {label}
         </NovaText>
       )}
@@ -140,6 +145,12 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: Colors.accent },
   primaryActive: { opacity: 0.85 },
   secondary: { borderWidth: 1, borderColor: Colors.border },
+  danger: {
+    borderWidth: 1,
+    borderColor: Colors.dangerSurface,
+    backgroundColor: Colors.dangerSurface,
+  },
+  dangerLabel: { color: Colors.danger },
   secondaryActive: { backgroundColor: Colors.surfaceRaised },
   off: { opacity: 0.5 },
   label: { fontSize: 16, fontWeight: '600' },
