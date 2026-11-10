@@ -45,8 +45,8 @@ npx expo lint      # コードの書き方チェック
 supabase/functions/chat/
   index.ts          入口
   handler.ts        受付・入力チェック・回数制限・ストリーミング返信
-  system-prompt.ts  NOVAへの指示（PHASE 5で人格を追加）
-  providers/        AI会社ごとの接続（今は OpenAI。他社はここに追加）
+  system-prompt.ts  NOVAへの指示（辛口人格・カウンターモード・安全モード）
+  providers/        AI会社ごとの接続（今は OpenAI。他社はここに追加）と安全チェック
 ```
 
 Supabase の Edge Functions → Secrets に設定する値：
@@ -59,6 +59,8 @@ Supabase の Edge Functions → Secrets に設定する値：
 | `RATE_LIMIT_PER_MINUTE` | 同じ接続元からの1分あたりの上限（既定 20） | |
 | `ALLOWED_ORIGINS` | 呼び出しを許可するWebサイト（既定 `*`、公開時に絞る） | |
 | `AI_PROVIDER` | 使うAI会社（既定 `openai`） | |
+| `MODERATION` | 安全チェック（既定 `on`。`off` で停止） | |
+| `OPENAI_MODERATION_MODEL` | 安全チェックのモデル（既定 `omni-moderation-latest`） | |
 
 サーバーの設置（デプロイ）：`./scripts/deploy-chat.sh`（Edge Functions の書き込み権限つきトークンが必要）
 
@@ -66,6 +68,19 @@ Supabase の Edge Functions → Secrets に設定する値：
 npm run typecheck     # アプリとサーバー両方の型チェック
 npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼ばない）
 ```
+
+## 人格・カウンターモードの確認
+
+本物のAIにテスト用の言葉を送り、ルールどおりに答えるかを自動でチェックします（料金が少しかかります）。
+
+```bash
+NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs          # 全部
+NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs 死ね     # 名前に「死ね」を含むケースだけ
+```
+
+- カウンターモード：NOVAへの暴言にツッコミで返す（`src/lib/settings.ts` で ON/OFF。設定画面は今後）
+- 「死にたい」など自分に向いた言葉は、自動チェックで安全モードに切り替わり、茶化さずに対応する
+- 回答に差別・脅し・性的な内容が入った場合は、安全な文に差し替える
 
 ### テスト用
 

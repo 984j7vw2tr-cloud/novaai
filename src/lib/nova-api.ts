@@ -2,6 +2,7 @@ import { fetch } from 'expo/fetch';
 
 import type { ReplySource } from '@/lib/chat-types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
+import { getChatSettings } from '@/lib/settings';
 
 /** サーバーから返ってくるエラーの種類 */
 export type ChatErrorCode =
@@ -33,7 +34,7 @@ const toCode = (c: unknown): ChatErrorCode =>
  * Supabase の chat 関数（サーバー）に会話を送り、AIの回答を少しずつ受け取る。
  * APIキーはサーバー側にあるので、アプリには入っていない。
  */
-export const serverReply: ReplySource = async (history, { onDelta, signal }) => {
+export const serverReply: ReplySource = async (history, { onDelta, onReplace, signal }) => {
   let res;
   try {
     res = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
@@ -46,6 +47,7 @@ export const serverReply: ReplySource = async (history, { onDelta, signal }) => 
         messages: history
           .filter((m) => m.content.trim().length > 0)
           .map((m) => ({ role: m.role, content: m.content })),
+        settings: getChatSettings(),
       }),
       signal,
     });
@@ -79,6 +81,7 @@ export const serverReply: ReplySource = async (history, { onDelta, signal }) => 
       return;
     }
     if (ev.type === 'delta' && typeof ev.text === 'string') onDelta(ev.text);
+    else if (ev.type === 'replace' && typeof ev.text === 'string') onReplace?.(ev.text);
     else if (ev.type === 'done') finished = true;
     else if (ev.type === 'error') throw new ChatError(toCode(ev.code));
   };

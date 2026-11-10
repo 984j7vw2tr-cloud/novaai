@@ -4,13 +4,18 @@
  * 返す形式：1行に1つのJSON（NDJSON）
  *   {"type":"delta","text":"..."}   … 回答の続き
  *   {"type":"done"}                 … 回答の終わり
+ *   {"type":"replace","text":"..."} … 安全チェックで回答を差し替える（表示中の回答をこの文に置き換える）
  *   {"type":"error","code":"..."}   … 途中で失敗した
  *
  * 秘密の情報（APIキーやAI会社のエラー本文）はアプリには返さず、ログにだけ出す。
  */
-import { type Env, getModel, getProvider } from './providers/index.ts';
+import { type Env, getModel, getModerator, getProvider } from './providers/index.ts';
+import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
 import { type ProviderEvent, ProviderError, type ProviderMessage } from './providers/types.ts';
-import { SYSTEM_PROMPT } from './system-prompt.ts';
+import { buildSystemPrompt, safeFallback } from './system-prompt.ts';
+
+/** 安全チェックを待つ最大時間（これを過ぎたらチェックなしで進める） */
+const MODERATION_TIMEOUT_MS = 3000;
 
 /** 1通のメッセージの最大文字数 */
 export const MAX_MESSAGE_CHARS = 8000;
@@ -63,13 +68,26 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     if (!provider || !model) return errorResponse(503, 'service_unavailable', cors);
 
     const maxOutputTokens = Number(env.get('MAX_OUTPUT_TOKENS') ?? 1500);
-    const messages: ProviderMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...parsed.messages.slice(-MAX_HISTORY),
-    ];
+    const counterMode = readCounterMode(body);
 
     const upstream = new AbortController();
     req.signal?.addEventListener('abort', () => upstream.abort(), { once: true });
+
+    // 入力の安全チェック：自傷の可能性があれば、カウンターモードを止めて安全モードにする
+    const moderator = getModerator(env, fetchImpl);
+    const lastUser = parsed.messages[parsed.messages.length - 1].content;
+    const inputCheck = moderator
+      ? await withTimeout(moderator.check(lastUser, upstream.signal), MODERATION_TIMEOUT_MS)
+      : null;
+    const selfHarmRisk = hasAny(inputCheck, SELF_HARM_CATEGORIES);
+    if (inputCheck?.flagged) {
+      console.log(JSON.stringify({ event: 'moderation_input', categories: inputCheck.categories }));
+    }
+
+    const messages: ProviderMessage[] = [
+      { role: 'system', content: buildSystemPrompt({ counterMode, selfHarmRisk }) },
+      ...parsed.messages.slice(-MAX_HISTORY),
+    ];
 
     const events = provider.stream({ model, messages, maxOutputTokens, signal: upstream.signal });
 
@@ -88,8 +106,11 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       async start(controller) {
         const send = (obj: unknown) => controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'));
         const usage = { input: null as number | null, output: null as number | null };
+        let fullText = '';
+        let replaced = false;
         const handleEvent = (ev: ProviderEvent) => {
           if (ev.type === 'delta') {
+            fullText += ev.text;
             send({ type: 'delta', text: ev.text });
           } else {
             usage.input = ev.inputTokens;
@@ -99,6 +120,31 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
         try {
           if (!first.done) handleEvent(first.value);
           for (let r = await events.next(); !r.done; r = await events.next()) handleEvent(r.value);
+
+          // 出力の安全チェック：差別・脅し・性的な内容などが含まれていたら差し替える
+          if (moderator && fullText.trim()) {
+            const outputCheck = await withTimeout(
+              moderator.check(fullText, upstream.signal),
+              MODERATION_TIMEOUT_MS,
+            );
+            if (hasAny(outputCheck, BLOCKED_OUTPUT_CATEGORIES)) {
+              replaced = true;
+              send({
+                type: 'replace',
+                text: safeFallback(fullText),
+                categories: outputCheck?.categories ?? [],
+              });
+            }
+            if (outputCheck?.flagged) {
+              console.log(
+                JSON.stringify({
+                  event: 'moderation_output',
+                  categories: outputCheck.categories,
+                  replaced,
+                }),
+              );
+            }
+          }
           send({ type: 'done' });
         } catch (e) {
           if (!upstream.signal.aborted) {
@@ -115,6 +161,9 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
               input_tokens: usage.input,
               output_tokens: usage.output,
               aborted: upstream.signal.aborted,
+              counter_mode: counterMode,
+              self_harm_risk: selfHarmRisk,
+              replaced,
               ms: now() - startedAt,
             }),
           );
@@ -139,6 +188,29 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       },
     });
   };
+}
+
+/** アプリから届いた設定のうち、カウンターモードのON/OFFを読む（指定がなければON） */
+function readCounterMode(body: unknown): boolean {
+  const value = (body as { settings?: { counterMode?: unknown } })?.settings?.counterMode;
+  return value === false ? false : true;
+}
+
+/** 決めた時間内に終わらなければ null を返す */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return new Promise((resolve) => {
+    const t = setTimeout(() => resolve(null), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      () => {
+        clearTimeout(t);
+        resolve(null);
+      },
+    );
+  });
 }
 
 type ValidationResult =

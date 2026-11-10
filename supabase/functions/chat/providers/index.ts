@@ -1,3 +1,4 @@
+import { createOpenAIModerator, type Moderator } from './moderation.ts';
 import { createOpenAIProvider } from './openai.ts';
 import type { AIProvider } from './types.ts';
 
@@ -23,6 +24,22 @@ export function getProvider(env: Env, fetchImpl?: typeof fetch): AIProvider | nu
       console.error(`[chat] Unknown AI_PROVIDER: ${name}`);
       return null;
   }
+}
+
+/**
+ * 安全チェック（Moderation）。OpenAIのキーがあれば使う。
+ * MODERATION=off で止められる（テスト用）。
+ */
+export function getModerator(env: Env, fetchImpl?: typeof fetch): Moderator | null {
+  if ((env.get('MODERATION') ?? 'on').toLowerCase() === 'off') return null;
+  const apiKey = env.get('OPENAI_API_KEY');
+  if (!apiKey) return null;
+  return createOpenAIModerator({
+    apiKey,
+    model: env.get('OPENAI_MODERATION_MODEL'),
+    baseUrl: env.get('OPENAI_BASE_URL'),
+    fetchImpl,
+  });
 }
 
 /** 使うモデル名。プロバイダーごとの環境変数から読む */

@@ -14,5 +14,10 @@ export type ChatMessage = {
  */
 export type ReplySource = (
   history: ChatMessage[],
-  options: { onDelta: (text: string) => void; signal: AbortSignal },
+  options: {
+    onDelta: (text: string) => void;
+    /** 安全チェックで回答全体が差し替えられたとき */
+    onReplace?: (text: string) => void;
+    signal: AbortSignal;
+  },
 ) => Promise<void>;

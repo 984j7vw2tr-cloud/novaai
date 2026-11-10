@@ -50,6 +50,8 @@ export function useChat(replySource: ReplySource = defaultReplySource) {
             update((prev) =>
               prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
             ),
+          onReplace: (text) =>
+            update((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: text } : m))),
         });
         update((prev) => prev.map((m) => (m.id === assistantId ? { ...m, status: 'done' } : m)));
       } catch (e) {
