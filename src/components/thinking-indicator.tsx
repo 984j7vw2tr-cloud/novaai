@@ -7,7 +7,7 @@ import { Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 
 /**
- * AIが考え中のときの表示：Karakuchi の赤い印が、ゆっくり呼吸するように明滅する。
+ * AIが考え中のときの表示：Karakuchi のマーク（炎とハート）が、ゆっくり呼吸するように明滅する。
  * 動きは小さく、ゆっくり（長く見ていても気にならないように）。
  */
 export function ThinkingIndicator() {

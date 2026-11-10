@@ -1,5 +1,4 @@
-import { Platform, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
+import { Image, Platform, StyleSheet, View } from 'react-native';
 
 import { NovaText } from '@/components/nova-text';
 import { Colors, Fonts } from '@/constants/theme';
@@ -8,40 +7,15 @@ const LTR_WEB = (Platform.OS === 'web' ? { dir: 'ltr' } : {}) as object;
 // スマホ用：右から左の言語でも並びを反転させない（Webでは使えないスタイルなので分ける）
 const LTR_NATIVE = Platform.OS === 'web' ? null : ({ direction: 'ltr' } as const);
 
-/**
- * 「辛」の字を直線で組んだ形（文字のフォントに頼らず、どの端末でも同じ形になる）。
- * 24×24 の枠の中の座標。
- */
-export const KANJI_RECTS: [number, number, number, number][] = [
-  [11.1, 3.6, 1.8, 2.4], // 点
-  [6.2, 6.4, 11.6, 1.7], // 一本目の横線
-  [8.6, 8.9, 1.7, 2.6], // 左の短い線
-  [13.7, 8.9, 1.7, 2.6], // 右の短い線
-  [5.2, 11.9, 13.6, 1.7], // 二本目の横線
-  [6.6, 15.4, 10.8, 1.7], // 三本目の横線
-  [11.1, 11.9, 1.8, 8.6], // 縦の線
-];
-
-/**
- * Karakuchi のマーク：赤い印（はんこ）の中に「辛」の字（辛口＝忖度しない、鋭い）。
- * 角を少し丸めた四角。どの大きさでも崩れないようにSVGで描く。
- */
-export function BrandMark({
-  size = 24,
-  color = Colors.accent,
-  glyph = Colors.onAccent,
-}: {
-  size?: number;
-  color?: string;
-  glyph?: string;
-}) {
+/** Karakuchi のマーク：炎とハートと星（アプリのアイコンと同じ絵。背景は透明） */
+export function BrandMark({ size = 24 }: { size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Rect x={0.5} y={0.5} width={23} height={23} rx={5.5} fill={color} />
-      {KANJI_RECTS.map(([x, y, w, h], i) => (
-        <Rect key={i} x={x} y={y} width={w} height={h} rx={0.35} fill={glyph} />
-      ))}
-    </Svg>
+    <Image
+      source={require('@/assets/images/brand-mark.png')}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+      accessibilityIgnoresInvertColors
+    />
   );
 }
 
@@ -56,7 +30,7 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
       accessibilityLabel="Karakuchi AI">
       {withMark ? (
         <View style={{ marginRight: size * 0.5, marginBottom: size * 0.06 }}>
-          <BrandMark size={size * 1.15} />
+          <BrandMark size={size * 1.3} />
         </View>
       ) : null}
       <NovaText
