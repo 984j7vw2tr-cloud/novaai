@@ -1,6 +1,7 @@
 import { fetch } from 'expo/fetch';
 
 import type { ReplySource } from '@/lib/chat-types';
+import { getAccessToken } from '@/auth';
 import { getLanguageSettings } from '@/i18n';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
 
@@ -10,6 +11,7 @@ export type ChatErrorCode =
   | 'rate_limited'
   | 'service_unavailable'
   | 'upstream_error'
+  | 'unauthorized'
   | 'network';
 
 export class ChatError extends Error {
@@ -26,6 +28,7 @@ const KNOWN_CODES: ChatErrorCode[] = [
   'rate_limited',
   'service_unavailable',
   'upstream_error',
+  'unauthorized',
 ];
 const toCode = (c: unknown): ChatErrorCode =>
   KNOWN_CODES.includes(c as ChatErrorCode) ? (c as ChatErrorCode) : 'upstream_error';
@@ -36,6 +39,8 @@ const toCode = (c: unknown): ChatErrorCode =>
  */
 export const serverReply: ReplySource = async (history, { onDelta, onReplace, signal }) => {
   const settings = await getLanguageSettings();
+  // ログインの鍵をつけて送る（サーバーはこれでログイン中の本人か確かめる）
+  const accessToken = await getAccessToken();
   let res;
   try {
     res = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
@@ -43,6 +48,7 @@ export const serverReply: ReplySource = async (history, { onDelta, onReplace, si
       headers: {
         'Content-Type': 'application/json',
         apikey: SUPABASE_PUBLISHABLE_KEY,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({
         messages: history
@@ -64,6 +70,7 @@ export const serverReply: ReplySource = async (history, { onDelta, onReplace, si
     } catch {
       // JSONでない
     }
+    if (res.status === 401) throw new ChatError('unauthorized');
     throw new ChatError(res.status === 429 ? 'rate_limited' : toCode(code));
   }
 

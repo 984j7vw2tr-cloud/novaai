@@ -13,6 +13,8 @@ function makeEnv(vars: Record<string, string | undefined> = {}) {
     OPENAI_API_KEY: SECRET,
     OPENAI_MODEL: 'test-model',
     MODERATION: 'off',
+    REQUIRE_AUTH: 'false',
+    SUPABASE_URL: 'https://proj.supabase.co',
     ...vars,
   };
   return { get: (k: string) => all[k] };
@@ -434,4 +436,106 @@ test('回答言語の指定と表示言語が指示文に入る。対応外の�
   assert.doesNotMatch(p[2], /# Language settings/);
   assert.doesNotMatch(p[2], /klingon|<script>/);
   assert.doesNotMatch(p[3], /# Language settings/);
+});
+
+// ---- PHASE 7：ログインの確認 ----
+
+/** Supabaseのログイン確認（/auth/v1/user）とOpenAIの偽物 */
+function fakeWithAuth(users: Record<string, string>, seen: { auth: Headers[]; chat: number }) {
+  return (async (url: string | URL | Request, init?: RequestInit) => {
+    if (String(url).endsWith('/auth/v1/user')) {
+      const h = new Headers(init?.headers);
+      seen.auth.push(h);
+      const token = (h.get('authorization') ?? '').replace(/^Bearer /, '');
+      if (token === 'down') throw new Error('network down');
+      const id = users[token];
+      return id
+        ? new Response(JSON.stringify({ id, email: 'x@example.com' }))
+        : new Response(JSON.stringify({ msg: 'invalid JWT' }), { status: 401 });
+    }
+    seen.chat++;
+    return sseResponse([delta('ok'), 'data: [DONE]\n\n']);
+  }) as typeof fetch;
+}
+
+test('ログインの鍵がない・偽物 → 401。AIは呼ばない', async () => {
+  const q = quiet();
+  const seen = { auth: [] as Headers[], chat: 0 };
+  const handle = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true' }),
+    fetchImpl: fakeWithAuth({ good: 'user-1' }, seen),
+  });
+  const none = await handle(chatRequest([{ role: 'user', content: 'hi' }]));
+  const bad = await handle(
+    chatRequest([{ role: 'user', content: 'hi' }], { authorization: 'Bearer forged', apikey: 'pk' }),
+  );
+  q.restore();
+  assert.equal(none.status, 401);
+  assert.deepEqual(await none.json(), { type: 'error', code: 'unauthorized' });
+  assert.equal(bad.status, 401);
+  assert.equal(seen.chat, 0);
+  assert.equal(seen.auth.length, 1); // 鍵がないときは確認自体をしない
+});
+
+test('正しい鍵 → 使える。Supabaseに鍵と公開キーを渡して確認し、使用量に本人IDを残す', async () => {
+  const q = quiet();
+  const seen = { auth: [] as Headers[], chat: 0 };
+  const handle = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true' }),
+    fetchImpl: fakeWithAuth({ good: 'user-1' }, seen),
+  });
+  const res = await handle(
+    chatRequest([{ role: 'user', content: 'hi' }], { authorization: 'Bearer good', apikey: 'pk_pub' }),
+  );
+  const lines = await readLines(res);
+  q.restore();
+  assert.equal(res.status, 200);
+  assert.deepEqual(lines.at(-1), { type: 'done' });
+  assert.equal(seen.auth[0].get('authorization'), 'Bearer good');
+  assert.equal(seen.auth[0].get('apikey'), 'pk_pub');
+  assert.ok(q.logs.some((l) => l.includes('"user_id":"user-1"')));
+});
+
+test('ログイン確認ができない（Supabaseに届かない・URL未設定）→ 503', async () => {
+  const q = quiet();
+  const seen = { auth: [] as Headers[], chat: 0 };
+  const down = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true' }),
+    fetchImpl: fakeWithAuth({}, seen),
+  });
+  const r1 = await down(
+    chatRequest([{ role: 'user', content: 'hi' }], { authorization: 'Bearer down', apikey: 'pk' }),
+  );
+  const noUrl = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true', SUPABASE_URL: undefined }),
+    fetchImpl: fakeWithAuth({}, seen),
+  });
+  const r2 = await noUrl(
+    chatRequest([{ role: 'user', content: 'hi' }], { authorization: 'Bearer good', apikey: 'pk' }),
+  );
+  q.restore();
+  assert.equal(r1.status, 503);
+  assert.equal(r2.status, 503);
+  assert.equal(seen.chat, 0);
+});
+
+test('回数制限は人ごと（同じ接続元でも別の人なら数えない）', async () => {
+  const q = quiet();
+  const seen = { auth: [] as Headers[], chat: 0 };
+  const handle = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true', RATE_LIMIT_PER_MINUTE: '2' }),
+    fetchImpl: fakeWithAuth({ a: 'user-a', b: 'user-b' }, seen),
+  });
+  const send = async (token: string) => {
+    const r = await handle(
+      chatRequest([{ role: 'user', content: 'hi' }], { authorization: `Bearer ${token}`, apikey: 'pk' }),
+    );
+    await r.text();
+    return r.status;
+  };
+  const a = [await send('a'), await send('a'), await send('a')];
+  const b = await send('b');
+  q.restore();
+  assert.deepEqual(a, [200, 200, 429]);
+  assert.equal(b, 200);
 });

@@ -33,6 +33,10 @@ npx expo lint      # コードの書き方チェック
 | ホーム | `src/app/index.tsx` |
 | チャット | `src/app/chat.tsx` |
 | 言語設定 | `src/app/language.tsx` |
+| ログイン | `src/app/login.tsx` |
+| 新規登録 | `src/app/signup.tsx` |
+| プロフィール | `src/app/profile.tsx` |
+| ログイン後の戻り先 | `src/app/auth/callback.tsx` |
 
 - 色・余白などのデザインの決まり：`src/constants/theme.ts`
 - 画面に出す文言：`src/i18n/locales/`（16言語。言語ごとに1ファイル。項目は `src/i18n/types.ts`）
@@ -70,6 +74,15 @@ Supabase の Edge Functions → Secrets に設定する値：
 npm run typecheck     # アプリとサーバー両方の型チェック
 npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼ばない）
 ```
+
+## ログイン（PHASE 7）
+
+- 方法：メール＋パスワード / メールのログインリンク / Google / Apple（`src/auth/index.tsx`）
+- ログインしていないと、ホーム・チャット・プロフィールには入れない（`src/app/_layout.tsx`）
+- サーバー（chat関数）は、ログインの鍵を Supabase に確認してから答える。回数制限は人ごと
+- Google / Apple のボタンは、Supabase側で有効にしたときだけ表示される
+
+評価スクリプトはログインが必要なので、`.env.local` に `NOVA_TEST_EMAIL` / `NOVA_TEST_PASSWORD`（テスト用アカウント）を書いておく。
 
 ## 多言語の確認
 

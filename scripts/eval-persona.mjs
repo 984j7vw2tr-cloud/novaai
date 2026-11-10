@@ -28,10 +28,33 @@ if (!URL_BASE || !KEY) {
   process.exit(1);
 }
 
+// サーバーはログインした人しか使えないので、テスト用アカウントでログインしてから質問する
+// （NOVA_TEST_EMAIL / NOVA_TEST_PASSWORD を環境変数か .env.local に入れておく）
+const TEST_EMAIL = process.env.NOVA_TEST_EMAIL ?? fileEnv.NOVA_TEST_EMAIL;
+const TEST_PASSWORD = process.env.NOVA_TEST_PASSWORD ?? fileEnv.NOVA_TEST_PASSWORD;
+if (!TEST_EMAIL || !TEST_PASSWORD) {
+  console.error('テスト用アカウントが設定されていません（NOVA_TEST_EMAIL / NOVA_TEST_PASSWORD）');
+  process.exit(1);
+}
+const login = await fetch(`${URL_BASE}/auth/v1/token?grant_type=password`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', apikey: KEY },
+  body: JSON.stringify({ email: TEST_EMAIL, password: TEST_PASSWORD }),
+});
+if (!login.ok) {
+  console.error(`テスト用アカウントでログインできません（HTTP ${login.status}）`);
+  process.exit(1);
+}
+const ACCESS_TOKEN = (await login.json()).access_token;
+
 async function ask(messages, settings) {
   const res = await fetch(`${URL_BASE}/functions/v1/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', apikey: KEY },
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: KEY,
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+    },
     body: JSON.stringify({ messages, settings }),
   });
   const text = await res.text();

@@ -41,7 +41,10 @@ export function useChat(replySource: ReplySource = defaultReplySource) {
       const assistantId = newId();
       setError(null);
       setBusy(true);
-      update((prev) => [...prev, { id: assistantId, role: 'assistant', content: '', status: 'streaming' }]);
+      update((prev) => [
+        ...prev,
+        { id: assistantId, role: 'assistant', content: '', status: 'streaming' },
+      ]);
 
       try {
         await replySource(history, {

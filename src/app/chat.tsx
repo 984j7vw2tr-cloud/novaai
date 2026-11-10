@@ -160,6 +160,8 @@ function errorMessage(kind: ChatErrorKind, t: Strings) {
       return t.errorUnavailable;
     case 'invalid_request':
       return t.errorInvalid;
+    case 'unauthorized':
+      return t.errorUnauthorized;
     default:
       return t.errorGeneric;
   }

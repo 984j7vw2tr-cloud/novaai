@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/auth';
 import { Composer } from '@/components/composer';
 import { NovaText } from '@/components/nova-text';
 import { Wordmark } from '@/components/wordmark';
@@ -25,6 +26,7 @@ const BRAND_TAGLINE = 'ONE AI. EVERY LANGUAGE. NO FILTER.';
 export default function HomeScreen() {
   const [text, setText] = useState('');
   const { t, uiLanguage } = useI18n();
+  const { authRequired } = useAuth();
 
   const startChat = (question: string) => {
     const q = question.trim();
@@ -36,6 +38,18 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.topBar}>
+        {authRequired ? (
+          <Pressable
+            onPress={() => router.push('/profile')}
+            accessibilityRole="button"
+            accessibilityLabel={t.profile}
+            hitSlop={8}
+            style={(state) => [styles.langButton, isActive(state) && styles.chipActive]}>
+            <NovaText variant="caption" tone="secondary">
+              {t.profile}
+            </NovaText>
+          </Pressable>
+        ) : null}
         <Pressable
           onPress={() => router.push('/language')}
           accessibilityRole="button"
@@ -136,6 +150,7 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
   },

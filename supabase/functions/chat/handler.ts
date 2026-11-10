@@ -30,7 +30,8 @@ export type ErrorCode =
   | 'invalid_request'
   | 'rate_limited'
   | 'service_unavailable'
-  | 'upstream_error';
+  | 'upstream_error'
+  | 'unauthorized';
 
 type Deps = {
   env: Env;
@@ -39,6 +40,7 @@ type Deps = {
 };
 
 export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
+  const doFetch = fetchImpl ?? fetch;
   const limiter = createRateLimiter(Number(env.get('RATE_LIMIT_PER_MINUTE') ?? 20), now);
 
   return async function handle(req: Request): Promise<Response> {
@@ -47,9 +49,15 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
     if (req.method !== 'POST') return errorResponse(405, 'invalid_request', cors);
 
-    // 同じ接続元から短時間に大量に送られるのを防ぐ（簡易版。PHASE 9でユーザー単位にする）
+    // ログインしている本人か確かめる（ログインなしではAIを使えない）
     const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-    if (!limiter.allow(ip)) return errorResponse(429, 'rate_limited', cors);
+    const auth = await authenticate(req, env, doFetch, ip);
+    if (auth.kind === 'misconfigured') return errorResponse(503, 'service_unavailable', cors);
+    if (auth.kind === 'denied') return errorResponse(401, 'unauthorized', cors);
+    const userId = auth.userId;
+
+    // 同じ人から短時間に大量に送られるのを防ぐ（1分あたりの回数）
+    if (!limiter.allow(userId)) return errorResponse(429, 'rate_limited', cors);
 
     let body: unknown;
     try {
@@ -160,6 +168,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
           console.log(
             JSON.stringify({
               event: 'usage',
+              user_id: userId,
               provider: provider.name,
               model,
               input_tokens: usage.input,
@@ -191,6 +200,49 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       },
     });
   };
+}
+
+type AuthResult =
+  | { kind: 'ok'; userId: string }
+  | { kind: 'denied' }
+  | { kind: 'misconfigured' };
+
+/**
+ * ログインの鍵（Authorization: Bearer ...）を Supabase に確認してもらい、本人のIDを得る。
+ * REQUIRE_AUTH=false のときだけ、ログインなしで使える（テスト・開発用）。
+ */
+async function authenticate(
+  req: Request,
+  env: Env,
+  doFetch: typeof fetch,
+  ip: string,
+): Promise<AuthResult> {
+  if ((env.get('REQUIRE_AUTH') ?? 'true').toLowerCase() === 'false') {
+    return { kind: 'ok', userId: `ip:${ip}` };
+  }
+  const header = req.headers.get('authorization') ?? '';
+  const token = header.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  if (!token) return { kind: 'denied' };
+
+  const supabaseUrl = env.get('SUPABASE_URL');
+  // アプリが送ってくる公開キー（なければサーバーの環境変数）を使う
+  const apikey = req.headers.get('apikey') ?? env.get('SUPABASE_ANON_KEY');
+  if (!supabaseUrl || !apikey) {
+    console.error('[chat] SUPABASE_URL or apikey is missing; cannot verify users');
+    return { kind: 'misconfigured' };
+  }
+  try {
+    const res = await doFetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`, {
+      headers: { Authorization: `Bearer ${token}`, apikey },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return { kind: 'denied' };
+    const user = await res.json();
+    return typeof user?.id === 'string' ? { kind: 'ok', userId: user.id } : { kind: 'denied' };
+  } catch (e) {
+    console.error('[chat] auth check failed', e);
+    return { kind: 'misconfigured' };
+  }
 }
 
 /** アプリから届いた言語設定を読む（対応外の値は無視） */
