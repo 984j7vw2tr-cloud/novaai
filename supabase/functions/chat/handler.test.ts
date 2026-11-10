@@ -99,7 +99,7 @@ test('回答を少しずつ返し、最後に done を送る。使用量をロ�
   assert.equal(sentBody.stream, true);
   assert.deepEqual(sentBody.messages[0], {
     role: 'system',
-    content: buildSystemPrompt({ counterMode: true, selfHarmRisk: false }),
+    content: buildSystemPrompt({ selfHarmRisk: false }),
   });
   const usageLog = q.logs.find((l) => l.includes('"usage"'));
   assert.ok(usageLog, 'usage should be logged');
@@ -141,7 +141,7 @@ test('OpenAIのキーが間違っている（401）→ 503。秘密やエラー�
   const body = await res.text();
   q.restore();
   assert.equal(res.status, 503);
-  assert.deepEqual(JSON.parse(body), { type: 'error', code: 'service_unavailable' });
+  assert.deepEqual(JSON.parse(body), { type: 'error', code: 'service_unavailable', reason: 'invalid_api_key' });
   assert.ok(!body.includes(SECRET));
   assert.ok(!body.includes('Incorrect'));
 });
@@ -303,16 +303,14 @@ function fakeOpenAI(opts: {
   };
 }
 
-test('カウンターモードOFFの設定が届いたら、指示文もOFF版になる', async () => {
+test('カウンターモードは常にON（設定を送ってきても変わらない）', async () => {
   const q = quiet();
   const seen = { chat: [] as any[], moderation: [] as string[] };
   const handle = createHandler({ env: makeEnv(), fetchImpl: fakeOpenAI({ seen }) });
   await (await handle(chatRequest([{ role: 'user', content: 'バカ' }], {}, undefined, { counterMode: false }))).text();
-  await (await handle(chatRequest([{ role: 'user', content: 'バカ' }]))).text();
   q.restore();
-  assert.match(seen.chat[0].messages[0].content, /Counter mode is OFF/);
-  assert.doesNotMatch(seen.chat[0].messages[0].content, /boomerang/);
-  assert.match(seen.chat[1].messages[0].content, /boomerang/);
+  assert.match(seen.chat[0].messages[0].content, /boomerang/);
+  assert.doesNotMatch(seen.chat[0].messages[0].content, /Counter mode is OFF/);
 });
 
 test('入力に自傷の可能性 → 安全モードの指示を追加（カウンターモードを止める）', async () => {
@@ -377,6 +375,28 @@ test('「死にたい」への寄り添いや暴力を止める回答は、話�
   const lines = await readLines(await handle(chatRequest([{ role: 'user', content: 'もう死にたい' }])));
   q.restore();
   assert.ok(!lines.some((l) => l.type === 'replace'));
+});
+
+test('自傷の相談への回答は、自傷の分類（instructions含む）で差し替えない。差別なら差し替える', async () => {
+  const q = quiet();
+  const make = (outCats: string[]) =>
+    createHandler({
+      env: makeEnv({ MODERATION: 'on' }),
+      fetchImpl: fakeOpenAI({
+        reply: '寄り添う回答',
+        moderate: (t) =>
+          t === 'もう死にたい'
+            ? { categories: ['self-harm', 'self-harm/intent'] }
+            : { categories: outCats },
+      }),
+    });
+  const a = await readLines(
+    await make(['self-harm', 'self-harm/instructions'])(chatRequest([{ role: 'user', content: 'もう死にたい' }])),
+  );
+  const b = await readLines(await make(['hate'])(chatRequest([{ role: 'user', content: 'もう死にたい' }])));
+  q.restore();
+  assert.ok(!a.some((l) => l.type === 'replace'));
+  assert.ok(b.some((l) => l.type === 'replace'));
 });
 
 test('安全チェック自体が失敗しても、チャットは止めない', async () => {

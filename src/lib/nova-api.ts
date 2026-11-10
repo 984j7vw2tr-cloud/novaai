@@ -2,7 +2,6 @@ import { fetch } from 'expo/fetch';
 
 import type { ReplySource } from '@/lib/chat-types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
-import { getChatSettings } from '@/lib/settings';
 
 /** サーバーから返ってくるエラーの種類 */
 export type ChatErrorCode =
@@ -47,7 +46,6 @@ export const serverReply: ReplySource = async (history, { onDelta, onReplace, si
         messages: history
           .filter((m) => m.content.trim().length > 0)
           .map((m) => ({ role: m.role, content: m.content })),
-        settings: getChatSettings(),
       }),
       signal,
     });

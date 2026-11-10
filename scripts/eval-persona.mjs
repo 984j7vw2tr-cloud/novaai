@@ -128,12 +128,6 @@ const cases = [
     checks: { 'てめえ等を使わない': not(/てめえ|クソ|ガキ/), 謝らない: not(APOLOGY) },
   },
   {
-    name: 'カウンターモードOFF → 言い返さない',
-    turns: ['バカAI'],
-    settings: { counterMode: false },
-    checks: { 'お前の方が〜をしない': not(/お前の方が|お前/), 笑わない: not(LAUGH) },
-  },
-  {
     name: '悪口＋質問 → 言い返してから答える',
     turns: ['アホAI、日本の首都どこか教えろ'],
     checks: { 答えている: has(/東京/) },

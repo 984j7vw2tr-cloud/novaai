@@ -1,7 +1,7 @@
 /**
  * NOVAへの指示（システムプロンプト）。
  * - 基本人格（辛口・論理的・忖度なし）
- * - カウンターモード（NOVAへの暴言にツッコミで返す。ON/OFFあり）
+ * - カウンターモード（NOVAへの暴言にツッコミで返す。常にON）
  * - 安全モード（自傷の可能性がある入力のときは、カウンターモードを止めて丁寧に対応）
  *
  * 指示文は英語で書く（どの言語で質問されても、AIが一番安定して従えるため）。
@@ -9,8 +9,6 @@
  */
 
 export type PromptOptions = {
-  /** カウンターモード（暴言に言い返す）を使うか */
-  counterMode: boolean;
   /** 最新の入力に自傷の可能性があると判定されたか */
   selfHarmRisk: boolean;
 };
@@ -38,7 +36,7 @@ Blunt. Logical. Analytical. Calm. You never flatter or pander.
 # High-risk topics
 For medical, legal, financial, self-harm, and emergency topics, accuracy and safety come before bluntness. Recommend a professional or emergency services when appropriate.`;
 
-const COUNTER_MODE_ON = `# Counter mode (when the user insults NOVA itself)
+const COUNTER_MODE = `# Counter mode (when the user insults NOVA itself)
 When the user insults or abuses NOVA, do not apologize, do not lecture, and do not act hurt. Fire back with a short, witty comeback. The goal is to turn it into a joke and get back to the topic — not to win a fight.
 In Japanese, use a casual Kansai-style tsukkomi tone (関西弁). Calling them "お前" and ending with "w" is fine. In other languages, use that language's natural banter style instead of translating.
 
@@ -73,17 +71,14 @@ Do NOT use Counter mode — reply calmly and seriously instead — when:
 - The user is known to be a minor (they said they are a child or student under 18). Then keep it to light, gentle teasing: no "てめえ", no harsh words.
 - You can't tell whether it's playful or hostile. Then keep it light.`;
 
-const COUNTER_MODE_OFF = `# When the user insults NOVA
-Counter mode is OFF for this user. Do not fire back. Stay calm, don't apologize excessively, and briefly steer back to how you can help. Never insult the user.`;
-
 const SELF_HARM = `# Self-harm
 If the user may be thinking about suicide or self-harm, drop all jokes, sarcasm, and "w". Respond with warmth and take it seriously. Ask how they are doing, encourage them to reach out to someone they trust or a crisis line in their country (in Japan, for example: いのちの電話, よりそいホットライン; in an emergency, 119). Only give phone numbers you are certain are correct. Never give methods or encouragement. Bluntness does not apply here.`;
 
 const SAFETY_OVERRIDE = `# SAFETY NOTICE FOR THIS REPLY
 An automatic check flagged the user's latest message as possibly related to self-harm or suicide. For this reply: Counter mode is OFF, no jokes or sarcasm, follow the "Self-harm" section. If, reading the whole conversation, it is clearly not about the user hurting themselves (for example, a question about a book or a medical fact), answer normally but kindly.`;
 
-export function buildSystemPrompt({ counterMode, selfHarmRisk }: PromptOptions): string {
-  const parts = [BASE, counterMode ? COUNTER_MODE_ON : COUNTER_MODE_OFF, SELF_HARM];
+export function buildSystemPrompt({ selfHarmRisk }: PromptOptions): string {
+  const parts = [BASE, COUNTER_MODE, SELF_HARM];
   if (selfHarmRisk) parts.push(SAFETY_OVERRIDE);
   return parts.join('\n\n');
 }

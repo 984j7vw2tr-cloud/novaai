@@ -78,7 +78,7 @@ NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs          # 全部
 NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs 死ね     # 名前に「死ね」を含むケースだけ
 ```
 
-- カウンターモード：NOVAへの暴言にツッコミで返す（`src/lib/settings.ts` で ON/OFF。設定画面は今後）
+- カウンターモード：NOVAへの暴言にツッコミで返す（常にON。切り替えはなし）
 - 「死にたい」など自分に向いた言葉は、自動チェックで安全モードに切り替わり、茶化さずに対応する
 - 回答に差別・脅し・性的な内容が入った場合は、安全な文に差し替える
 

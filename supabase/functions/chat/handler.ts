@@ -68,7 +68,6 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     if (!provider || !model) return errorResponse(503, 'service_unavailable', cors);
 
     const maxOutputTokens = Number(env.get('MAX_OUTPUT_TOKENS') ?? 1500);
-    const counterMode = readCounterMode(body);
 
     const upstream = new AbortController();
     req.signal?.addEventListener('abort', () => upstream.abort(), { once: true });
@@ -85,7 +84,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     }
 
     const messages: ProviderMessage[] = [
-      { role: 'system', content: buildSystemPrompt({ counterMode, selfHarmRisk }) },
+      { role: 'system', content: buildSystemPrompt({ selfHarmRisk }) },
       ...parsed.messages.slice(-MAX_HISTORY),
     ];
 
@@ -96,8 +95,8 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     try {
       first = await events.next();
     } catch (e) {
-      const { status, code } = classifyError(e);
-      return errorResponse(status, code, cors);
+      const { status, code, reason } = classifyError(e);
+      return errorResponse(status, code, cors, reason);
     }
 
     const encoder = new TextEncoder();
@@ -127,7 +126,12 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
               moderator.check(fullText, upstream.signal),
               MODERATION_TIMEOUT_MS,
             );
-            if (hasAny(outputCheck, BLOCKED_OUTPUT_CATEGORIES)) {
+            // 自傷の相談への回答は、寄り添う内容でも「自傷」の話題として引っかかるため、
+            // そのときは自傷の分類では差し替えない（差別・性的な内容などは引き続き差し替える）
+            const blocked = selfHarmRisk
+              ? BLOCKED_OUTPUT_CATEGORIES.filter((c) => !c.startsWith('self-harm'))
+              : BLOCKED_OUTPUT_CATEGORIES;
+            if (hasAny(outputCheck, blocked)) {
               replaced = true;
               send({
                 type: 'replace',
@@ -148,8 +152,8 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
           send({ type: 'done' });
         } catch (e) {
           if (!upstream.signal.aborted) {
-            const { code } = classifyError(e);
-            send({ type: 'error', code });
+            const { code, reason } = classifyError(e);
+            send(reason ? { type: 'error', code, reason } : { type: 'error', code });
           }
         } finally {
           // トークン使用量を記録（PHASE 8 でデータベースの usage_events にも保存する）
@@ -161,7 +165,6 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
               input_tokens: usage.input,
               output_tokens: usage.output,
               aborted: upstream.signal.aborted,
-              counter_mode: counterMode,
               self_harm_risk: selfHarmRisk,
               replaced,
               ms: now() - startedAt,
@@ -188,12 +191,6 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       },
     });
   };
-}
-
-/** アプリから届いた設定のうち、カウンターモードのON/OFFを読む（指定がなければON） */
-function readCounterMode(body: unknown): boolean {
-  const value = (body as { settings?: { counterMode?: unknown } })?.settings?.counterMode;
-  return value === false ? false : true;
 }
 
 /** 決めた時間内に終わらなければ null を返す */
@@ -243,23 +240,32 @@ export function validateMessages(body: unknown): ValidationResult {
   return { ok: true, messages };
 }
 
-function classifyError(e: unknown): { status: number; code: ErrorCode } {
+function classifyError(e: unknown): { status: number; code: ErrorCode; reason?: string } {
   if (e instanceof ProviderError) {
-    // 詳細はログにだけ出す（アプリには出さない）
+    // エラー本文はログにだけ出す（アプリには出さない）。
+    // AI会社のエラーの種類名（例：rate_limit_exceeded）だけは、原因調査のために reason として返す。
     console.error(`[chat] provider error ${e.status} ${e.code ?? ''}: ${e.message}`);
-    if (e.status === 429 && e.code !== 'insufficient_quota') return { status: 429, code: 'rate_limited' };
+    const reason = /^[a-z0-9_]{1,64}$/.test(e.code ?? '') ? e.code : `http_${e.status}`;
+    if (e.status === 429 && e.code !== 'insufficient_quota') {
+      return { status: 429, code: 'rate_limited', reason };
+    }
     if (e.status === 401 || e.status === 403 || e.status === 404 || e.code === 'insufficient_quota') {
       // APIキーの間違い・モデル名の間違い・残高不足 → 運営側の設定の問題
-      return { status: 503, code: 'service_unavailable' };
+      return { status: 503, code: 'service_unavailable', reason };
     }
-    return { status: 502, code: 'upstream_error' };
+    return { status: 502, code: 'upstream_error', reason };
   }
   console.error('[chat] unexpected error', e);
   return { status: 502, code: 'upstream_error' };
 }
 
-function errorResponse(status: number, code: ErrorCode, cors: Record<string, string>) {
-  return new Response(JSON.stringify({ type: 'error', code }), {
+function errorResponse(
+  status: number,
+  code: ErrorCode,
+  cors: Record<string, string>,
+  reason?: string,
+) {
+  return new Response(JSON.stringify(reason ? { type: 'error', code, reason } : { type: 'error', code }), {
     status,
     headers: { ...cors, 'Content-Type': 'application/json' },
   });
