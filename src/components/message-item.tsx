@@ -44,7 +44,7 @@ export const MessageItem = memo(function MessageItem({
     );
   }
 
-  // NOVAの回答：吹き出しなしで、本文として読みやすく
+  // Karakuchiの回答：吹き出しなしで、本文として読みやすく
   const streaming = message.status === 'streaming';
   const showActions = !streaming && message.content.length > 0;
 
@@ -53,7 +53,7 @@ export const MessageItem = memo(function MessageItem({
       <View style={styles.assistantHead}>
         <BrandMark size={14} />
         <NovaText variant="label" tone="secondary">
-          NOVA
+          KARAKUCHI
         </NovaText>
       </View>
       {streaming && message.content.length === 0 ? (

@@ -7,7 +7,7 @@ import { Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 
 /**
- * AIが考え中のときの表示：NOVAの星がゆっくり呼吸するように明滅する。
+ * AIが考え中のときの表示：Karakuchi の赤い印が、ゆっくり呼吸するように明滅する。
  * 動きは小さく、ゆっくり（長く見ていても気にならないように）。
  */
 export function ThinkingIndicator() {
@@ -36,12 +36,11 @@ export function ThinkingIndicator() {
   }, [pulse]);
 
   const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] });
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1] });
-  const rotate = pulse.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.86, 1.04] });
 
   return (
     <View style={styles.row} accessibilityLabel={t.thinking} accessibilityRole="progressbar">
-      <Animated.View style={{ opacity, transform: [{ scale }, { rotate }] }}>
+      <Animated.View style={{ opacity, transform: [{ scale }] }}>
         <BrandMark size={16} />
       </Animated.View>
       <NovaText variant="small" tone="muted">

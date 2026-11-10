@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "NOVA AI",
-    "slug": "nova-ai",
+    "name": "Karakuchi AI",
+    "slug": "karakuchi-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "novaai",
+    "scheme": "karakuchi",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {

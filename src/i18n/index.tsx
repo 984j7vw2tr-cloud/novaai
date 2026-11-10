@@ -1,7 +1,7 @@
 /**
  * 多言語対応の中心。
  * - 表示言語（ボタンや案内の言語）：自動（端末の言語）または手動で選ぶ
- * - 回答言語（NOVAが答える言語）：自動（質問の言語）または手動で選ぶ
+ * - 回答言語（Karakuchiが答える言語）：自動（質問の言語）または手動で選ぶ
  * の2つを別々に管理し、端末に保存する。
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';

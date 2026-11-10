@@ -23,7 +23,7 @@ export const mockReply: ReplySource = async (history, { onDelta, signal }) => {
     '',
     `受け取った質問：「${excerpt}」`,
     '',
-    'PHASE 4でAIに接続すると、ここにNOVAの本物の回答が少しずつ表示されます。回答は基本的に次の流れになります。',
+    'PHASE 4でAIに接続すると、ここにKarakuchiの本物の回答が少しずつ表示されます。回答は基本的に次の流れになります。',
     '',
     '1. 結論',
     '2. 問題点と、なぜ問題なのか',

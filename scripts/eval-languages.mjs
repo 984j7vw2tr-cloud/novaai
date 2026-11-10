@@ -194,7 +194,7 @@ for (const c of selected) {
     continue;
   }
   const got = detect(result.reply);
-  console.log(`  NOVA: ${result.reply.replace(/\n+/g, ' ').slice(0, 160)}${result.reply.length > 160 ? '…' : ''}`);
+  console.log(`  Karakuchi: ${result.reply.replace(/\n+/g, ' ').slice(0, 160)}${result.reply.length > 160 ? '…' : ''}`);
   const checks = { [`言語 = ${c.expect}（判定：${got}）`]: () => got === c.expect, ...(c.extra ?? {}) };
   for (const [label, fn] of Object.entries(checks)) {
     const ok = fn(result.reply);

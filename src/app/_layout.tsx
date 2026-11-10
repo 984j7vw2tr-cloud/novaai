@@ -12,7 +12,7 @@ import { AuthProvider, useAuth } from '@/auth';
 import { Colors } from '@/constants/theme';
 import { LanguageProvider } from '@/i18n';
 
-/** 画面の切り替え方の設定。NOVAは常にダークテーマ。 */
+/** 画面の切り替え方の設定。Karakuchiは常にダークテーマ。 */
 const novaTheme = {
   ...DarkTheme,
   colors: {
@@ -71,17 +71,17 @@ function Screens() {
         contentStyle: { backgroundColor: Colors.background },
       }}>
       <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="index" options={{ title: 'NOVA AI' }} />
-        <Stack.Screen name="chat" options={{ title: 'NOVA AI — Chat' }} />
-        <Stack.Screen name="profile" options={{ title: 'NOVA AI — Profile' }} />
-        <Stack.Screen name="history" options={{ title: 'NOVA AI — History' }} />
+        <Stack.Screen name="index" options={{ title: 'Karakuchi AI' }} />
+        <Stack.Screen name="chat" options={{ title: 'Karakuchi AI — Chat' }} />
+        <Stack.Screen name="profile" options={{ title: 'Karakuchi AI — Profile' }} />
+        <Stack.Screen name="history" options={{ title: 'Karakuchi AI — History' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="login" options={{ title: 'NOVA AI — Log in' }} />
-        <Stack.Screen name="signup" options={{ title: 'NOVA AI — Sign up' }} />
+        <Stack.Screen name="login" options={{ title: 'Karakuchi AI — Log in' }} />
+        <Stack.Screen name="signup" options={{ title: 'Karakuchi AI — Sign up' }} />
       </Stack.Protected>
-      <Stack.Screen name="language" options={{ title: 'NOVA AI — Language' }} />
-      <Stack.Screen name="auth/callback" options={{ title: 'NOVA AI' }} />
+      <Stack.Screen name="language" options={{ title: 'Karakuchi AI — Language' }} />
+      <Stack.Screen name="auth/callback" options={{ title: 'Karakuchi AI' }} />
     </Stack>
   );
 }

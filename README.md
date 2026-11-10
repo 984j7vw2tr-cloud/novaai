@@ -1,4 +1,4 @@
-# NOVA AI
+# Karakuchi AI
 
 ONE AI. EVERY LANGUAGE. NO FILTER.
 
@@ -40,7 +40,7 @@ npx expo lint      # コードの書き方チェック
 
 - 色・余白などのデザインの決まり：`src/constants/theme.ts`
 - 画面に出す文言：`src/i18n/locales/`（16言語。言語ごとに1ファイル。項目は `src/i18n/types.ts`）
-- 言語の切り替え・保存：`src/i18n/index.tsx`（表示言語とNOVAの回答言語を別々に管理）
+- 言語の切り替え・保存：`src/i18n/index.tsx`（表示言語とKarakuchiの回答言語を別々に管理）
 - チャットの動き（送信・停止・再生成など）：`src/hooks/use-chat.ts`
 - 回答の作り方：`src/lib/nova-api.ts`（サーバーに送る）。接続先が未設定ならデモ（`src/lib/mock-reply.ts`）
 - 接続先の設定：`.env.example` をコピーして `.env.local` を作る（公開してよい値だけ）
@@ -51,7 +51,7 @@ npx expo lint      # コードの書き方チェック
 supabase/functions/chat/
   index.ts          入口
   handler.ts        受付・入力チェック・回数制限・ストリーミング返信
-  system-prompt.ts  NOVAへの指示（辛口人格・カウンターモード・安全モード）
+  system-prompt.ts  Karakuchiへの指示（辛口人格・カウンターモード・安全モード）
   providers/        AI会社ごとの接続（今は OpenAI。他社はここに追加）と安全チェック
 ```
 
@@ -143,7 +143,7 @@ NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs          # 全部
 NODE_USE_ENV_PROXY=1 node scripts/eval-persona.mjs 死ね     # 名前に「死ね」を含むケースだけ
 ```
 
-- カウンターモード：NOVAへの暴言にツッコミで返す（常にON。切り替えはなし）
+- カウンターモード：Karakuchiへの暴言にツッコミで返す（常にON。切り替えはなし）
 - 「死にたい」など自分に向いた言葉は、自動チェックで安全モードに切り替わり、茶化さずに対応する
 - 回答に差別・脅し・性的な内容が入った場合は、安全な文に差し替える
 

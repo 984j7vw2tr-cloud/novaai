@@ -139,6 +139,8 @@ function ConversationRow({
       onHoverOut={() => setHovered(false)}
       accessible={false}
       style={[styles.conv, active && styles.convActive, !active && hovered && styles.rowActive]}>
+      {/* 選択中の会話には、先頭に細い赤い線 */}
+      {active ? <View style={styles.convMarker} /> : null}
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
@@ -232,7 +234,11 @@ const styles = StyleSheet.create({
   rowActive: { backgroundColor: Colors.surface },
   scroll: { paddingHorizontal: Spacing.sm, paddingBottom: Spacing.lg, gap: Spacing.lg },
   group: { gap: 1 },
-  groupTitle: { paddingHorizontal: Spacing.md, paddingTop: Spacing.sm, paddingBottom: Spacing.xs + 2 },
+  groupTitle: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs + 2,
+  },
   conv: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -242,6 +248,15 @@ const styles = StyleSheet.create({
   },
   convTitle: { flex: 1, minHeight: 38, justifyContent: 'center', paddingStart: Spacing.md },
   convActive: { backgroundColor: Colors.surfaceRaised },
+  convMarker: {
+    position: 'absolute',
+    start: 0,
+    top: 10,
+    bottom: 10,
+    width: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.accent,
+  },
   convDelete: { marginVertical: -4 },
   viewAll: {
     alignSelf: 'flex-start',

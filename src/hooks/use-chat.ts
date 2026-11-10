@@ -76,7 +76,7 @@ export function useChat({
           await task(id);
         } catch (e) {
           if (session === sessionRef.current) setSaveFailed(true);
-          if (__DEV__) console.warn('[NOVA] save failed', e);
+          if (__DEV__) console.warn('[Karakuchi] save failed', e);
         }
       });
     },
@@ -134,7 +134,7 @@ export function useChat({
           setErrorDetails(e instanceof ChatError ? (e.details ?? null) : null);
           // 上限に達したら、古い「残り○回」の表示は消す（上限のお知らせと食い違わないように）
           if (e instanceof ChatError && e.code === 'quota_exceeded') setQuota(null);
-          if (__DEV__) console.warn('[NOVA] reply failed', e);
+          if (__DEV__) console.warn('[Karakuchi] reply failed', e);
         }
       } finally {
         if (controllerRef.current === controller) {
@@ -165,7 +165,7 @@ export function useChat({
             onCreatedRef.current?.(id);
           } catch (e) {
             setSaveFailed(true);
-            if (__DEV__) console.warn('[NOVA] create conversation failed', e);
+            if (__DEV__) console.warn('[Karakuchi] create conversation failed', e);
           }
         }
         if (session !== sessionRef.current) return;
@@ -226,7 +226,7 @@ export function useChat({
         update(() => loaded);
       } catch (e) {
         if (session === sessionRef.current) setLoadFailed(true);
-        if (__DEV__) console.warn('[NOVA] load failed', e);
+        if (__DEV__) console.warn('[Karakuchi] load failed', e);
       } finally {
         if (session === sessionRef.current) setLoading(false);
       }
