@@ -77,4 +77,14 @@ export const en: Strings = {
   callbackWorking: 'Logging you in…',
   callbackFailed: "Couldn't log you in. Please try again.",
   backToLogin: 'Back to login',
+  history: 'History',
+  historyTitle: 'Conversation history',
+  historyEmpty: 'No conversations yet.',
+  untitled: 'Untitled conversation',
+  deleteLabel: 'Delete',
+  cancel: 'Cancel',
+  deleteConfirm: "Delete this conversation? This can't be undone.",
+  loadFailed: "Couldn't load. Please try again.",
+  saveFailed:
+    "Couldn't save this conversation. You can keep chatting, but it may not appear in your history.",
 };

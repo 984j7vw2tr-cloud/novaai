@@ -71,4 +71,13 @@ export type Strings = {
   callbackWorking: string;
   callbackFailed: string;
   backToLogin: string;
+  history: string;
+  historyTitle: string;
+  historyEmpty: string;
+  untitled: string;
+  deleteLabel: string;
+  cancel: string;
+  deleteConfirm: string;
+  loadFailed: string;
+  saveFailed: string;
 };

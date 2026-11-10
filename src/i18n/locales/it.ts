@@ -78,4 +78,14 @@ export const it: Strings = {
   callbackWorking: 'Accesso in corso…',
   callbackFailed: 'Impossibile accedere. Riprova.',
   backToLogin: "Torna all'accesso",
+  history: 'Cronologia',
+  historyTitle: 'Cronologia delle chat',
+  historyEmpty: 'Ancora nessuna conversazione.',
+  untitled: 'Conversazione senza titolo',
+  deleteLabel: 'Elimina',
+  cancel: 'Annulla',
+  deleteConfirm: 'Eliminare questa conversazione? Non si può annullare.',
+  loadFailed: 'Impossibile caricare. Riprova.',
+  saveFailed:
+    'Impossibile salvare la conversazione. Puoi continuare, ma potrebbe non comparire nella cronologia.',
 };

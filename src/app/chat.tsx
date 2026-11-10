@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -26,13 +27,40 @@ import { isActive } from '@/lib/pressable';
 
 /** チャット画面 */
 export default function ChatScreen() {
-  const { q } = useLocalSearchParams<{ q?: string }>();
-  const { messages, busy, error, send, stop, regenerate, retry, reset } = useChat();
+  const { q, id } = useLocalSearchParams<{ q?: string; id?: string }>();
+  /** 今この画面に読み込んである（または自分で作った）会話のID */
+  const shownIdRef = useRef<string | null>(null);
+  const onConversationCreated = useCallback((newId: string) => {
+    // 新しく保存された会話のIDをURLに入れる（再読み込みしても同じ会話が開く）
+    shownIdRef.current = newId;
+    router.setParams({ id: newId });
+  }, []);
+  const {
+    messages,
+    busy,
+    error,
+    saveFailed,
+    loading,
+    loadFailed,
+    send,
+    stop,
+    regenerate,
+    retry,
+    reset,
+    load,
+  } = useChat({ onConversationCreated });
   const { t, isRTL } = useI18n();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const inputRef = useRef<TextInputInstance>(null);
   const consumedQuery = useRef(false);
+
+  // 履歴から開いたとき（URLに会話IDがある）は、その会話を読み込む
+  useEffect(() => {
+    if (typeof id !== 'string' || !id || id === shownIdRef.current) return;
+    shownIdRef.current = id;
+    void load(id);
+  }, [id, load]);
 
   // ホーム画面から質問を受け取ったら、1回だけ自動で送信する
   useEffect(() => {
@@ -51,6 +79,8 @@ export default function ChatScreen() {
 
   const newChat = () => {
     reset();
+    shownIdRef.current = null;
+    router.setParams({ id: undefined });
     setText('');
     inputRef.current?.focus();
   };
@@ -95,14 +125,26 @@ export default function ChatScreen() {
             requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: false }))
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <NovaText variant="title" style={styles.center}>
-                {t.chatEmptyTitle}
-              </NovaText>
-              <NovaText variant="small" tone="secondary" style={styles.center}>
-                {t.chatEmptyBody}
-              </NovaText>
-            </View>
+            loading ? (
+              <View style={styles.empty}>
+                <ActivityIndicator color={Colors.accent} />
+              </View>
+            ) : loadFailed ? (
+              <View style={styles.empty} accessibilityRole="alert">
+                <NovaText tone="danger" style={styles.center}>
+                  {t.loadFailed}
+                </NovaText>
+              </View>
+            ) : (
+              <View style={styles.empty}>
+                <NovaText variant="title" style={styles.center}>
+                  {t.chatEmptyTitle}
+                </NovaText>
+                <NovaText variant="small" tone="secondary" style={styles.center}>
+                  {t.chatEmptyBody}
+                </NovaText>
+              </View>
+            )
           }
           renderItem={({ item }) => (
             <View style={styles.column}>
@@ -118,6 +160,11 @@ export default function ChatScreen() {
 
         <View style={styles.bottom}>
           <View style={styles.column}>
+            {saveFailed ? (
+              <NovaText variant="caption" tone="muted" style={styles.saveNotice}>
+                {t.saveFailed}
+              </NovaText>
+            ) : null}
             {error ? (
               <View style={styles.error} accessibilityRole="alert">
                 <NovaText variant="small" tone="danger" style={styles.flex}>
@@ -244,5 +291,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
   },
   pressed: { opacity: 0.7 },
+  saveNotice: { marginBottom: Spacing.sm, textAlign: 'center' },
   disclaimer: { marginTop: Spacing.sm },
 });

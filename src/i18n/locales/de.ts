@@ -79,4 +79,14 @@ export const de: Strings = {
   callbackWorking: 'Du wirst angemeldet…',
   callbackFailed: 'Anmeldung fehlgeschlagen. Bitte versuch es erneut.',
   backToLogin: 'Zurück zur Anmeldung',
+  history: 'Verlauf',
+  historyTitle: 'Chatverlauf',
+  historyEmpty: 'Noch keine Unterhaltungen.',
+  untitled: 'Unterhaltung ohne Titel',
+  deleteLabel: 'Löschen',
+  cancel: 'Abbrechen',
+  deleteConfirm: 'Diese Unterhaltung löschen? Das lässt sich nicht rückgängig machen.',
+  loadFailed: 'Laden fehlgeschlagen. Bitte versuch es erneut.',
+  saveFailed:
+    'Die Unterhaltung konnte nicht gespeichert werden. Du kannst weitermachen, aber sie erscheint evtl. nicht im Verlauf.',
 };

@@ -37,7 +37,10 @@ const toCode = (c: unknown): ChatErrorCode =>
  * Supabase の chat 関数（サーバー）に会話を送り、AIの回答を少しずつ受け取る。
  * APIキーはサーバー側にあるので、アプリには入っていない。
  */
-export const serverReply: ReplySource = async (history, { onDelta, onReplace, signal }) => {
+export const serverReply: ReplySource = async (
+  history,
+  { onDelta, onReplace, signal, conversationId },
+) => {
   const settings = await getLanguageSettings();
   // ログインの鍵をつけて送る（サーバーはこれでログイン中の本人か確かめる）
   const accessToken = await getAccessToken();
@@ -55,6 +58,7 @@ export const serverReply: ReplySource = async (history, { onDelta, onReplace, si
           .filter((m) => m.content.trim().length > 0)
           .map((m) => ({ role: m.role, content: m.content })),
         settings,
+        conversationId: conversationId ?? undefined,
       }),
       signal,
     });

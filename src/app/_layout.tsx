@@ -55,6 +55,7 @@ function Screens() {
         <Stack.Screen name="index" options={{ title: 'NOVA AI' }} />
         <Stack.Screen name="chat" options={{ title: 'NOVA AI — Chat' }} />
         <Stack.Screen name="profile" options={{ title: 'NOVA AI — Profile' }} />
+        <Stack.Screen name="history" options={{ title: 'NOVA AI — History' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="login" options={{ title: 'NOVA AI — Log in' }} />

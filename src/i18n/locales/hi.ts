@@ -77,4 +77,13 @@ export const hi: Strings = {
   callbackWorking: 'लॉग इन हो रहा है…',
   callbackFailed: 'लॉग इन नहीं हो सका। फिर से कोशिश करें।',
   backToLogin: 'लॉग इन पर वापस जाएँ',
+  history: 'इतिहास',
+  historyTitle: 'बातचीत का इतिहास',
+  historyEmpty: 'अभी कोई बातचीत नहीं है।',
+  untitled: 'बिना शीर्षक की बातचीत',
+  deleteLabel: 'हटाएँ',
+  cancel: 'रद्द करें',
+  deleteConfirm: 'यह बातचीत हटाएँ? इसे वापस नहीं लाया जा सकता।',
+  loadFailed: 'लोड नहीं हो सका। फिर से कोशिश करें।',
+  saveFailed: 'बातचीत सेव नहीं हो सकी। आप जारी रख सकते हैं, पर यह इतिहास में शायद न दिखे।',
 };

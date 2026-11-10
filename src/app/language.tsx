@@ -2,11 +2,13 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/auth';
 import { NovaText } from '@/components/nova-text';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { type LanguagePreference, useI18n } from '@/i18n';
 import { LANGUAGES } from '@/i18n/languages';
 import { isActive } from '@/lib/pressable';
+import { updateProfile } from '@/lib/profile';
 
 /** 言語設定画面：表示言語とNOVAの回答言語を別々に選ぶ */
 export default function LanguageScreen() {
@@ -19,6 +21,14 @@ export default function LanguageScreen() {
     setReplyPreference,
     needsRestart,
   } = useI18n();
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  // 表示言語を変えたら、ログイン中ならプロフィールにも保存する（失敗しても画面の切り替えは行う）
+  const changeUiLanguage = (p: LanguagePreference) => {
+    setUiPreference(p);
+    if (userId) updateProfile(userId, { preferredLanguage: p }).catch(() => {});
+  };
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -59,7 +69,7 @@ export default function LanguageScreen() {
             hint={t.displayLanguageHint}
             autoLabel={t.autoDisplay}
             value={uiPreference}
-            onChange={setUiPreference}
+            onChange={changeUiLanguage}
           />
           <Section
             title={t.replyLanguage}

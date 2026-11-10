@@ -77,4 +77,13 @@ export const th: Strings = {
   callbackWorking: 'กำลังเข้าสู่ระบบ…',
   callbackFailed: 'เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง',
   backToLogin: 'กลับไปหน้าเข้าสู่ระบบ',
+  history: 'ประวัติ',
+  historyTitle: 'ประวัติการสนทนา',
+  historyEmpty: 'ยังไม่มีการสนทนา',
+  untitled: 'การสนทนาที่ไม่มีชื่อ',
+  deleteLabel: 'ลบ',
+  cancel: 'ยกเลิก',
+  deleteConfirm: 'ลบการสนทนานี้ไหม ย้อนกลับไม่ได้',
+  loadFailed: 'โหลดไม่สำเร็จ โปรดลองอีกครั้ง',
+  saveFailed: 'บันทึกการสนทนาไม่สำเร็จ ใช้ต่อได้ แต่อาจไม่แสดงในประวัติ',
 };

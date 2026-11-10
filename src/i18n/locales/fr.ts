@@ -78,4 +78,14 @@ export const fr: Strings = {
   callbackWorking: 'Connexion en cours…',
   callbackFailed: 'Connexion impossible. Réessaie.',
   backToLogin: 'Retour à la connexion',
+  history: 'Historique',
+  historyTitle: 'Historique des conversations',
+  historyEmpty: 'Aucune conversation pour l’instant.',
+  untitled: 'Conversation sans titre',
+  deleteLabel: 'Supprimer',
+  cancel: 'Annuler',
+  deleteConfirm: 'Supprimer cette conversation ? C’est définitif.',
+  loadFailed: 'Chargement impossible. Réessaie.',
+  saveFailed:
+    'Impossible d’enregistrer la conversation. Tu peux continuer, mais elle risque de ne pas apparaître dans l’historique.',
 };

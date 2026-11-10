@@ -77,4 +77,13 @@ export const ja: Strings = {
   callbackWorking: 'ログインしています…',
   callbackFailed: 'ログインできませんでした。もう一度試してください。',
   backToLogin: 'ログイン画面に戻る',
+  history: '履歴',
+  historyTitle: '会話の履歴',
+  historyEmpty: 'まだ会話がありません。',
+  untitled: '無題の会話',
+  deleteLabel: '削除',
+  cancel: 'キャンセル',
+  deleteConfirm: 'この会話を削除しますか？元に戻せません。',
+  loadFailed: '読み込めませんでした。もう一度試してください。',
+  saveFailed: '会話を保存できませんでした。このまま使えますが、履歴に残らない可能性があります。',
 };

@@ -77,4 +77,13 @@ export const zhHant: Strings = {
   callbackWorking: '正在登入…',
   callbackFailed: '無法登入，請再試一次。',
   backToLogin: '返回登入',
+  history: '歷史',
+  historyTitle: '對話紀錄',
+  historyEmpty: '還沒有對話。',
+  untitled: '未命名對話',
+  deleteLabel: '刪除',
+  cancel: '取消',
+  deleteConfirm: '要刪除這個對話嗎？刪除後無法復原。',
+  loadFailed: '無法載入，請再試一次。',
+  saveFailed: '無法儲存此對話。可以繼續使用，但可能不會出現在紀錄中。',
 };

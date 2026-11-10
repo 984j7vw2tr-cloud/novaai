@@ -77,4 +77,13 @@ export const zhHans: Strings = {
   callbackWorking: '正在登录…',
   callbackFailed: '登录失败，请重试。',
   backToLogin: '返回登录',
+  history: '历史',
+  historyTitle: '对话历史',
+  historyEmpty: '还没有对话。',
+  untitled: '未命名对话',
+  deleteLabel: '删除',
+  cancel: '取消',
+  deleteConfirm: '要删除这个对话吗？删除后无法恢复。',
+  loadFailed: '加载失败，请重试。',
+  saveFailed: '无法保存此对话。可以继续使用，但可能不会出现在历史中。',
 };

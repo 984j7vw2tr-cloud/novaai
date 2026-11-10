@@ -19,5 +19,7 @@ export type ReplySource = (
     /** 安全チェックで回答全体が差し替えられたとき */
     onReplace?: (text: string) => void;
     signal: AbortSignal;
+    /** 保存中の会話のID（使用量の記録に使う。まだなければ null） */
+    conversationId?: string | null;
   },
 ) => Promise<void>;

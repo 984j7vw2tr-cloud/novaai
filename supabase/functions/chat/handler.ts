@@ -164,7 +164,15 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
             send(reason ? { type: 'error', code, reason } : { type: 'error', code });
           }
         } finally {
-          // トークン使用量を記録（PHASE 8 でデータベースの usage_events にも保存する）
+          // トークン使用量を記録（ログ＋データベースの usage_events）
+          await recordUsage(env, doFetch, {
+            userId,
+            conversationId: readConversationId(body),
+            model,
+            inputTokens: usage.input ?? 0,
+            outputTokens: usage.output ?? 0,
+            aborted: upstream.signal.aborted,
+          });
           console.log(
             JSON.stringify({
               event: 'usage',
@@ -242,6 +250,70 @@ async function authenticate(
   } catch (e) {
     console.error('[chat] auth check failed', e);
     return { kind: 'misconfigured' };
+  }
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** アプリから届いた会話ID（使用量をどの会話のものか記録するため）。形がおかしければ無視 */
+function readConversationId(body: unknown): string | null {
+  const id = (body as { conversationId?: unknown })?.conversationId;
+  return typeof id === 'string' && UUID_RE.test(id) ? id : null;
+}
+
+/**
+ * 使用量をデータベース（usage_events）に保存する。
+ * 利用者がごまかせないよう、サーバー専用の鍵（SUPABASE_SERVICE_ROLE_KEY。Supabaseが自動で用意）で書く。
+ * 保存に失敗しても、チャット自体は止めない（ログに残す）。
+ */
+async function recordUsage(
+  env: Env,
+  doFetch: typeof fetch,
+  u: {
+    userId: string;
+    conversationId: string | null;
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    aborted: boolean;
+  },
+) {
+  // ログインなしのテスト用モード（ip:...）は、データベースの利用者ではないので保存しない
+  if (!UUID_RE.test(u.userId)) return;
+  const supabaseUrl = env.get('SUPABASE_URL');
+  const serviceKey = env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceKey) {
+    console.error('[chat] cannot record usage: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing');
+    return;
+  }
+  const insert = (conversationId: string | null) =>
+    doFetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/usage_events`, {
+      method: 'POST',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        user_id: u.userId,
+        conversation_id: conversationId,
+        model: u.model,
+        input_tokens: Math.max(0, Math.round(u.inputTokens)),
+        output_tokens: Math.max(0, Math.round(u.outputTokens)),
+        aborted: u.aborted,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+  try {
+    let res = await insert(u.conversationId);
+    // 会話IDが存在しない（まだ作られていない・消された）ときは、会話なしで記録する
+    if (!res.ok && u.conversationId && (res.status === 409 || res.status === 400)) {
+      res = await insert(null);
+    }
+    if (!res.ok) console.error(`[chat] usage insert failed: HTTP ${res.status}`);
+  } catch (e) {
+    console.error('[chat] usage insert error', e);
   }
 }
 

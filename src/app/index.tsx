@@ -40,6 +40,18 @@ export default function HomeScreen() {
       <View style={styles.topBar}>
         {authRequired ? (
           <Pressable
+            onPress={() => router.push('/history')}
+            accessibilityRole="button"
+            accessibilityLabel={t.historyTitle}
+            hitSlop={8}
+            style={(state) => [styles.langButton, isActive(state) && styles.chipActive]}>
+            <NovaText variant="caption" tone="secondary">
+              {t.history}
+            </NovaText>
+          </Pressable>
+        ) : null}
+        {authRequired ? (
+          <Pressable
             onPress={() => router.push('/profile')}
             accessibilityRole="button"
             accessibilityLabel={t.profile}

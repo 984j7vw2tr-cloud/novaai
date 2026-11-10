@@ -79,4 +79,14 @@ export const es: Strings = {
   callbackWorking: 'Iniciando sesión…',
   callbackFailed: 'No se pudo iniciar sesión. Inténtalo de nuevo.',
   backToLogin: 'Volver al inicio de sesión',
+  history: 'Historial',
+  historyTitle: 'Historial de conversaciones',
+  historyEmpty: 'Aún no hay conversaciones.',
+  untitled: 'Conversación sin título',
+  deleteLabel: 'Eliminar',
+  cancel: 'Cancelar',
+  deleteConfirm: '¿Eliminar esta conversación? No se puede deshacer.',
+  loadFailed: 'No se pudo cargar. Inténtalo de nuevo.',
+  saveFailed:
+    'No se pudo guardar la conversación. Puedes seguir, pero quizá no aparezca en el historial.',
 };

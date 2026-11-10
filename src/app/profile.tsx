@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AuthFailure, type AuthErrorKind, useAuth } from '@/auth';
+import { type AuthErrorKind, useAuth } from '@/auth';
 import { Button, Field, Notice } from '@/components/form';
 import { NovaText } from '@/components/nova-text';
 import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -11,17 +11,38 @@ import { useI18n } from '@/i18n';
 import { getLanguage } from '@/i18n/languages';
 import { authErrorMessage } from '@/lib/auth-messages';
 import { isActive } from '@/lib/pressable';
+import { getProfile, updateProfile } from '@/lib/profile';
 
 /** プロフィール画面：メールアドレス・表示名・言語・ログアウト */
 export default function ProfileScreen() {
   const { t, isRTL, uiLanguage } = useI18n();
-  const { session, updateDisplayName, signOut } = useAuth();
+  const { session, signOut } = useAuth();
   const user = session?.user;
-  const initialName = (user?.user_metadata?.display_name as string | undefined) ?? '';
-  const [name, setName] = useState(initialName);
+  const userId = user?.id;
+  /** データベースに保存されている表示名（変更があるかの判定に使う） */
+  const [savedName, setSavedName] = useState('');
+  const [name, setName] = useState('');
   const [busy, setBusy] = useState<null | 'save' | 'signout'>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<AuthErrorKind | null>(null);
+
+  // プロフィール（profiles の表）から表示名を読む
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    getProfile(userId)
+      .then((p) => {
+        if (!active || !p) return;
+        setSavedName(p.displayName);
+        setName(p.displayName);
+      })
+      .catch(() => {
+        if (active) setError('generic');
+      });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -33,10 +54,11 @@ export default function ProfileScreen() {
     setSaved(false);
     setBusy('save');
     try {
-      await updateDisplayName(name);
+      if (userId) await updateProfile(userId, { displayName: name });
+      setSavedName(name.trim());
       setSaved(true);
-    } catch (e) {
-      setError(e instanceof AuthFailure ? e.kind : 'generic');
+    } catch {
+      setError('generic');
     } finally {
       setBusy(null);
     }
@@ -93,7 +115,7 @@ export default function ProfileScreen() {
               label={saved ? t.saved : t.save}
               onPress={save}
               busy={busy === 'save'}
-              disabled={!!busy || name.trim() === initialName.trim()}
+              disabled={!!busy || name.trim() === savedName.trim()}
             />
           </View>
 

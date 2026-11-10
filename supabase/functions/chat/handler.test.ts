@@ -539,3 +539,84 @@ test('回数制限は人ごと（同じ接続元でも別の人なら数えな�
   assert.deepEqual(a, [200, 200, 429]);
   assert.equal(b, 200);
 });
+
+// ---- PHASE 8：使用量をデータベースに保存 ----
+
+test('使用量を usage_events にサーバー専用の鍵で保存する（会話IDつき）', async () => {
+  const q = quiet();
+  const inserts: { headers: Headers; body: any }[] = [];
+  const convId = '11111111-2222-4333-8444-555555555555';
+  const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = String(url);
+    if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }));
+    if (u.endsWith('/rest/v1/usage_events')) {
+      inserts.push({ headers: new Headers(init?.headers), body: JSON.parse(String(init?.body)) });
+      return new Response(null, { status: 201 });
+    }
+    return sseResponse([delta('ok'), usage, 'data: [DONE]\n\n']);
+  }) as typeof fetch;
+  const handle = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true', SUPABASE_SERVICE_ROLE_KEY: 'service-secret' }),
+    fetchImpl,
+  });
+  const req = new Request('http://localhost/chat', {
+    method: 'POST',
+    headers: { authorization: 'Bearer t', apikey: 'pk', 'content-type': 'application/json' },
+    body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }], conversationId: convId }),
+  });
+  const res = await handle(req);
+  const body = await res.text();
+  q.restore();
+  assert.equal(inserts.length, 1);
+  assert.equal(inserts[0].headers.get('authorization'), 'Bearer service-secret');
+  assert.deepEqual(inserts[0].body, {
+    user_id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+    conversation_id: convId,
+    model: 'test-model',
+    input_tokens: 12,
+    output_tokens: 5,
+    aborted: false,
+  });
+  assert.ok(!body.includes('service-secret'));
+});
+
+test('会話IDがおかしい・存在しないときは会話なしで保存。保存に失敗してもチャットは成功', async () => {
+  const q = quiet();
+  const inserts: any[] = [];
+  let failFirst = true;
+  const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = String(url);
+    if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }));
+    if (u.endsWith('/rest/v1/usage_events')) {
+      const b = JSON.parse(String(init?.body));
+      inserts.push(b);
+      if (b.conversation_id && failFirst) {
+        failFirst = false;
+        return new Response('{"code":"23503"}', { status: 409 });
+      }
+      return new Response(null, { status: 500 });
+    }
+    return sseResponse([delta('ok'), 'data: [DONE]\n\n']);
+  }) as typeof fetch;
+  const handle = createHandler({
+    env: makeEnv({ REQUIRE_AUTH: 'true', SUPABASE_SERVICE_ROLE_KEY: 'k' }),
+    fetchImpl,
+  });
+  const send = (conversationId: unknown) =>
+    handle(
+      new Request('http://localhost/chat', {
+        method: 'POST',
+        headers: { authorization: 'Bearer t', apikey: 'pk' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }], conversationId }),
+      }),
+    ).then(async (r) => ({ status: r.status, lines: (await r.text()).trim().split('\n') }));
+  const r1 = await send('22222222-2222-4222-8222-222222222222');
+  const r2 = await send("x'; drop table users; --");
+  q.restore();
+  assert.equal(inserts[0].conversation_id, '22222222-2222-4222-8222-222222222222');
+  assert.equal(inserts[1].conversation_id, null); // 存在しない会話 → 会話なしでやり直し
+  assert.equal(inserts[2].conversation_id, null); // 形がおかしいIDは最初から使わない
+  assert.equal(r1.status, 200);
+  assert.equal(r2.status, 200);
+  assert.equal(JSON.parse(r1.lines.at(-1)!).type, 'done');
+});

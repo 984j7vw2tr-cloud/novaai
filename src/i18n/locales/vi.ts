@@ -78,4 +78,14 @@ export const vi: Strings = {
   callbackWorking: 'Đang đăng nhập…',
   callbackFailed: 'Không thể đăng nhập. Vui lòng thử lại.',
   backToLogin: 'Quay lại đăng nhập',
+  history: 'Lịch sử',
+  historyTitle: 'Lịch sử trò chuyện',
+  historyEmpty: 'Chưa có cuộc trò chuyện nào.',
+  untitled: 'Cuộc trò chuyện không tên',
+  deleteLabel: 'Xóa',
+  cancel: 'Hủy',
+  deleteConfirm: 'Xóa cuộc trò chuyện này? Không thể hoàn tác.',
+  loadFailed: 'Không tải được. Vui lòng thử lại.',
+  saveFailed:
+    'Không lưu được cuộc trò chuyện. Bạn vẫn dùng tiếp được, nhưng có thể không xuất hiện trong lịch sử.',
 };

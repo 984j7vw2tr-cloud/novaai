@@ -77,4 +77,13 @@ export const ko: Strings = {
   callbackWorking: '로그인 중…',
   callbackFailed: '로그인하지 못했습니다. 다시 시도해 주세요.',
   backToLogin: '로그인 화면으로',
+  history: '기록',
+  historyTitle: '대화 기록',
+  historyEmpty: '아직 대화가 없습니다.',
+  untitled: '제목 없는 대화',
+  deleteLabel: '삭제',
+  cancel: '취소',
+  deleteConfirm: '이 대화를 삭제할까요? 되돌릴 수 없습니다.',
+  loadFailed: '불러오지 못했습니다. 다시 시도해 주세요.',
+  saveFailed: '대화를 저장하지 못했습니다. 계속 사용할 수 있지만 기록에 남지 않을 수 있습니다.',
 };

@@ -78,4 +78,13 @@ export const id: Strings = {
   callbackWorking: 'Sedang masuk…',
   callbackFailed: 'Gagal masuk. Silakan coba lagi.',
   backToLogin: 'Kembali ke halaman masuk',
+  history: 'Riwayat',
+  historyTitle: 'Riwayat percakapan',
+  historyEmpty: 'Belum ada percakapan.',
+  untitled: 'Percakapan tanpa judul',
+  deleteLabel: 'Hapus',
+  cancel: 'Batal',
+  deleteConfirm: 'Hapus percakapan ini? Tidak bisa dibatalkan.',
+  loadFailed: 'Gagal memuat. Silakan coba lagi.',
+  saveFailed: 'Percakapan gagal disimpan. Kamu bisa lanjut, tapi mungkin tidak muncul di riwayat.',
 };

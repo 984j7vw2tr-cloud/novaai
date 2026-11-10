@@ -77,4 +77,13 @@ export const ar: Strings = {
   callbackWorking: 'جارٍ تسجيل الدخول…',
   callbackFailed: 'تعذّر تسجيل الدخول. حاول مرة أخرى.',
   backToLogin: 'العودة إلى تسجيل الدخول',
+  history: 'السجل',
+  historyTitle: 'سجل المحادثات',
+  historyEmpty: 'لا توجد محادثات بعد.',
+  untitled: 'محادثة بلا عنوان',
+  deleteLabel: 'حذف',
+  cancel: 'إلغاء',
+  deleteConfirm: 'هل تريد حذف هذه المحادثة؟ لا يمكن التراجع عن ذلك.',
+  loadFailed: 'تعذّر التحميل. حاول مرة أخرى.',
+  saveFailed: 'تعذّر حفظ المحادثة. يمكنك المتابعة، لكنها قد لا تظهر في السجل.',
 };

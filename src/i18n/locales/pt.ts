@@ -78,4 +78,14 @@ export const pt: Strings = {
   callbackWorking: 'Entrando…',
   callbackFailed: 'Não foi possível entrar. Tente de novo.',
   backToLogin: 'Voltar para entrar',
+  history: 'Histórico',
+  historyTitle: 'Histórico de conversas',
+  historyEmpty: 'Ainda não há conversas.',
+  untitled: 'Conversa sem título',
+  deleteLabel: 'Excluir',
+  cancel: 'Cancelar',
+  deleteConfirm: 'Excluir esta conversa? Não dá para desfazer.',
+  loadFailed: 'Não foi possível carregar. Tente de novo.',
+  saveFailed:
+    'Não foi possível salvar a conversa. Você pode continuar, mas ela pode não aparecer no histórico.',
 };

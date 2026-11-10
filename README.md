@@ -36,6 +36,7 @@ npx expo lint      # コードの書き方チェック
 | ログイン | `src/app/login.tsx` |
 | 新規登録 | `src/app/signup.tsx` |
 | プロフィール | `src/app/profile.tsx` |
+| 会話の履歴 | `src/app/history.tsx` |
 | ログイン後の戻り先 | `src/app/auth/callback.tsx` |
 
 - 色・余白などのデザインの決まり：`src/constants/theme.ts`
@@ -83,6 +84,26 @@ npm run test:server   # サーバーの自動テスト（本物のOpenAIは呼�
 - Google / Apple のボタンは、Supabase側で有効にしたときだけ表示される
 
 評価スクリプトはログインが必要なので、`.env.local` に `NOVA_TEST_EMAIL` / `NOVA_TEST_PASSWORD`（テスト用アカウント）を書いておく。
+
+## データベース（PHASE 8）
+
+表の定義は `supabase/migrations/` に、変更した順に置いてある。
+
+| 表 | 中身 | 利用者ができること |
+|---|---|---|
+| `profiles` | 表示名・好みの言語 | 自分の分を読む・表示名と言語だけ変更 |
+| `conversations` | 会話（題名・日時） | 自分の分を読む・作る・題名変更・削除 |
+| `messages` | 会話の中の発言 | 自分の会話に書く・読む・削除 |
+| `subscriptions` | 料金プラン（PHASE 12） | 読むだけ（書き込みはサーバー） |
+| `usage_events` | AIの使用量（トークン数） | 読むだけ（書き込みはサーバー） |
+
+- すべての表で RLS（行ごとの安全ルール）を有効にし、**他人の行は見えない・書けない**
+- 会話はチャット中に自動保存（`src/hooks/use-chat.ts`, `src/lib/conversations.ts`）
+- 使用量はサーバー（chat関数）がサーバー専用の鍵で記録する。会話を消しても使用量の記録は残る
+
+```bash
+NODE_USE_ENV_PROXY=1 node scripts/test-rls.mjs   # 安全ルールの確認（テスト用アカウントが必要）
+```
 
 ## 多言語の確認
 

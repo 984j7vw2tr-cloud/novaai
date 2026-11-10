@@ -100,7 +100,6 @@ type AuthValue = {
   signUp: (email: string, password: string, displayName?: string) => Promise<boolean>;
   sendMagicLink: (email: string) => Promise<void>;
   signInWithProvider: (provider: OAuthProvider) => Promise<void>;
-  updateDisplayName: (name: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -209,12 +208,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.type === 'success') await completeFromUrl(result.url);
   }, []);
 
-  const updateDisplayName = useCallback(async (name: string) => {
-    if (!supabase) return;
-    const { error } = await supabase.auth.updateUser({ data: { display_name: name.trim() } });
-    if (error) throw new AuthFailure(classifyAuthError(error));
-  }, []);
-
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -230,7 +223,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       sendMagicLink,
       signInWithProvider,
-      updateDisplayName,
       signOut,
     }),
     [
@@ -241,7 +233,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       sendMagicLink,
       signInWithProvider,
-      updateDisplayName,
       signOut,
     ],
   );
