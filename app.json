@@ -37,7 +37,21 @@
           "imageWidth": 160
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "声で入力するために、マイクを使います。（Karakuchi AI uses the microphone for voice input.）"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "写真をKarakuchiに見せるために、写真へのアクセスを使います。（Karakuchi AI accesses your photos so you can send them.）",
+          "cameraPermission": "写真を撮ってKarakuchiに見せるために、カメラを使います。（Karakuchi AI uses the camera so you can send photos.）",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

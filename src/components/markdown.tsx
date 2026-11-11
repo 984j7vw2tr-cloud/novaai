@@ -116,7 +116,9 @@ function Block({
                       key={j}
                       token={child}
                       labels={labels}
-                      trailing={i === t.items.length - 1 && j === arr.length - 1 ? trailing : undefined}
+                      trailing={
+                        i === t.items.length - 1 && j === arr.length - 1 ? trailing : undefined
+                      }
                     />
                   ))}
               </View>
@@ -233,7 +235,15 @@ function decode(s: string) {
     .replace(/&amp;/g, '&');
 }
 
-function CodeBlock({ code, language, labels }: { code: string; language?: string; labels: Labels }) {
+function CodeBlock({
+  code,
+  language,
+  labels,
+}: {
+  code: string;
+  language?: string;
+  labels: Labels;
+}) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -262,7 +272,10 @@ function CodeBlock({ code, language, labels }: { code: string; language?: string
           size="sm"
         />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={styles.codeScroll}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator
+        contentContainerStyle={styles.codeScroll}>
         <Text style={styles.code} selectable>
           {code}
         </Text>
@@ -272,7 +285,8 @@ function CodeBlock({ code, language, labels }: { code: string; language?: string
 }
 
 /** 文字幅の目安（全角は半角の約2倍） */
-const textWidth = (s: string) => [...s].reduce((n, ch) => n + (ch.charCodeAt(0) > 0x2e80 ? 2 : 1), 0);
+const textWidth = (s: string) =>
+  [...s].reduce((n, ch) => n + (ch.charCodeAt(0) > 0x2e80 ? 2 : 1), 0);
 
 function Table({ token }: { token: Tokens.Table }) {
   const align = (i: number) =>
@@ -343,7 +357,11 @@ const styles = StyleSheet.create({
     paddingLeft: Spacing.lg,
     gap: Spacing.sm,
   },
-  hr: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: Spacing.sm },
+  hr: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.sm,
+  },
   codeBlock: {
     backgroundColor: Colors.code,
     borderWidth: 1,

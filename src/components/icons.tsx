@@ -4,16 +4,22 @@
  */
 import {
   ArrowUp,
+  Camera,
   Check,
   ChevronLeft,
   ChevronRight,
   Copy,
+  FileText,
   Globe,
   History,
+  Image as ImageIcon,
   LogOut,
   type LucideIcon,
   Menu,
+  Mic,
   PanelLeft,
+  Paperclip,
+  Plus,
   RotateCcw,
   Settings,
   Square,
@@ -41,6 +47,12 @@ export const Icons = {
   language: Globe,
   history: History,
   logout: LogOut,
+  plus: Plus,
+  camera: Camera,
+  image: ImageIcon,
+  file: FileText,
+  attach: Paperclip,
+  mic: Mic,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof Icons;

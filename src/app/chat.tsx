@@ -23,16 +23,20 @@ import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
 import { BrandMark, Wordmark } from '@/components/wordmark';
 import { Breakpoints, Colors, Layout, Motion, Radius, Spacing } from '@/constants/theme';
+import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
 import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
 import { useConversations } from '@/hooks/use-conversations';
+import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useI18n } from '@/i18n';
 import type { Strings } from '@/i18n/types';
+import type { AttachError } from '@/lib/attachments';
 import type { ChatMessage } from '@/lib/chat-types';
 import { isDemoMode } from '@/lib/config';
 import { confirmAsync } from '@/lib/confirm';
 import type { ConversationSummary } from '@/lib/conversations';
 import type { QuotaDetails } from '@/lib/nova-api';
 import { isActive } from '@/lib/pressable';
+import type { VoiceError } from '@/lib/voice';
 
 /** チャット画面（Karakuchiのメイン画面。ホームもこの画面） */
 export default function ChatScreen() {
@@ -72,9 +76,21 @@ export default function ChatScreen() {
     retry,
     reset,
     load,
-  } = useChat({ onConversationCreated });
+  } = useChat({
+    onConversationCreated,
+    attachmentTitle: (list) =>
+      list.every((a) => a.kind === 'image') ? t.photo : (list[0]?.name ?? t.attachedFile),
+  });
 
   const [text, setText] = useState('');
+  const draft = useAttachmentDraft();
+  // 声で入力：文字になったら、入力欄の続きに入れる
+  const voice = useVoiceInput(
+    useCallback(
+      (spoken: string) => setText((prev) => (prev.trim() ? `${prev.trimEnd()} ${spoken}` : spoken)),
+      [],
+    ),
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
@@ -105,20 +121,25 @@ export default function ChatScreen() {
   }, [busy, refreshConversations]);
 
   const submit = () => {
-    if (!text.trim() || busy) return;
-    send(text);
-    setText('');
+    if (busy || draft.uploading) return;
+    if (!text.trim() && draft.ready.length === 0) return;
+    if (send(text, draft.ready)) {
+      setText('');
+      draft.clear();
+    }
   };
 
+  const discardDraft = draft.discard;
   const newChat = useCallback(() => {
     reset();
+    discardDraft();
     shownIdRef.current = null;
     setActiveId(null);
     router.setParams({ id: undefined });
     setText('');
     setDrawerOpen(false);
     requestAnimationFrame(() => inputRef.current?.focus());
-  }, [reset]);
+  }, [reset, discardDraft]);
 
   const selectConversation = (convId: string) => {
     setDrawerOpen(false);
@@ -167,11 +188,32 @@ export default function ChatScreen() {
       busy={busy}
       inputRef={inputRef}
       autoFocus={Platform.OS === 'web'}
+      attachments={draft.items}
+      onAttach={(source) => void draft.add(source)}
+      onRemoveAttachment={draft.remove}
+      attachFull={draft.full}
+      voice={voice}
     />
   );
 
+  const attachError = draft.error ? attachErrorMessage(draft.error, t) : null;
+  const voiceError = voice.error ? voiceErrorMessage(voice.error, t) : null;
+
   const notices = (
     <>
+      {attachError || voiceError ? (
+        <Pressable
+          onPress={() => {
+            draft.clearError();
+            voice.clearError();
+          }}
+          accessibilityRole="alert"
+          style={styles.notice}>
+          <NovaText variant="caption" tone="danger" style={styles.center}>
+            {attachError ?? voiceError}
+          </NovaText>
+        </Pressable>
+      ) : null}
       {saveFailed ? (
         <NovaText variant="caption" tone="muted" style={styles.notice}>
           {t.saveFailed}
@@ -202,38 +244,17 @@ export default function ChatScreen() {
     </>
   );
 
-  const disclaimer = (
+  // 開発用の「デモモード」のときだけ、下にお知らせを出す（本番では何も出さない）
+  const demoNotice = isDemoMode ? (
     <NovaText variant="caption" tone="muted" style={styles.disclaimer}>
-      {isDemoMode ? `${t.demoNotice} ・ ${t.disclaimer}` : t.disclaimer}
+      {t.demoNotice}
     </NovaText>
-  );
-
-  const suggestions = (
-    <View style={[styles.suggestions, !isDesktop && styles.suggestionsMobile]}>
-      {t.suggestions.map((s) => (
-        <Pressable
-          key={s}
-          onPress={() => send(s)}
-          accessibilityRole="button"
-          accessibilityLabel={s}
-          style={(state) => [
-            styles.suggestion,
-            isDesktop ? styles.suggestionDesktop : styles.suggestionMobile,
-            isActive(state) && styles.suggestionActive,
-          ]}>
-          <NovaText variant="small" tone="secondary" numberOfLines={2}>
-            {s}
-          </NovaText>
-        </Pressable>
-      ))}
-    </View>
-  );
+  ) : null;
 
   return (
     <View style={styles.root}>
       {isDesktop && sidebarOpen ? (
-        <View
-          style={[styles.sidebarDock, isRTL ? styles.sidebarDockRTL : styles.sidebarDockLTR]}>
+        <View style={[styles.sidebarDock, isRTL ? styles.sidebarDockRTL : styles.sidebarDockLTR]}>
           {sidebar('docked')}
         </View>
       ) : null}
@@ -282,7 +303,6 @@ export default function ChatScreen() {
                 <View style={styles.heroComposer}>
                   {notices}
                   {composer}
-                  {suggestions}
                 </View>
               ) : null}
             </ScrollView>
@@ -328,14 +348,13 @@ export default function ChatScreen() {
           {!(showHero && isDesktop) ? (
             <View style={styles.bottom}>
               <View style={styles.column}>
-                {showHero && !isDesktop ? suggestions : null}
                 {notices}
                 {composer}
-                {disclaimer}
+                {demoNotice}
               </View>
             </View>
           ) : (
-            <View style={styles.bottom}>{disclaimer}</View>
+            <View style={styles.bottom}>{demoNotice}</View>
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -484,21 +503,13 @@ const styles = StyleSheet.create({
   },
   heroMobile: { paddingBottom: Spacing.xl },
   heroInner: { alignItems: 'center', gap: Spacing.md },
-  heroComposer: { width: '100%', maxWidth: Layout.contentWidth, alignSelf: 'center', gap: Spacing.md },
-  center: { textAlign: 'center' },
-  suggestions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  suggestionsMobile: { flexWrap: 'nowrap', flexDirection: 'column', marginBottom: Spacing.md },
-  suggestion: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    justifyContent: 'center',
+  heroComposer: {
+    width: '100%',
+    maxWidth: Layout.contentWidth,
+    alignSelf: 'center',
+    gap: Spacing.md,
   },
-  suggestionDesktop: { flexBasis: '48%', flexGrow: 1, minHeight: 56 },
-  suggestionMobile: { width: '100%' },
-  suggestionActive: { backgroundColor: Colors.surface },
+  center: { textAlign: 'center' },
   list: {
     paddingHorizontal: Spacing.lg + 4,
     paddingTop: Spacing.lg,
@@ -538,3 +549,25 @@ const styles = StyleSheet.create({
   drawerLTR: { left: 0 },
   drawerRTL: { right: 0 },
 });
+
+function attachErrorMessage(code: AttachError, t: Strings) {
+  switch (code) {
+    case 'permission':
+      return t.attachPermission;
+    case 'unsupported':
+      return t.attachUnsupported;
+    case 'too_large':
+      return t.attachTooLarge;
+    case 'too_many':
+      return t.attachTooMany;
+    default:
+      return t.attachFailed;
+  }
+}
+
+function voiceErrorMessage(code: VoiceError, t: Strings) {
+  if (code === 'permission') return t.voicePermission;
+  if (code === 'rate_limited') return t.errorRateLimited;
+  if (code === 'too_short') return null;
+  return t.voiceFailed;
+}

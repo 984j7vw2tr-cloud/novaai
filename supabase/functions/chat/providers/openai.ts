@@ -1,4 +1,9 @@
-import { type AIProvider, type ProviderEvent, ProviderError, type ProviderRequest } from './types.ts';
+import {
+  type AIProvider,
+  type ProviderEvent,
+  ProviderError,
+  type ProviderRequest,
+} from './types.ts';
 
 /** OpenAI の Chat Completions API をストリーミングで呼び出す */
 export function createOpenAIProvider(options: {

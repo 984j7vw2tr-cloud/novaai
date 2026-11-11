@@ -54,7 +54,10 @@ export function useConversations() {
   return { items, loaded, failed, refresh, remove };
 }
 
-export type ConversationGroup = { key: 'today' | 'previous7Days' | 'older'; items: ConversationSummary[] };
+export type ConversationGroup = {
+  key: 'today' | 'previous7Days' | 'older';
+  items: ConversationSummary[];
+};
 
 /** 「今日」「過去7日間」「それ以前」に分ける */
 export function groupByDate(items: ConversationSummary[], now = new Date()): ConversationGroup[] {

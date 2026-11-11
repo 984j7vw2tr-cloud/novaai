@@ -51,7 +51,9 @@ export async function getQuotaStatus(
       { headers, signal: AbortSignal.timeout(5000) },
     );
     if (!subRes.ok) throw new Error(`subscriptions HTTP ${subRes.status}`);
-    const sub = ((await subRes.json()) as { plan: string; status: string; current_period_end: string | null }[])[0];
+    const sub = (
+      (await subRes.json()) as { plan: string; status: string; current_period_end: string | null }[]
+    )[0];
     const active =
       sub &&
       ['active', 'trialing'].includes(sub.status) &&

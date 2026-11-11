@@ -1,9 +1,25 @@
 export type ChatRole = 'user' | 'assistant';
 
+/** 発言に付けた写真・ファイル（中身は Supabase Storage にあり、ここには場所と名前だけ持つ） */
+export type Attachment = {
+  kind: 'image' | 'file';
+  /** Storage の中の場所：<ユーザーID>/<ランダムなID>.<拡張子> */
+  path: string;
+  name: string;
+  mime: string;
+  /** バイト数 */
+  size?: number;
+  /** 写真の縦横（表示の比率を決めるため） */
+  width?: number;
+  height?: number;
+};
+
 export type ChatMessage = {
   id: string;
   role: ChatRole;
   content: string;
+  /** ユーザーが付けた写真・ファイル */
+  attachments?: Attachment[];
   /** AIの回答の状態。streaming=表示中 / done=完了 / stopped=途中で停止 */
   status?: 'streaming' | 'done' | 'stopped';
 };

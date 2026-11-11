@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ChatMessage, ReplySource } from '@/lib/chat-types';
+import type { Attachment, ChatMessage, ReplySource } from '@/lib/chat-types';
 import { isDemoMode } from '@/lib/config';
 import {
   createConversation,
@@ -25,6 +25,8 @@ type Options = {
   persist?: boolean;
   /** 新しい会話が保存されたとき（画面のURLに会話IDを入れるため） */
   onConversationCreated?: (id: string) => void;
+  /** 文章なしで写真だけ送ったときの、会話の題名（例：「写真」） */
+  attachmentTitle?: (attachments: Attachment[]) => string;
 };
 
 /**
@@ -35,6 +37,7 @@ export function useChat({
   replySource = defaultReplySource,
   persist = !isDemoMode,
   onConversationCreated,
+  attachmentTitle,
 }: Options = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
@@ -147,10 +150,15 @@ export function useChat({
   );
 
   const send = useCallback(
-    (text: string) => {
+    (text: string, attachments: Attachment[] = []) => {
       const content = text.trim();
-      if (!content || controllerRef.current) return;
-      const userMessage: ChatMessage = { id: randomUUID(), role: 'user', content };
+      if ((!content && attachments.length === 0) || controllerRef.current) return false;
+      const userMessage: ChatMessage = {
+        id: randomUUID(),
+        role: 'user',
+        content,
+        ...(attachments.length ? { attachments } : {}),
+      };
       update((prev) => [...prev, userMessage]);
       const history = messagesRef.current;
       const session = sessionRef.current;
@@ -159,7 +167,11 @@ export function useChat({
         // 初めての送信なら、先に会話を作る（使用量の記録にも会話IDを使うため）
         if (persist && !conversationIdRef.current) {
           try {
-            const id = await createConversation(titleFrom(content));
+            const title =
+              content ||
+              attachmentTitle?.(attachments) ||
+              attachments.map((a) => a.name).join(', ');
+            const id = await createConversation(titleFrom(title));
             if (session !== sessionRef.current) return;
             conversationIdRef.current = id;
             onCreatedRef.current?.(id);
@@ -172,8 +184,9 @@ export function useChat({
         enqueue((cid) => saveMessage(cid, userMessage));
         await runReply(history);
       })();
+      return true;
     },
-    [persist, runReply, update, enqueue],
+    [persist, runReply, update, enqueue, attachmentTitle],
   );
 
   const stop = useCallback(() => {

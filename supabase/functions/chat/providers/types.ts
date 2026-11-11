@@ -3,9 +3,16 @@
  * 新しい会社のモデルを使いたくなったら、この形に合わせたファイルを1つ足すだけで切り替えられる。
  */
 
+/** 発言の中身の部品（文章・画像・ファイル）。OpenAI の Chat Completions と同じ形 */
+export type ContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } }
+  | { type: 'file'; file: { filename: string; file_data: string } };
+
 export type ProviderMessage = {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  /** 文章だけなら文字列、写真やファイルが付いていれば部品の一覧 */
+  content: string | ContentPart[];
 };
 
 export type ProviderEvent =

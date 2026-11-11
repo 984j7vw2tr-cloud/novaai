@@ -6,23 +6,37 @@ import { createAccountHandler } from './handler.ts';
 
 const ME = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
-function world(opts: { deleteStatus?: number } = {}) {
-  const calls: { url: string; method: string; auth: string | null }[] = [];
+function world(opts: { deleteStatus?: number; files?: string[]; listStatus?: number } = {}) {
+  const calls: { url: string; method: string; auth: string | null; body?: any }[] = [];
+  let files = [...(opts.files ?? [])];
   const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
     const u = String(url);
     const h = new Headers(init?.headers);
-    calls.push({ url: u, method: init?.method ?? 'GET', auth: h.get('authorization') });
+    const body = typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
+    calls.push({ url: u, method: init?.method ?? 'GET', auth: h.get('authorization'), body });
+    if (u.endsWith('/storage/v1/object/list/attachments')) {
+      if (opts.listStatus) return new Response('{}', { status: opts.listStatus });
+      return Response.json(files.map((name) => ({ name })));
+    }
+    if (u.endsWith('/storage/v1/object/attachments') && init?.method === 'DELETE') {
+      const removed = new Set(body.prefixes as string[]);
+      files = files.filter((f) => !removed.has(`${ME}/${f}`));
+      return Response.json([]);
+    }
     if (u.endsWith('/auth/v1/user')) {
       return h.get('authorization') === 'Bearer good'
         ? new Response(JSON.stringify({ id: ME }))
         : new Response('{}', { status: 401 });
     }
-    if (u.includes('/auth/v1/admin/users/')) return new Response('{}', { status: opts.deleteStatus ?? 200 });
+    if (u.includes('/auth/v1/admin/users/'))
+      return new Response('{}', { status: opts.deleteStatus ?? 200 });
     return new Response('{}', { status: 404 });
   }) as typeof fetch;
   const env = {
     get: (k: string) =>
-      ({ SUPABASE_URL: 'https://proj.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'svc' })[k as 'SUPABASE_URL'],
+      ({ SUPABASE_URL: 'https://proj.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'svc' })[
+        k as 'SUPABASE_URL'
+      ],
   };
   return { calls, handle: createAccountHandler({ env, fetchImpl }) };
 }
@@ -48,7 +62,7 @@ test('本人の鍵 → 自分のアカウントだけを、サーバー専用の
   restore();
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { type: 'deleted' });
-  const del = calls.find((c) => c.method === 'DELETE');
+  const del = calls.find((c) => c.method === 'DELETE' && c.url.includes('/admin/users/'));
   assert.equal(del?.url, `https://proj.supabase.co/auth/v1/admin/users/${ME}`);
   assert.equal(del?.auth, 'Bearer svc');
 });
@@ -70,7 +84,7 @@ test('他人のIDを指定しても無視（消すのは常に本人）。action
   await handle(req('good', { action: 'delete', userId: '99999999-9999-4999-8999-999999999999' }));
   const bad = await handle(req('good', { action: 'drop_everything' }));
   restore();
-  const del = calls.filter((c) => c.method === 'DELETE');
+  const del = calls.filter((c) => c.method === 'DELETE' && c.url.includes('/admin/users/'));
   assert.equal(del.length, 1);
   assert.ok(del[0].url.endsWith(ME));
   assert.equal(bad.status, 400);
@@ -82,4 +96,27 @@ test('削除に失敗したら 502（成功したふりをしない）', async (
   const res = await handle(req('good'));
   restore();
   assert.equal(res.status, 502);
+});
+
+test('添付した写真・ファイル（本人のフォルダ）を先に消してから、アカウントを消す', async () => {
+  const restore = quiet();
+  const { calls, handle } = world({ files: ['a.jpg', 'b.pdf'] });
+  const res = await handle(req('good'));
+  restore();
+  assert.equal(res.status, 200);
+  const list = calls.find((c) => c.url.endsWith('/object/list/attachments'));
+  assert.equal(list?.body.prefix, `${ME}/`);
+  const delFiles = calls.findIndex((c) => c.url.endsWith('/object/attachments'));
+  const delUser = calls.findIndex((c) => c.url.includes('/admin/users/'));
+  assert.deepEqual(calls[delFiles].body.prefixes, [`${ME}/a.jpg`, `${ME}/b.pdf`]);
+  assert.ok(delFiles < delUser);
+});
+
+test('写真の削除に失敗したら 502。アカウントは消さない', async () => {
+  const restore = quiet();
+  const { calls, handle } = world({ files: ['a.jpg'], listStatus: 500 });
+  const res = await handle(req('good'));
+  restore();
+  assert.equal(res.status, 502);
+  assert.ok(!calls.some((c) => c.url.includes('/admin/users/')));
 });
