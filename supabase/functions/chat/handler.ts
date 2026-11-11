@@ -12,9 +12,25 @@
 import { authenticate, UUID_RE } from '../_shared/auth.ts';
 import { corsHeaders } from '../_shared/http.ts';
 import { type Env, getModel, getModerator, getProvider } from './providers/index.ts';
+import {
+  ATTACHMENT_MESSAGES_WITH_CONTENT,
+  type Attachment,
+  AttachmentError,
+  attachmentNote,
+  attachmentPart,
+  downloadAttachment,
+  ownsAll,
+  parseAttachments,
+} from './attachments.ts';
 import { getQuotaStatus } from './quota.ts';
 import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
-import { type ProviderEvent, ProviderError, type ProviderMessage } from './providers/types.ts';
+import type { ModerationInput } from './providers/moderation.ts';
+import {
+  type ContentPart,
+  type ProviderEvent,
+  ProviderError,
+  type ProviderMessage,
+} from './providers/types.ts';
 import { buildSystemPrompt, LANGUAGE_NAMES, safeFallback } from './system-prompt.ts';
 
 /** 安全チェックを待つ最大時間（これを過ぎたらチェックなしで進める） */
@@ -85,6 +101,13 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       return errorResponse(400, 'invalid_request', cors);
     }
 
+    // 添付は本人のフォルダのファイルだけ（ログインなしのテストモードでは添付を使えない）
+    const allAttachments = parsed.messages.flatMap((m) => m.attachments);
+    if (allAttachments.length && (!UUID_RE.test(userId) || !ownsAll(allAttachments, userId))) {
+      console.warn('[chat] invalid request: attachment not owned by user');
+      return errorResponse(400, 'invalid_request', cors);
+    }
+
     const provider = getProvider(env, fetchImpl);
     const model = getModel(env);
     if (!provider || !model) return errorResponse(503, 'service_unavailable', cors);
@@ -94,11 +117,26 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const upstream = new AbortController();
     req.signal?.addEventListener('abort', () => upstream.abort(), { once: true });
 
+    // 直近の会話をAIに渡す形にする（写真・ファイルは Storage から取り出す）
+    let recent: ProviderMessage[];
+    try {
+      recent = await toProviderMessages(parsed.messages.slice(-MAX_HISTORY), (path) =>
+        downloadAttachment(env, doFetch, path, upstream.signal),
+      );
+    } catch (e) {
+      const reason = e instanceof AttachmentError ? e.reason : 'attachment_error';
+      console.warn(`[chat] attachment failed: ${reason}`);
+      return errorResponse(400, 'invalid_request', cors, 'attachment_unavailable');
+    }
+
     // 入力の安全チェック：自傷の可能性があれば、カウンターモードを止めて安全モードにする
+    // （写真が付いていれば、1枚目の写真も一緒に見る）
     const moderator = getModerator(env, fetchImpl);
-    const lastUser = parsed.messages[parsed.messages.length - 1].content;
     const inputCheck = moderator
-      ? await withTimeout(moderator.check(lastUser, upstream.signal), MODERATION_TIMEOUT_MS)
+      ? await withTimeout(
+          moderator.check(moderationInput(recent[recent.length - 1]), upstream.signal),
+          MODERATION_TIMEOUT_MS,
+        )
       : null;
     const selfHarmRisk = hasAny(inputCheck, SELF_HARM_CATEGORIES);
     if (inputCheck?.flagged) {
@@ -107,7 +145,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
 
     const messages: ProviderMessage[] = [
       { role: 'system', content: buildSystemPrompt({ selfHarmRisk, ...readLanguages(body) }) },
-      ...parsed.messages.slice(-MAX_HISTORY),
+      ...recent,
     ];
 
     const events = provider.stream({ model, messages, maxOutputTokens, signal: upstream.signal });
@@ -125,7 +163,8 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const startedAt = now();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
-        const send = (obj: unknown) => controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'));
+        const send = (obj: unknown) =>
+          controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'));
         const usage = {
           input: null as number | null,
           output: null as number | null,
@@ -327,34 +366,85 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   });
 }
 
-type ValidationResult =
-  | { ok: true; messages: { role: 'user' | 'assistant'; content: string }[] }
-  | { ok: false; reason: string };
+export type ValidMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+  attachments: Attachment[];
+};
+
+type ValidationResult = { ok: true; messages: ValidMessage[] } | { ok: false; reason: string };
 
 export function validateMessages(body: unknown): ValidationResult {
   const list = (body as { messages?: unknown })?.messages;
   if (!Array.isArray(list) || list.length === 0) return { ok: false, reason: 'messages missing' };
   if (list.length > MAX_MESSAGES) return { ok: false, reason: 'too many messages' };
 
-  const messages: { role: 'user' | 'assistant'; content: string }[] = [];
+  const messages: ValidMessage[] = [];
   for (const m of list) {
     const role = (m as { role?: unknown })?.role;
     const content = (m as { content?: unknown })?.content;
     if (role !== 'user' && role !== 'assistant') return { ok: false, reason: 'bad role' };
     if (typeof content !== 'string') return { ok: false, reason: 'bad content' };
     if (content.length > MAX_MESSAGE_CHARS) return { ok: false, reason: 'message too long' };
-    if (role === 'user' && content.trim().length === 0) return { ok: false, reason: 'empty message' };
+    const attachments = parseAttachments((m as { attachments?: unknown })?.attachments);
+    if (!attachments) return { ok: false, reason: 'bad attachments' };
+    if (role === 'assistant' && attachments.length) return { ok: false, reason: 'bad attachments' };
+    // 写真だけ・ファイルだけの発言はOK（文章なしでも送れる）
+    if (role === 'user' && content.trim().length === 0 && attachments.length === 0) {
+      return { ok: false, reason: 'empty message' };
+    }
     // 途中で停止した空の回答などは送らない
-    if (content.trim().length === 0) continue;
-    messages.push({ role, content });
+    if (content.trim().length === 0 && attachments.length === 0) continue;
+    messages.push({ role, content, attachments });
   }
-  if (messages[messages.length - 1]?.role !== 'user') return { ok: false, reason: 'last must be user' };
+  if (messages[messages.length - 1]?.role !== 'user')
+    return { ok: false, reason: 'last must be user' };
 
   const recent = messages.slice(-MAX_HISTORY);
   const total = recent.reduce((n, m) => n + m.content.length, 0);
   if (total > MAX_TOTAL_CHARS) return { ok: false, reason: 'conversation too long' };
 
   return { ok: true, messages };
+}
+
+/**
+ * 会話をAIに渡す形にする。添付付きの発言のうち、直近のもの（ATTACHMENT_MESSAGES_WITH_CONTENT 個）だけ
+ * 中身（写真・ファイル）を渡し、それより古いものは「何が付いていたか」だけ伝える（料金を抑えるため）。
+ */
+export async function toProviderMessages(
+  messages: ValidMessage[],
+  download: (path: string) => Promise<Uint8Array>,
+): Promise<ProviderMessage[]> {
+  const withFiles = messages
+    .map((m, i) => (m.attachments.length ? i : -1))
+    .filter((i) => i >= 0)
+    .slice(-ATTACHMENT_MESSAGES_WITH_CONTENT);
+  return Promise.all(
+    messages.map(async (m, i): Promise<ProviderMessage> => {
+      if (!m.attachments.length) return { role: m.role, content: m.content };
+      if (!withFiles.includes(i)) {
+        const text = [m.content, attachmentNote(m.attachments)]
+          .filter((t) => t.trim())
+          .join('\n\n');
+        return { role: m.role, content: text };
+      }
+      const parts: ContentPart[] = [];
+      if (m.content.trim()) parts.push({ type: 'text', text: m.content });
+      for (const a of m.attachments) parts.push(attachmentPart(a, await download(a.path)));
+      return { role: m.role, content: parts };
+    }),
+  );
+}
+
+/** 安全チェックに渡すもの：最新の発言の文章と、1枚目の写真 */
+function moderationInput(message: ProviderMessage): ModerationInput {
+  if (typeof message.content === 'string') return message.content;
+  const texts = message.content.filter((p) => p.type === 'text').map((p) => p.text);
+  const image = message.content.find((p) => p.type === 'image_url');
+  const input: Exclude<ModerationInput, string> = [];
+  if (texts.length) input.push({ type: 'text', text: texts.join('\n\n').slice(0, 8000) });
+  if (image) input.push(image);
+  return input.length ? input : '';
 }
 
 function classifyError(e: unknown): { status: number; code: ErrorCode; reason?: string } {
@@ -366,7 +456,12 @@ function classifyError(e: unknown): { status: number; code: ErrorCode; reason?: 
     if (e.status === 429 && e.code !== 'insufficient_quota') {
       return { status: 429, code: 'rate_limited', reason };
     }
-    if (e.status === 401 || e.status === 403 || e.status === 404 || e.code === 'insufficient_quota') {
+    if (
+      e.status === 401 ||
+      e.status === 403 ||
+      e.status === 404 ||
+      e.code === 'insufficient_quota'
+    ) {
       // APIキーの間違い・モデル名の間違い・残高不足 → 運営側の設定の問題
       return { status: 503, code: 'service_unavailable', reason };
     }

@@ -51,3 +51,10 @@ a:focus-visible {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* 入力欄の案内文は1行に収める（狭い画面では「…」で省略） */
+textarea::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

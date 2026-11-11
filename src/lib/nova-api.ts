@@ -62,8 +62,22 @@ export const serverReply: ReplySource = async (
       },
       body: JSON.stringify({
         messages: history
-          .filter((m) => m.content.trim().length > 0)
-          .map((m) => ({ role: m.role, content: m.content })),
+          .filter((m) => m.content.trim().length > 0 || (m.attachments?.length ?? 0) > 0)
+          .map((m) => ({
+            role: m.role,
+            content: m.content,
+            // 写真・ファイルは場所と名前だけ送る（中身はサーバーが置き場所から取り出す）
+            ...(m.attachments?.length
+              ? {
+                  attachments: m.attachments.map(({ kind, path, name, mime }) => ({
+                    kind,
+                    path,
+                    name,
+                    mime,
+                  })),
+                }
+              : {}),
+          })),
         settings,
         conversationId: conversationId ?? undefined,
       }),

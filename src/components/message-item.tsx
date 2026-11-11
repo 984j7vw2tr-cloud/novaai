@@ -4,6 +4,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { IconButton } from '@/components/form';
 import { Markdown } from '@/components/markdown';
+import { MessageAttachments } from '@/components/message-attachments';
 import { NovaText } from '@/components/nova-text';
 import { ThinkingIndicator } from '@/components/thinking-indicator';
 import { BrandMark } from '@/components/wordmark';
@@ -35,11 +36,16 @@ export const MessageItem = memo(function MessageItem({
   if (message.role === 'user') {
     return (
       <View style={styles.userRow}>
-        <View style={styles.userBubble}>
-          <NovaText style={styles.userText} selectable {...autoDir}>
-            {message.content}
-          </NovaText>
-        </View>
+        {message.attachments?.length ? (
+          <MessageAttachments attachments={message.attachments} />
+        ) : null}
+        {message.content ? (
+          <View style={styles.userBubble}>
+            <NovaText style={styles.userText} selectable {...autoDir}>
+              {message.content}
+            </NovaText>
+          </View>
+        ) : null}
       </View>
     );
   }
@@ -113,7 +119,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
-  userRow: { alignItems: 'flex-end' },
+  userRow: { alignItems: 'flex-end', gap: Spacing.sm },
   userBubble: {
     maxWidth: '82%',
     backgroundColor: Colors.surfaceRaised,

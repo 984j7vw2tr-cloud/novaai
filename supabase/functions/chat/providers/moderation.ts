@@ -11,8 +11,13 @@ export type ModerationResult = {
   categories: string[];
 };
 
+/** チェックするもの：文章だけ、または文章＋画像（omni-moderation は画像も見られる） */
+export type ModerationInput =
+  | string
+  | ({ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } })[];
+
 export interface Moderator {
-  check(text: string, signal?: AbortSignal): Promise<ModerationResult | null>;
+  check(input: ModerationInput, signal?: AbortSignal): Promise<ModerationResult | null>;
 }
 
 export function createOpenAIModerator(options: {
@@ -26,12 +31,15 @@ export function createOpenAIModerator(options: {
   const model = options.model ?? 'omni-moderation-latest';
 
   return {
-    async check(text, signal) {
+    async check(input, signal) {
       try {
         const res = await doFetch(`${baseUrl}/moderations`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, input: text }),
+          headers: {
+            Authorization: `Bearer ${options.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ model, input }),
           signal,
         });
         if (!res.ok) {
