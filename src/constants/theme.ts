@@ -96,7 +96,10 @@ export const Fonts = {
   regular: family('Inter_400Regular'),
   medium: family('Inter_500Medium'),
   semibold: family('Inter_600SemiBold'),
-  mono: Platform.OS === 'web' ? "JetBrainsMono_400Regular, ui-monospace, Menlo, Consolas, monospace" : 'JetBrainsMono_400Regular',
+  mono:
+    Platform.OS === 'web'
+      ? 'JetBrainsMono_400Regular, ui-monospace, Menlo, Consolas, monospace'
+      : 'JetBrainsMono_400Regular',
 } as const;
 
 /** 互換用（以前のコードが使っている名前） */
