@@ -60,5 +60,5 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end' },
   name: { color: Colors.text, fontFamily: Fonts.semibold },
-  ai: { color: Colors.accent, fontFamily: Fonts.semibold },
+  ai: { color: Colors.accentText, fontFamily: Fonts.semibold },
 });

@@ -24,7 +24,7 @@ const toneStyles = StyleSheet.create({
   primary: { color: Colors.text },
   secondary: { color: Colors.textSecondary },
   muted: { color: Colors.textMuted },
-  accent: { color: Colors.accent },
+  accent: { color: Colors.accentText },
   danger: { color: Colors.danger },
   onAccent: { color: Colors.onAccent },
 });
