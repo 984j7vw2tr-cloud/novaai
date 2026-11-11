@@ -75,6 +75,7 @@ function Screens() {
         <Stack.Screen name="chat" options={{ title: 'Karakuchi AI — Chat' }} />
         <Stack.Screen name="profile" options={{ title: 'Karakuchi AI — Profile' }} />
         <Stack.Screen name="history" options={{ title: 'Karakuchi AI — History' }} />
+        <Stack.Screen name="plans" options={{ title: 'Karakuchi AI — Plans' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="login" options={{ title: 'Karakuchi AI — Log in' }} />

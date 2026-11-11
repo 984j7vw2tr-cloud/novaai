@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  CreditCard,
   FileText,
   Globe,
   History,
@@ -53,6 +54,7 @@ export const Icons = {
   file: FileText,
   attach: Paperclip,
   mic: Mic,
+  plan: CreditCard,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof Icons;

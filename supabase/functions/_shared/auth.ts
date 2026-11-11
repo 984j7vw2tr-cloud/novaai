@@ -5,7 +5,7 @@ export type Env = { get(name: string): string | undefined };
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type AuthResult =
-  | { kind: 'ok'; userId: string }
+  | { kind: 'ok'; userId: string; email?: string }
   | { kind: 'denied' }
   | { kind: 'misconfigured' };
 
@@ -40,10 +40,15 @@ export async function authenticate(
     });
     if (!res.ok) return { kind: 'denied' };
     const user = await res.json();
-    return typeof user?.id === 'string' ? { kind: 'ok', userId: user.id } : { kind: 'denied' };
+    return typeof user?.id === 'string'
+      ? {
+          kind: 'ok',
+          userId: user.id,
+          ...(typeof user.email === 'string' ? { email: user.email } : {}),
+        }
+      : { kind: 'denied' };
   } catch (e) {
     console.error('[auth] auth check failed', e);
     return { kind: 'misconfigured' };
   }
 }
-
