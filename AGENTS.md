@@ -43,4 +43,4 @@ Docs: https://docs.expo.dev/eas/index.md
 ## Reporting to the owner
 
 - The owner is a beginner and reads reports in Japanese.
-- **After every update that is published (merged to `main` and deployed by Vercel), always include the live link in the report: https://karakuchi-ai.vercel.app** — together with where to look for the change (e.g. the page or screen name).
+- **After every update that is published (merged to `main` and deployed by Vercel), always include the live link in the report: https://nayqo.vercel.app** — together with where to look for the change (e.g. the page or screen name).

@@ -25,7 +25,7 @@ import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts'
 
 type Deps = { env: Env; fetchImpl?: typeof fetch; now?: () => number };
 
-const DEFAULT_SITE = 'https://karakuchi-ai.vercel.app';
+const DEFAULT_SITE = 'https://nayqo.vercel.app';
 
 /** 支払いのあとに戻ってくる場所。許可したサイトのアドレスだけ使う（よそのサイトに飛ばされないように） */
 export function returnBase(req: Request, env: Env): string {
