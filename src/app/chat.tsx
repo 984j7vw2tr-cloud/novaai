@@ -250,6 +250,11 @@ export default function ChatScreen() {
       attachFull={draft.full}
       voice={voice}
       placeholder={temporary ? t.temporaryChat : undefined}
+      onVoiceMode={
+        Platform.OS === 'web'
+          ? () => router.push(temporary ? '/voice?temporary=1' : '/voice')
+          : undefined
+      }
       onCreateImage={() => {
         setText((prev) => (prev.trim() ? prev : t.createImagePrefix));
         requestAnimationFrame(() => inputRef.current?.focus());

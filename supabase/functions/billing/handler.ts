@@ -22,6 +22,7 @@ import {
 import { createDb, PAID_STATUSES, syncSubscription } from '../_shared/subscriptions.ts';
 import { recentAttachmentPaths } from '../_shared/attachment-uses.ts';
 import { imageLimitFor } from '../_shared/image-limits.ts';
+import { voiceMinutesFor } from '../_shared/voice-limits.ts';
 import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts';
 
 type Deps = { env: Env; fetchImpl?: typeof fetch; now?: () => number };
@@ -128,6 +129,11 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
           imageLimits: {
             free: imageLimitFor('free', env),
             plus: imageLimitFor('plus', env),
+          },
+          // 1日に音声会話できる時間（分）
+          voiceMinutes: {
+            free: voiceMinutesFor('free', env),
+            plus: voiceMinutesFor('plus', env),
           },
           attachments: {
             limit: finiteOrNull(attachLimit),
