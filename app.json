@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Karakuchi AI",
-    "slug": "karakuchi-ai",
+    "name": "NAYQO",
+    "slug": "nayqo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "karakuchi",
+    "scheme": "nayqo",
     "userInterfaceStyle": "dark",
     "ios": {
       "icon": "./assets/images/icon.png"
@@ -22,8 +22,8 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png",
-      "name": "Karakuchi AI",
-      "shortName": "Karakuchi",
+      "name": "NAYQO",
+      "shortName": "NAYQO",
       "themeColor": "#0A0A0A",
       "backgroundColor": "#0A0A0A"
     },
@@ -41,14 +41,14 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "声で入力するために、マイクを使います。（Karakuchi AI uses the microphone for voice input.）"
+          "microphonePermission": "声で入力するために、マイクを使います。（NAYQO uses the microphone for voice input.）"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "写真をKarakuchiに見せるために、写真へのアクセスを使います。（Karakuchi AI accesses your photos so you can send them.）",
-          "cameraPermission": "写真を撮ってKarakuchiに見せるために、カメラを使います。（Karakuchi AI uses the camera so you can send photos.）",
+          "photosPermission": "写真をNAYQOに見せるために、写真へのアクセスを使います。（NAYQO accesses your photos so you can send them.）",
+          "cameraPermission": "写真を撮ってNAYQOに見せるために、カメラを使います。（NAYQO uses the camera so you can send photos.）",
           "microphonePermission": false
         }
       ]

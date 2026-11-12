@@ -10,8 +10,8 @@ export type Plan = 'plus' | 'pro';
 export const DEFAULT_PRICES_JPY: Record<Plan, number> = { plus: 480, pro: 950 };
 
 export const PLAN_NAMES: Record<Plan, string> = {
-  plus: 'Karakuchi AI PLUS',
-  pro: 'Karakuchi AI PRO',
+  plus: 'NAYQO PLUS',
+  pro: 'NAYQO PRO',
 };
 
 /** Stripe の中で値段を探すための目印（lookup_key） */
@@ -116,7 +116,7 @@ export type Stripe = ReturnType<typeof createStripe>;
  * 目印（lookup_key）で探し、なければ作る。値段を変えたときは新しい Price を作って目印を移す。
  */
 /**
- * 商品の税の種類（Stripe の tax_code）。Karakuchi AI は個人向けのオンラインサービスなので
+ * 商品の税の種類（Stripe の tax_code）。NAYQO は個人向けのオンラインサービスなので
  * 「SaaS（個人利用）」。Stripe の Managed Payments（税の計算・納付を Stripe が代行）では必須。
  * 環境変数 STRIPE_TAX_CODE で変えられる。
  */
@@ -134,7 +134,7 @@ export async function ensurePrice(
       unit_amount: number;
       currency: string;
       tax_behavior?: string | null;
-      product: { id: string; tax_code: string | { id: string } | null } | string;
+      product: { id: string; name?: string; tax_code: string | { id: string } | null } | string;
     }[];
   }>('GET', '/v1/prices', {
     'lookup_keys[]': lookupKey(plan),
@@ -154,9 +154,11 @@ export async function ensurePrice(
     const product = typeof current.product === 'object' ? current.product : null;
     const code =
       product && (typeof product.tax_code === 'string' ? product.tax_code : product.tax_code?.id);
-    if (product && code !== taxCode) {
+    // 税の種類・商品名（サービス名を変えたとき）が違えば、ここで直す
+    if (product && (code !== taxCode || product.name !== PLAN_NAMES[plan])) {
       await stripe.request('POST', `/v1/products/${encodeURIComponent(product.id)}`, {
         tax_code: taxCode,
+        name: PLAN_NAMES[plan],
       });
     }
     return current.id;

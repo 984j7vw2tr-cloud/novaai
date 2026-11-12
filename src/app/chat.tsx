@@ -40,7 +40,7 @@ import type { QuotaDetails } from '@/lib/nova-api';
 import { isActive } from '@/lib/pressable';
 import type { VoiceError } from '@/lib/voice';
 
-/** チャット画面（Karakuchiのメイン画面。ホームもこの画面） */
+/** チャット画面（NAYQOのメイン画面。ホームもこの画面） */
 export default function ChatScreen() {
   const { q, id } = useLocalSearchParams<{ q?: string; id?: string }>();
   const { t, isRTL, uiLanguage } = useI18n();

@@ -7,7 +7,7 @@ const LTR_WEB = (Platform.OS === 'web' ? { dir: 'ltr' } : {}) as object;
 // スマホ用：右から左の言語でも並びを反転させない（Webでは使えないスタイルなので分ける）
 const LTR_NATIVE = Platform.OS === 'web' ? null : ({ direction: 'ltr' } as const);
 
-/** Karakuchi のマーク：炎とハートと星（アプリのアイコンと同じ絵。背景は透明） */
+/** NAYQO のマーク（アプリのアイコンと同じ絵） */
 export function BrandMark({ size = 24 }: { size?: number }) {
   return (
     <Image
@@ -19,15 +19,15 @@ export function BrandMark({ size = 24 }: { size?: number }) {
   );
 }
 
-/** 「KARAKUCHI AI」のロゴ文字。size で大きさを変える。withMark で炎のマークを左に付ける。 */
+/** 「NAYQO」のロゴ文字。size で大きさを変える。withMark でマークを左に付ける。 */
 export function Wordmark({ size = 18, withMark = false }: { size?: number; withMark?: boolean }) {
   return (
     <View
-      // ロゴはどの言語でも「KARAKUCHI AI」の並び（Web用）
+      // ロゴはどの言語でも「NAYQO」の並び（Web用）
       {...LTR_WEB}
       style={[styles.row, LTR_NATIVE]}
       accessibilityRole="header"
-      accessibilityLabel="Karakuchi AI">
+      accessibilityLabel="NAYQO">
       {withMark ? (
         <View style={{ marginRight: size * 0.5, marginBottom: size * 0.06 }}>
           <BrandMark size={size * 1.3} />
@@ -38,20 +38,7 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
           styles.name,
           { fontSize: size, lineHeight: size * 1.2, letterSpacing: size * 0.16 },
         ]}>
-        KARAKUCHI
-      </NovaText>
-      <NovaText
-        style={[
-          styles.ai,
-          {
-            fontSize: size * 0.42,
-            lineHeight: size * 0.5,
-            letterSpacing: size * 0.08,
-            marginLeft: size * 0.22,
-            marginBottom: size * 0.2,
-          },
-        ]}>
-        AI
+        NAYQO
       </NovaText>
     </View>
   );
@@ -60,5 +47,4 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end' },
   name: { color: Colors.text, fontFamily: Fonts.semibold },
-  ai: { color: Colors.accentText, fontFamily: Fonts.semibold },
 });

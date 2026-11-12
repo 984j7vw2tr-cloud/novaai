@@ -49,7 +49,7 @@ export function useVoiceInput(onText: (text: string) => void) {
       if (text) onTextRef.current(text);
     } catch (e) {
       setError(e instanceof VoiceInputError ? e.code : 'failed');
-      if (__DEV__) console.warn('[Karakuchi] voice input failed', e);
+      if (__DEV__) console.warn('[NAYQO] voice input failed', e);
     } finally {
       set('idle');
     }
@@ -77,7 +77,7 @@ export function useVoiceInput(onText: (text: string) => void) {
         e instanceof Error && /denied|NotAllowed|permission/i.test(`${e.name} ${e.message}`);
       setError(denied ? 'permission' : 'failed');
       set('idle');
-      if (__DEV__) console.warn('[Karakuchi] voice start failed', e);
+      if (__DEV__) console.warn('[NAYQO] voice start failed', e);
     }
   }, [recorder]);
 

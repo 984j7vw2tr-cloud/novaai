@@ -21,7 +21,7 @@ const ROWS: [string, string][] = [
   ['所在地', DISCLOSE],
   ['電話番号', DISCLOSE],
   ['メールアドレス', CONTACT_EMAIL || '準備中'],
-  ['サービス名', 'Karakuchi AI'],
+  ['サービス名', 'NAYQO'],
   [
     '販売価格',
     'PLUS プラン：月額480円（税抜）／528円（税込）\n各プランの価格は「料金プラン」画面に表示しています。',

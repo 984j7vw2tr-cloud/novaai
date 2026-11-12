@@ -65,7 +65,7 @@ export function createOpenAIModerator(options: {
 export const SELF_HARM_CATEGORIES = ['self-harm', 'self-harm/intent', 'self-harm/instructions'];
 
 /**
- * 出力がこれに当てはまったら差し替える（Karakuchiが絶対に言ってはいけない内容だけ）。
+ * 出力がこれに当てはまったら差し替える（NAYQOが絶対に言ってはいけない内容だけ）。
  * - ただの "harassment"（軽い悪口）はカウンターモードで普通に出るので対象にしない。
  * - "self-harm" "violence" などは対象にしない。「死にたい」への寄り添いや、
  *   暴力を止める回答も、話題として引っかかってしまうため（実際に誤って差し替えられた）。

@@ -11,7 +11,7 @@ import { LANGUAGES } from '@/i18n/languages';
 import { isActive } from '@/lib/pressable';
 import { updateProfile } from '@/lib/profile';
 
-/** 言語設定画面：表示言語とKarakuchiの回答言語を別々に選ぶ */
+/** 言語設定画面：表示言語とNAYQOの回答言語を別々に選ぶ */
 export default function LanguageScreen() {
   const { t, uiPreference, replyPreference, setUiPreference, setReplyPreference, needsRestart } =
     useI18n();
