@@ -14,7 +14,6 @@ import {
   type TextInputInstance,
   type TextInputKeyPressEvent,
 } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 
 import { Icon, type IconName } from '@/components/icons';
 import { NovaText } from '@/components/nova-text';
@@ -157,9 +156,7 @@ export function Composer({
         accessibilityLabel={t.stop}
         style={(state) => [styles.button, styles.buttonOn, isActive(state) && styles.pressed]}>
         {/* 停止：塗りつぶしの四角 */}
-        <Svg width={12} height={12} viewBox="0 0 12 12">
-          <Rect x={0} y={0} width={12} height={12} rx={2.5} fill={Colors.onAccent} />
-        </Svg>
+        <View style={styles.stopSquare} />
       </Pressable>
     );
   } else if (recording) {
@@ -487,6 +484,7 @@ const styles = StyleSheet.create({
   buttonGhost: { backgroundColor: 'transparent' },
   ghostPressed: { backgroundColor: Colors.surfaceRaised },
   pressed: { opacity: 0.82 },
+  stopSquare: { width: 12, height: 12, borderRadius: 2.5, backgroundColor: Colors.onAccent },
   dim: { opacity: 0.4 },
   backdrop: { flex: 1 },
   menu: {

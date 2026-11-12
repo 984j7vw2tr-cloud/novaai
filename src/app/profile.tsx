@@ -11,6 +11,8 @@ import { authErrorMessage } from '@/lib/auth-messages';
 import { getProfile, updateProfile } from '@/lib/profile';
 import { deleteMyAccount } from '@/lib/account';
 import { getBillingStatus } from '@/lib/billing';
+import { Palettes, THEME_NAMES, type ThemeName } from '@/constants/theme';
+import { setTheme, useTheme } from '@/lib/theme-store';
 import { confirmAsync } from '@/lib/confirm';
 import { deleteAllConversations } from '@/lib/conversations';
 
@@ -28,6 +30,14 @@ export default function ProfileScreen() {
   const [dataNotice, setDataNotice] = useState<null | 'historyDeleted' | 'failed'>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<AuthErrorKind | null>(null);
+  const theme = useTheme();
+  const themeLabel: Record<ThemeName, string> = {
+    dark: t.themeDark,
+    light: t.themeLight,
+    green: t.themeGreen,
+    purple: t.themePurple,
+    pink: t.themePink,
+  };
   /** 今のプラン（FREE / PLUS / PRO） */
   const [planLabel, setPlanLabel] = useState('');
 
@@ -35,7 +45,7 @@ export default function ProfileScreen() {
     let active = true;
     getBillingStatus()
       .then((s) => {
-        if (active) setPlanLabel(s.plan.toUpperCase());
+        if (active) setPlanLabel(s.plan === 'free' ? 'FREE' : 'PLUS');
       })
       .catch(() => {});
     return () => {
@@ -163,6 +173,22 @@ export default function ProfileScreen() {
             chevron
           />
           <ListRow label={t.legalNotice} onPress={() => router.push('/tokushoho')} chevron />
+        </Group>
+      </Section>
+
+      {/* 外観（テーマ） */}
+      <Section title={t.appearance}>
+        <Group>
+          {THEME_NAMES.map((name, i) => (
+            <ListRow
+              key={name}
+              first={i === 0}
+              label={themeLabel[name]}
+              swatch={{ background: Palettes[name].background, accent: Palettes[name].accent }}
+              selected={theme === name}
+              onPress={() => setTheme(name)}
+            />
+          ))}
         </Group>
       </Section>
 

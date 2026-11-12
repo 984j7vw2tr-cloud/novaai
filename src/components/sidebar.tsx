@@ -48,10 +48,6 @@ export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClos
         />
       </View>
 
-      <View style={styles.pad}>
-        <Row icon="newChat" label={t.newChat} onPress={onNewChat} strong />
-      </View>
-
       <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
         {groups.map((group) => (
           <View key={group.key} style={styles.group}>
@@ -85,32 +81,6 @@ export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClos
 
       <UserFooter onNewChat={onNewChat} />
     </View>
-  );
-}
-
-/** 一覧の1行（新しいチャット・設定など） */
-function Row({
-  icon,
-  label,
-  onPress,
-  strong,
-}: {
-  icon: 'newChat' | 'settings';
-  label: string;
-  onPress: () => void;
-  strong?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={(state) => [styles.row, isActive(state) && styles.rowActive]}>
-      <Icon name={icon} size={18} color={strong ? Colors.text : Colors.textSecondary} />
-      <NovaText variant="smallMedium" tone={strong ? 'primary' : 'secondary'} numberOfLines={1}>
-        {label}
-      </NovaText>
-    </Pressable>
   );
 }
 
@@ -161,7 +131,7 @@ function ConversationRow({
   );
 }
 
-/** 下の部分：左＝ログイン中の人（押すと設定）、右＝えんじ色の「＋ 新規チャット」 */
+/** 下の部分：左＝ログイン中の人（押すと設定）、右＝えんじ色の「チャット」（新しいチャットを始めて、すぐ入力できる） */
 function UserFooter({ onNewChat }: { onNewChat: () => void }) {
   const { t } = useI18n();
   const { session, authRequired } = useAuth();
@@ -208,11 +178,11 @@ function UserFooter({ onNewChat }: { onNewChat: () => void }) {
       <Pressable
         onPress={onNewChat}
         accessibilityRole="button"
-        accessibilityLabel={t.newChat}
+        accessibilityLabel={t.chatButton}
         style={(state) => [styles.newChatPill, isActive(state) && styles.newChatPillActive]}>
-        <Icon name="plus" size={16} color={Colors.onAccent} strokeWidth={2.5} />
+        <Icon name="newChat" size={16} color={Colors.onAccent} strokeWidth={2.25} />
         <NovaText variant="smallMedium" style={styles.newChatText} numberOfLines={1}>
-          {t.newChat}
+          {t.chatButton}
         </NovaText>
       </Pressable>
     </View>

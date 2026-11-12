@@ -5,6 +5,9 @@
 import { ScrollViewStyleReset, useServerDocumentContext } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
+import { themeCss } from '@/constants/theme';
+import { themeBootScript } from '@/lib/theme-store';
+
 const DESCRIPTION =
   'Karakuchi AI — ONE AI. EVERY LANGUAGE. NO FILTER. 忖度なしで答える、世界中の言語に対応したAI。';
 
@@ -32,7 +35,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="twitter:card" content="summary" />
         {/* スクロールの見た目をそろえる（Expo Router 標準） */}
         <ScrollViewStyleReset />
-        <style dangerouslySetInnerHTML={{ __html: 'html,body{background:#0A0A0A;}' }} />
+        {/* 外観（テーマ）の色。選んだテーマを、画面が出る前に当てる */}
+        <style dangerouslySetInnerHTML={{ __html: themeCss() }} />
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript() }} />
+        <style
+          dangerouslySetInnerHTML={{ __html: 'html,body{background:var(--c-background,#0A0A0A);}' }}
+        />
         {headNodes}
       </head>
       <body {...bodyAttributes}>

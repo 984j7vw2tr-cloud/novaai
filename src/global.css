@@ -1,11 +1,9 @@
 /* Web全体の基本設定（スマホアプリには影響しない） */
-:root {
-  color-scheme: dark;
-}
+/* 色はテーマ（外観）ごとのCSS変数。定義は src/constants/theme.ts（+html.tsx で読み込む） */
 
 html,
 body {
-  background-color: #0a0a0a;
+  background-color: var(--c-background, #0a0a0a);
   /* 文字をなめらかに表示 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -16,7 +14,7 @@ body {
 
 /* 選択した文字の色 */
 ::selection {
-  background: rgba(176, 42, 64, 0.4);
+  background: color-mix(in srgb, var(--c-accent, #b02a40) 40%, transparent);
 }
 
 /* 入力欄の標準の青い枠を消す（代わりに枠線の色で表現する） */
@@ -31,21 +29,21 @@ input:focus {
 [role='radio']:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid #8a3346;
+  outline: 2px solid var(--c-focus, #8a3346);
   outline-offset: 2px;
 }
 
 /* スクロールバーを細く、目立たなく */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2b2b2b transparent;
+  scrollbar-color: var(--c-border, #2b2b2b) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #2b2b2b;
+  background: var(--c-border, #2b2b2b);
   border-radius: 8px;
 }
 *::-webkit-scrollbar-track {

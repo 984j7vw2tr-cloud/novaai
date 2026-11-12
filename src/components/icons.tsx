@@ -32,6 +32,7 @@ import {
   X,
 } from 'lucide-react-native';
 
+import { Platform } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 
 import { Colors } from '@/constants/theme';
@@ -120,12 +121,15 @@ export function Icon({
   isRTL?: boolean;
 }) {
   const Component = Icons[name];
-  return (
-    <Component
-      size={size}
-      color={color}
-      strokeWidth={strokeWidth}
-      style={flipForRTL && isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
-    />
-  );
+  const flip = flipForRTL && isRTL ? { transform: [{ scaleX: -1 }] } : undefined;
+  // Web：色がテーマのCSS変数（var(...)）のときは、外側の色を受け継ぐ（currentColor）。
+  // SVGの属性には var(...) を直接書けないため。テーマを切り替えるとすぐ色が変わる。
+  if (Platform.OS === 'web' && color.startsWith('var(')) {
+    return (
+      <span style={{ color, display: 'inline-flex', lineHeight: 0 }}>
+        <Component size={size} color="currentColor" strokeWidth={strokeWidth} style={flip} />
+      </span>
+    );
+  }
+  return <Component size={size} color={color} strokeWidth={strokeWidth} style={flip} />;
 }
