@@ -6,7 +6,6 @@ export const vi: Strings = {
   composerPlaceholder: 'Hỏi Karakuchi AI',
   send: 'Gửi',
   stop: 'Dừng',
-  upgradeDone: 'Đã nâng cấp',
   appearance: 'Giao diện',
   themeDark: 'Tối',
   themeLight: 'Sáng',

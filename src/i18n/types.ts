@@ -5,8 +5,6 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
-  /** PLUS のときの上のボタンの文字 */
-  upgradeDone: string;
   appearance: string;
   themeDark: string;
   themeLight: string;

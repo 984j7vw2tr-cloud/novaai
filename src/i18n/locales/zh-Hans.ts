@@ -6,7 +6,6 @@ export const zhHans: Strings = {
   composerPlaceholder: '问问 Karakuchi AI',
   send: '发送',
   stop: '停止',
-  upgradeDone: '已升级',
   appearance: '外观',
   themeDark: '深色',
   themeLight: '浅色',
