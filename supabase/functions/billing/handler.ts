@@ -123,7 +123,12 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
           );
         }
 
-        const price = await ensurePrice(stripe, plan as Plan, priceFor(plan as Plan, env));
+        const price = await ensurePrice(
+          stripe,
+          plan as Plan,
+          priceFor(plan as Plan, env),
+          env.get('STRIPE_TAX_CODE') || undefined,
+        );
         const session = await stripe.request<{ url: string }>('POST', '/v1/checkout/sessions', {
           mode: 'subscription',
           customer: customerId,
@@ -143,7 +148,18 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
     } catch (e) {
       if (e instanceof StripeError) {
         console.error(`[billing] stripe ${e.status} ${e.code ?? ''}: ${e.message}`);
-        return fail(502, 'upstream_error');
+        // 原因調査のため、Stripe のエラーの種類名（例：resource_missing）だけ返す。本文や鍵は返さない
+        const reason = /^[a-z0-9_]{1,64}$/.test(e.code ?? '') ? e.code : `http_${e.status}`;
+        const param = /^[a-z0-9_\[\]]{1,80}$/.test(e.param ?? '') ? e.param : undefined;
+        return json(502, {
+          type: 'error',
+          code: 'upstream_error',
+          reason,
+          ...(param ? { param } : {}),
+          ...(e.path ? { at: e.path } : {}),
+          // テストモードのときだけ、Stripe の説明文も返す（設定の不足を見つけやすくするため。本番では返さない）
+          ...(stripe.testMode ? { message: e.message.slice(0, 300) } : {}),
+        });
       }
       console.error('[billing] error', e);
       return fail(502, 'upstream_error');

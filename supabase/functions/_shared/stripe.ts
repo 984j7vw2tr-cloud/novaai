@@ -25,11 +25,16 @@ export function priceFor(plan: Plan, env: Env): number {
 export class StripeError extends Error {
   readonly status: number;
   readonly code: string | undefined;
-  constructor(status: number, code: string | undefined, message: string) {
+  /** どの項目が問題だったか（Stripe が返す param。原因調査用） */
+  readonly param: string | undefined;
+  /** どのAPIで失敗したか（例：POST /v1/prices） */
+  path: string | undefined;
+  constructor(status: number, code: string | undefined, message: string, param?: string) {
     super(message);
     this.name = 'StripeError';
     this.status = status;
     this.code = code;
+    this.param = param;
   }
 }
 
@@ -75,11 +80,14 @@ export function createStripe(env: Env, doFetch: typeof fetch) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new StripeError(
+      const err = new StripeError(
         res.status,
         data?.error?.code ?? data?.error?.type,
         data?.error?.message ?? `HTTP ${res.status}`,
+        data?.error?.param,
       );
+      err.path = `${method} ${path.replace(/\/(cus|sub|price|prod)_[A-Za-z0-9]+/g, '/:id')}`;
+      throw err;
     }
     return data as T;
   }
@@ -98,19 +106,52 @@ export type Stripe = ReturnType<typeof createStripe>;
  * プランの値段（Stripe の Price）を用意する。
  * 目印（lookup_key）で探し、なければ作る。値段を変えたときは新しい Price を作って目印を移す。
  */
-export async function ensurePrice(stripe: Stripe, plan: Plan, amount: number): Promise<string> {
+/**
+ * 商品の税の種類（Stripe の tax_code）。Karakuchi AI は個人向けのオンラインサービスなので
+ * 「SaaS（個人利用）」。Stripe の Managed Payments（税の計算・納付を Stripe が代行）では必須。
+ * 環境変数 STRIPE_TAX_CODE で変えられる。
+ */
+export const DEFAULT_TAX_CODE = 'txcd_10103000';
+
+export async function ensurePrice(
+  stripe: Stripe,
+  plan: Plan,
+  amount: number,
+  taxCode = DEFAULT_TAX_CODE,
+): Promise<string> {
   const found = await stripe.request<{
-    data: { id: string; unit_amount: number; currency: string }[];
-  }>('GET', '/v1/prices', { 'lookup_keys[]': lookupKey(plan), active: 'true', limit: 1 });
+    data: {
+      id: string;
+      unit_amount: number;
+      currency: string;
+      product: { id: string; tax_code: string | { id: string } | null } | string;
+    }[];
+  }>('GET', '/v1/prices', {
+    'lookup_keys[]': lookupKey(plan),
+    active: 'true',
+    limit: 1,
+    'expand[]': 'data.product',
+  });
   const current = found.data[0];
-  if (current && current.unit_amount === amount && current.currency === 'jpy') return current.id;
+  if (current && current.unit_amount === amount && current.currency === 'jpy') {
+    // 以前に税の種類なしで作った商品なら、ここで付ける
+    const product = typeof current.product === 'object' ? current.product : null;
+    const code =
+      product && (typeof product.tax_code === 'string' ? product.tax_code : product.tax_code?.id);
+    if (product && code !== taxCode) {
+      await stripe.request('POST', `/v1/products/${encodeURIComponent(product.id)}`, {
+        tax_code: taxCode,
+      });
+    }
+    return current.id;
+  }
   const created = await stripe.request<{ id: string }>('POST', '/v1/prices', {
     currency: 'jpy',
     unit_amount: amount,
     recurring: { interval: 'month' },
     lookup_key: lookupKey(plan),
     transfer_lookup_key: current ? 'true' : undefined,
-    product_data: { name: PLAN_NAMES[plan], metadata: { plan } },
+    product_data: { name: PLAN_NAMES[plan], tax_code: taxCode, metadata: { plan } },
     metadata: { plan },
   });
   return created.id;
