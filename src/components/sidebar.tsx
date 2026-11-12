@@ -9,9 +9,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useAuth } from '@/auth';
 import { IconButton } from '@/components/form';
 import { Icon } from '@/components/icons';
-import { NayqoLogo } from '@/components/nayqo-logo';
 import { NovaText } from '@/components/nova-text';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 import { groupByDate } from '@/hooks/use-conversations';
 import { useI18n } from '@/i18n';
 import type { ConversationSummary } from '@/lib/conversations';
@@ -36,9 +35,11 @@ export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClos
   return (
     <View style={styles.root}>
       <View style={styles.top}>
-        {/* NAYQO のロゴ（文字だけ） */}
+        {/* NAYQO の名前（ChatGPT のように、太い文字だけ。色はテーマの文字色） */}
         <View style={styles.brand}>
-          <NayqoLogo width={150} />
+          <NovaText style={styles.brandText} accessibilityRole="header">
+            NAYQO
+          </NovaText>
         </View>
         <IconButton
           icon={mode === 'drawer' ? 'close' : 'sidebar'}
@@ -203,6 +204,14 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.sm,
   },
   brand: { paddingTop: 2 },
+  brandText: {
+    color: Colors.text,
+    fontFamily: Fonts.bold,
+    fontSize: 26,
+    lineHeight: 32,
+    letterSpacing: 0.2,
+    ...(Platform.OS === 'web' ? { fontWeight: '700' as const } : null),
+  },
   pad: { paddingHorizontal: Spacing.sm, paddingBottom: Spacing.sm },
   row: {
     flexDirection: 'row',
