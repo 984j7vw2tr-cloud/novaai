@@ -18,11 +18,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Composer } from '@/components/composer';
 import { IconButton } from '@/components/form';
+import { Icon } from '@/components/icons';
 import { MessageItem } from '@/components/message-item';
 import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
 import { BrandMark } from '@/components/wordmark';
-import { Breakpoints, Colors, Layout, Motion, Radius, Spacing } from '@/constants/theme';
+import { Breakpoints, Colors, Fonts, Layout, Motion, Radius, Spacing } from '@/constants/theme';
 import { useAttachmentAllowance } from '@/hooks/use-attachment-allowance';
 import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
 import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
@@ -98,6 +99,8 @@ export default function ChatScreen() {
   const [text, setText] = useState('');
   const draft = useAttachmentDraft();
   const allowance = useAttachmentAllowance();
+  /** PLUS（以前の PRO も含む）か */
+  const upgraded = allowance.plan === 'plus' || allowance.plan === 'pro';
   // 無料プラン：今日の残り（送る前に付けている分も引く）
   const attachRemaining = allowance.remaining - draft.items.length;
   // 声で入力：文字になったら、入力欄の続きに入れる
@@ -332,16 +335,23 @@ export default function ChatScreen() {
               />
             ) : null}
           </View>
-          {/* 真ん中：ロゴ＋「アップグレードする」（押すと料金プランの画面） */}
+          {/* 真ん中：ロゴ＋「アップグレードする」（PLUSなら「アップグレード成功 ✓」）。押すと料金プランの画面 */}
           <Pressable
             onPress={() => router.push('/plans')}
             accessibilityRole="button"
-            accessibilityLabel={t.upgrade}
-            style={(state) => [styles.upgradePill, isActive(state) && styles.upgradePillActive]}>
+            accessibilityLabel={upgraded ? t.upgradeDone : t.upgrade}
+            style={(state) => [
+              styles.upgradePill,
+              isActive(state) && styles.upgradePillActive,
+              allowance.plan === null && styles.upgradePillHidden,
+            ]}>
             <BrandMark size={20} />
             <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
-              {t.upgrade}
+              {upgraded ? t.upgradeDone : t.upgrade}
             </NovaText>
+            {upgraded ? (
+              <Icon name="check" size={16} color={Colors.accentText} strokeWidth={3} />
+            ) : null}
           </Pressable>
 
           <View style={[styles.headerSide, styles.headerEnd]}>
@@ -565,7 +575,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.sm,
   },
-  headerSide: { width: 88, flexDirection: 'row' },
+  headerSide: { width: 52, flexDirection: 'row' },
   headerEnd: { justifyContent: 'flex-end' },
   upgradePill: {
     flexDirection: 'row',
@@ -581,7 +591,15 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   upgradePillActive: { backgroundColor: Colors.surfaceRaised },
-  upgradeText: { color: Colors.accentText },
+  // 目立つように太字（大きさはそのまま）
+  upgradeText: {
+    color: Colors.accentText,
+    fontFamily: Fonts.semibold,
+    // Web：日本語は別のフォントで表示されるので、太さも指定する
+    ...(Platform.OS === 'web' ? { fontWeight: '700' as const } : null),
+  },
+  // プランがわかるまでは見えなくしておく（PLUSの人に一瞬「アップグレードする」が出ないように）
+  upgradePillHidden: { opacity: 0 },
   hero: {
     flexGrow: 1,
     justifyContent: 'center',

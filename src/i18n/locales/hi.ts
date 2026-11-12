@@ -6,6 +6,7 @@ export const hi: Strings = {
   composerPlaceholder: 'Karakuchi AI से पूछें',
   send: 'भेजें',
   stop: 'रोकें',
+  upgradeDone: 'अपग्रेड हो गया',
   appearance: 'रूप',
   themeDark: 'डार्क',
   themeLight: 'लाइट',

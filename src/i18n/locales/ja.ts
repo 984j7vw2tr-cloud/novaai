@@ -6,6 +6,7 @@ export const ja: Strings = {
   composerPlaceholder: 'Karakuchi AIに聞く',
   send: '送信',
   stop: '停止',
+  upgradeDone: 'アップグレード成功',
   appearance: '外観',
   themeDark: 'ダーク',
   themeLight: 'ライト',

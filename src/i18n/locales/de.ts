@@ -6,6 +6,7 @@ export const de: Strings = {
   composerPlaceholder: 'Frag Karakuchi AI',
   send: 'Senden',
   stop: 'Stopp',
+  upgradeDone: 'Upgrade aktiv',
   appearance: 'Darstellung',
   themeDark: 'Dunkel',
   themeLight: 'Hell',

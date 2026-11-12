@@ -6,6 +6,7 @@ export const id: Strings = {
   composerPlaceholder: 'Tanya Karakuchi AI',
   send: 'Kirim',
   stop: 'Hentikan',
+  upgradeDone: 'Berhasil upgrade',
   appearance: 'Tampilan',
   themeDark: 'Gelap',
   themeLight: 'Terang',

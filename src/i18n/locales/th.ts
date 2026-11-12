@@ -6,6 +6,7 @@ export const th: Strings = {
   composerPlaceholder: 'ถาม Karakuchi AI',
   send: 'ส่ง',
   stop: 'หยุด',
+  upgradeDone: 'อัปเกรดแล้ว',
   appearance: 'รูปลักษณ์',
   themeDark: 'มืด',
   themeLight: 'สว่าง',
