@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Composer } from '@/components/composer';
 import { IconButton } from '@/components/form';
-import { Icon } from '@/components/icons';
 import { MessageItem } from '@/components/message-item';
 import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
@@ -335,11 +334,11 @@ export default function ChatScreen() {
               />
             ) : null}
           </View>
-          {/* 真ん中：ロゴ＋「アップグレードする」（PLUSなら「アップグレード成功 ✓」）。押すと料金プランの画面 */}
+          {/* 真ん中：ロゴ＋「アップグレードする」（PLUSなら「PLUS」）。押すと料金プランの画面 */}
           <Pressable
             onPress={() => router.push('/plans')}
             accessibilityRole="button"
-            accessibilityLabel={upgraded ? t.upgradeDone : t.upgrade}
+            accessibilityLabel={upgraded ? 'PLUS' : t.upgrade}
             style={(state) => [
               styles.upgradePill,
               isActive(state) && styles.upgradePillActive,
@@ -347,11 +346,8 @@ export default function ChatScreen() {
             ]}>
             <BrandMark size={20} />
             <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
-              {upgraded ? t.upgradeDone : t.upgrade}
+              {upgraded ? 'PLUS' : t.upgrade}
             </NovaText>
-            {upgraded ? (
-              <Icon name="check" size={16} color={Colors.accentText} strokeWidth={3} />
-            ) : null}
           </Pressable>
 
           <View style={[styles.headerSide, styles.headerEnd]}>
