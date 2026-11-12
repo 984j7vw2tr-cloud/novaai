@@ -4,19 +4,19 @@
  */
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/auth';
 import { IconButton } from '@/components/form';
 import { Icon } from '@/components/icons';
 import { NovaText } from '@/components/nova-text';
-import { Wordmark } from '@/components/wordmark';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, isLightTheme, Radius, Spacing } from '@/constants/theme';
 import { groupByDate } from '@/hooks/use-conversations';
 import { useI18n } from '@/i18n';
 import type { ConversationSummary } from '@/lib/conversations';
 import { isActive } from '@/lib/pressable';
 import { getProfile } from '@/lib/profile';
+import { useTheme } from '@/lib/theme-store';
 
 type Props = {
   items: ConversationSummary[];
@@ -31,13 +31,27 @@ type Props = {
 
 export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClose, mode }: Props) {
   const { t, isRTL } = useI18n();
+  const theme = useTheme();
   const groups = groupByDate(items);
 
   return (
     <View style={styles.root}>
       <View style={styles.top}>
-        <View style={styles.brand}>
-          <Wordmark size={24} />
+        {/* NAYQO のロゴ。明るいテーマでは黒いカードに載せて読みやすくする */}
+        <View style={styles.brand} accessibilityRole="header" accessibilityLabel="NAYQO">
+          {isLightTheme(theme) ? (
+            <Image
+              source={require('@/assets/images/nayqo-logo-card.png')}
+              style={[styles.logo, styles.logoCard]}
+              resizeMode="contain"
+            />
+          ) : (
+            <Image
+              source={require('@/assets/images/nayqo-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          )}
         </View>
         <IconButton
           icon={mode === 'drawer' ? 'close' : 'sidebar'}
@@ -193,7 +207,8 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.sidebar },
   flex: { flex: 1 },
   top: {
-    height: 56,
+    minHeight: 56,
+    paddingVertical: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -201,6 +216,8 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.sm,
   },
   brand: { paddingTop: 2 },
+  logo: { width: 176, height: 89 },
+  logoCard: { borderRadius: Radius.md },
   pad: { paddingHorizontal: Spacing.sm, paddingBottom: Spacing.sm },
   row: {
     flexDirection: 'row',
