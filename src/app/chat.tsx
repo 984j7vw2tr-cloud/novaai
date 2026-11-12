@@ -21,7 +21,7 @@ import { IconButton } from '@/components/form';
 import { MessageItem } from '@/components/message-item';
 import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
-import { BrandMark, Wordmark } from '@/components/wordmark';
+import { BrandMark } from '@/components/wordmark';
 import { Breakpoints, Colors, Layout, Motion, Radius, Spacing } from '@/constants/theme';
 import { useAttachmentAllowance } from '@/hooks/use-attachment-allowance';
 import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
@@ -169,6 +169,8 @@ export default function ChatScreen() {
     router.setParams({ id: undefined });
     setText('');
     setDrawerOpen(false);
+    // すぐ文字を打てるように入力欄にカーソルを置く（スマホでキーボードが開くよう、押した瞬間にも呼ぶ）
+    inputRef.current?.focus();
     requestAnimationFrame(() => inputRef.current?.focus());
   }, [reset, discardDraft, clearTempFiles]);
 
@@ -322,7 +324,7 @@ export default function ChatScreen() {
               />
             ) : null}
           </View>
-          {/* 真ん中：無料プランなら「アップグレードする」、PLUSならロゴ */}
+          {/* 真ん中：無料プランなら「アップグレードする」。PLUSなら何も出さない */}
           {allowance.plan === 'free' ? (
             <Pressable
               onPress={() => router.push('/plans')}
@@ -334,8 +336,6 @@ export default function ChatScreen() {
                 {t.upgrade}
               </NovaText>
             </Pressable>
-          ) : allowance.plan ? (
-            <Wordmark size={15} />
           ) : (
             <View />
           )}
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.sm,
   },
-  retryActive: { backgroundColor: 'rgba(255,255,255,0.06)' },
+  retryActive: { backgroundColor: Colors.surfaceRaised },
   disclaimer: { textAlign: 'center', marginTop: Spacing.sm },
   backdrop: { backgroundColor: 'rgba(0,0,0,0.55)' },
   drawer: {

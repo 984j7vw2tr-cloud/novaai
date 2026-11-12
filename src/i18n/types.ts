@@ -5,6 +5,14 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
+  appearance: string;
+  themeDark: string;
+  themeLight: string;
+  themeGreen: string;
+  themePurple: string;
+  themePink: string;
+  /** メニュー右下の「チャット」ボタン */
+  chatButton: string;
   upgrade: string;
   temporaryChat: string;
   temporaryChatNote: string;
