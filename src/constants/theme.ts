@@ -32,15 +32,15 @@ const DARK = {
   /** さらに控えめな文字（注意書き・日付） */
   textMuted: '#6B6B6B',
   /** ブランドの色（送信ボタン・主要なボタン） */
-  accent: '#B02A40',
-  /** 文字で使うブランド色（リンク・ロゴの「AI」） */
-  accentText: '#EBA27A',
+  accent: '#E6E6E9',
+  /** 文字で使うブランド色（リンク・選択中の印など） */
+  accentText: '#D2D2D7',
   /** ブランドの色の上に乗る文字・アイコン */
-  onAccent: '#FFFFFF',
+  onAccent: '#0A0A0A',
   /** ブランドの色を薄くした色（引用の線・選択中の印など） */
-  accentMuted: '#4E1824',
+  accentMuted: '#3A3A3F',
   /** フォーカス時の枠 */
-  focus: '#8A3346',
+  focus: '#8C8C93',
   /** コードブロックの背景 */
   code: '#111111',
   /** エラー */
@@ -68,11 +68,11 @@ export const Palettes: Record<ThemeName, Palette> = {
     text: '#111111',
     textSecondary: '#4C4C52',
     textMuted: '#8A8A91',
-    accent: '#B02A40',
-    accentText: '#A3243A',
+    accent: '#1C1C1F',
+    accentText: '#2E2E33',
     onAccent: '#FFFFFF',
-    accentMuted: '#F2D6DC',
-    focus: '#D9A0AB',
+    accentMuted: '#DCDCE0',
+    focus: '#9A9AA1',
     code: '#F4F4F5',
     danger: '#C62F37',
     dangerSurface: '#FDECEC',
@@ -223,6 +223,7 @@ export const Fonts = {
   regular: family('Inter_400Regular'),
   medium: family('Inter_500Medium'),
   semibold: family('Inter_600SemiBold'),
+  bold: family('Inter_700Bold'),
   mono:
     Platform.OS === 'web'
       ? 'JetBrainsMono_400Regular, ui-monospace, Menlo, Consolas, monospace'

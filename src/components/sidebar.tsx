@@ -37,7 +37,7 @@ export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClos
     <View style={styles.root}>
       <View style={styles.top}>
         <View style={styles.brand}>
-          <Wordmark size={15} withMark />
+          <Wordmark size={24} />
         </View>
         <IconButton
           icon={mode === 'drawer' ? 'close' : 'sidebar'}

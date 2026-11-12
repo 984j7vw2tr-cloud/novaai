@@ -21,7 +21,7 @@ import { IconButton } from '@/components/form';
 import { MessageItem } from '@/components/message-item';
 import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
-import { BrandMark } from '@/components/wordmark';
+import { QMark } from '@/components/q-mark';
 import { Breakpoints, Colors, Fonts, Layout, Motion, Radius, Spacing } from '@/constants/theme';
 import { useAttachmentAllowance } from '@/hooks/use-attachment-allowance';
 import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
@@ -344,7 +344,7 @@ export default function ChatScreen() {
               isActive(state) && styles.upgradePillActive,
               allowance.plan === null && styles.upgradePillHidden,
             ]}>
-            <BrandMark size={20} />
+            <QMark size={20} color={Colors.text} />
             <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
               {upgraded ? 'PLUS' : t.upgrade}
             </NovaText>

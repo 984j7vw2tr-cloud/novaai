@@ -14,7 +14,7 @@ body {
 
 /* 選択した文字の色 */
 ::selection {
-  background: color-mix(in srgb, var(--c-accent, #b02a40) 40%, transparent);
+  background: color-mix(in srgb, var(--c-accent, #e6e6e9) 40%, transparent);
 }
 
 /* 入力欄の標準の青い枠を消す（代わりに枠線の色で表現する） */
@@ -29,7 +29,7 @@ input:focus {
 [role='radio']:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--c-focus, #8a3346);
+  outline: 2px solid var(--c-focus, #8c8c93);
   outline-offset: 2px;
 }
 
