@@ -23,6 +23,7 @@ import { NovaText } from '@/components/nova-text';
 import { Sidebar } from '@/components/sidebar';
 import { BrandMark, Wordmark } from '@/components/wordmark';
 import { Breakpoints, Colors, Layout, Motion, Radius, Spacing } from '@/constants/theme';
+import { useAttachmentAllowance } from '@/hooks/use-attachment-allowance';
 import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
 import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
 import { useConversations } from '@/hooks/use-conversations';
@@ -66,7 +67,6 @@ export default function ChatScreen() {
     busy,
     error,
     errorDetails,
-    quota,
     saveFailed,
     loading,
     loadFailed,
@@ -84,6 +84,9 @@ export default function ChatScreen() {
 
   const [text, setText] = useState('');
   const draft = useAttachmentDraft();
+  const allowance = useAttachmentAllowance();
+  // 無料プラン：今日の残り（送る前に付けている分も引く）
+  const attachRemaining = allowance.remaining - draft.items.length;
   // 声で入力：文字になったら、入力欄の続きに入れる
   const voice = useVoiceInput(
     useCallback(
@@ -113,6 +116,12 @@ export default function ChatScreen() {
     router.setParams({ q: undefined });
   }, [q, send]);
 
+  // 写真・ファイルの上限でサーバーに断られたら、残りを聞き直す
+  const refreshAllowance = allowance.refresh;
+  useEffect(() => {
+    if (error === 'attachment_limit') void refreshAllowance();
+  }, [error, refreshAllowance]);
+
   // 回答が終わったら履歴の並び（最終更新順）を新しくする
   const wasBusy = useRef(false);
   useEffect(() => {
@@ -123,9 +132,11 @@ export default function ChatScreen() {
   const submit = () => {
     if (busy || draft.uploading) return;
     if (!text.trim() && draft.ready.length === 0) return;
-    if (send(text, draft.ready)) {
+    const attached = draft.ready;
+    if (send(text, attached)) {
       setText('');
       draft.clear();
+      if (attached.length) allowance.addUsed(attached.length);
     }
   };
 
@@ -189,7 +200,9 @@ export default function ChatScreen() {
       inputRef={inputRef}
       autoFocus={Platform.OS === 'web'}
       attachments={draft.items}
-      onAttach={(source) => void draft.add(source)}
+      onAttach={(source) => void draft.add(source, attachRemaining)}
+      attachLocked={attachRemaining <= 0 && draft.items.length === 0}
+      onUpgrade={() => router.push('/plans')}
       onRemoveAttachment={draft.remove}
       attachFull={draft.full}
       voice={voice}
@@ -225,7 +238,7 @@ export default function ChatScreen() {
             {errorMessage(error, t, errorDetails, uiLanguage)}
           </NovaText>
           {/* 回数の上限に達したときは、やり直しても同じなので「プランを見る」を出す */}
-          {error !== 'quota_exceeded' ? (
+          {error !== 'quota_exceeded' && error !== 'attachment_limit' ? (
             <Pressable
               onPress={retry}
               accessibilityRole="button"
@@ -241,12 +254,6 @@ export default function ChatScreen() {
             </Pressable>
           )}
         </View>
-      ) : null}
-      {/* 残りが少なくなったら「今日の残り○回」を出す */}
-      {quota && quota.remaining <= LOW_QUOTA ? (
-        <NovaText variant="caption" tone="secondary" style={styles.notice}>
-          {t.quotaRemaining.replace('{n}', String(quota.remaining))}
-        </NovaText>
       ) : null}
     </>
   );
@@ -440,9 +447,6 @@ function Drawer({
   );
 }
 
-/** この回数以下になったら「今日の残り」を表示する */
-const LOW_QUOTA = 10;
-
 function errorMessage(
   kind: ChatErrorKind,
   t: Strings,
@@ -450,6 +454,8 @@ function errorMessage(
   locale: string,
 ) {
   switch (kind) {
+    case 'attachment_limit':
+      return t.attachLimitReached;
     case 'quota_exceeded': {
       const time = details?.resetAt ? formatTime(details.resetAt, locale) : '—';
       return t.quotaExceeded

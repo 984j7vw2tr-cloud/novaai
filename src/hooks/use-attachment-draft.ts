@@ -41,9 +41,10 @@ export function useAttachmentDraft() {
     setItems(itemsRef.current);
   };
 
-  const add = useCallback(async (source: AttachSource) => {
+  /** maxNew：今日あといくつ付けられるか（無料プランの上限。なければ制限なし） */
+  const add = useCallback(async (source: AttachSource, maxNew = Infinity) => {
     setError(null);
-    const room = MAX_ATTACHMENTS - itemsRef.current.length;
+    const room = Math.min(MAX_ATTACHMENTS - itemsRef.current.length, maxNew);
     if (room <= 0) {
       setError('too_many');
       return;

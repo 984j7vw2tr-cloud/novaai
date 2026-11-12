@@ -23,6 +23,7 @@ import {
   Plus,
   RotateCcw,
   Settings,
+  Sparkles,
   Square,
   SquarePen,
   Trash2,
@@ -55,6 +56,7 @@ export const Icons = {
   attach: Paperclip,
   mic: Mic,
   plan: CreditCard,
+  sparkle: Sparkles,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof Icons;

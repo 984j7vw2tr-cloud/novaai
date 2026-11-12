@@ -6,6 +6,12 @@ export const id: Strings = {
   composerPlaceholder: 'Tanya apa saja. Tanpa sanjungan.',
   send: 'Kirim',
   stop: 'Hentikan',
+  planChatUnlimited: 'Chat tanpa batas',
+  planFilesUnlimited: 'Foto dan file tanpa batas',
+  planFilesPerDay: 'Foto dan file: hingga {n} per hari',
+  attachLimitReached:
+    'Kamu sudah mencapai batas foto dan file hari ini. Upgrade ke PLUS untuk melampirkan tanpa batas.',
+  upgradeToPlus: 'Upgrade ke PLUS',
   plans: 'Paket',
   plansSubtitle: 'Pilih paket yang cocok dengan pemakaianmu. Bisa batal kapan saja.',
   priceFree: 'Gratis',

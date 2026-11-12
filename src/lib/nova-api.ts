@@ -13,6 +13,7 @@ export type ChatErrorCode =
   | 'upstream_error'
   | 'unauthorized'
   | 'quota_exceeded'
+  | 'attachment_limit'
   | 'network';
 
 /** 回数の上限に達したときの詳しい情報 */
@@ -36,6 +37,7 @@ const KNOWN_CODES: ChatErrorCode[] = [
   'upstream_error',
   'unauthorized',
   'quota_exceeded',
+  'attachment_limit',
 ];
 const toCode = (c: unknown): ChatErrorCode =>
   KNOWN_CODES.includes(c as ChatErrorCode) ? (c as ChatErrorCode) : 'upstream_error';
@@ -104,6 +106,8 @@ export const serverReply: ReplySource = async (
         resetAt: typeof data?.resetAt === 'string' ? data.resetAt : null,
       });
     }
+    // 無料プランの写真・ファイルの上限
+    if (code === 'attachment_limit') throw new ChatError('attachment_limit');
     throw new ChatError(res.status === 429 ? 'rate_limited' : toCode(code));
   }
 

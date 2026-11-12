@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
   type HostInstance,
   type TextInputInstance,
@@ -49,6 +50,10 @@ type Props = {
   attachFull?: boolean;
   /** 声で入力 */
   voice?: Voice;
+  /** 無料プランで、今日の写真・ファイルの上限に達している */
+  attachLocked?: boolean;
+  /** 「PLUSにアップグレード」を押したとき */
+  onUpgrade?: () => void;
 };
 
 const BUTTON = 36;
@@ -56,6 +61,7 @@ const LINE = 24;
 const MIN_HEIGHT = LINE + 16;
 const MAX_HEIGHT = 220;
 const THUMB = 60;
+const MENU_WIDTH = 300;
 
 /** Web で、触って操作する端末（スマホ・タブレット）か。PCではカメラの項目を出さない */
 const isTouchWeb =
@@ -80,7 +86,10 @@ export function Composer({
   onRemoveAttachment,
   attachFull,
   voice,
+  attachLocked = false,
+  onUpgrade,
 }: Props) {
+  const window = useWindowDimensions();
   const { t } = useI18n();
   const [focused, setFocused] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -299,7 +308,7 @@ export function Composer({
         {action}
       </View>
 
-      {/* ＋のメニュー（カメラ・写真・ファイル） */}
+      {/* ＋のメニュー（カメラ・写真・ファイル）。無料プランの上限に達したら、お知らせとアップグレードを出す */}
       <Modal
         visible={Boolean(menu)}
         transparent
@@ -316,21 +325,53 @@ export function Composer({
               style={[
                 styles.menu,
                 {
-                  left: Math.max(Spacing.sm, menu.x - 4),
-                  bottom: undefined,
-                  // ＋ボタンの少し上に出す（メニューの高さ＝項目44px×数＋上下の余白）
-                  top: Math.max(Spacing.sm, menu.y - (menuItems.length * 44 + 14) - 22),
+                  left: Math.max(
+                    Spacing.sm,
+                    Math.min(menu.x - 4, window.width - MENU_WIDTH - Spacing.sm),
+                  ),
+                  // ＋ボタンのすぐ上に出す（下の端をそろえる）
+                  bottom: Math.max(Spacing.sm, window.height - menu.y + 14),
                 },
               ]}>
+              {attachLocked ? (
+                <>
+                  <NovaText variant="body" style={styles.menuMessage}>
+                    {t.attachLimitReached}
+                  </NovaText>
+                  <Pressable
+                    onPress={() => {
+                      setMenu(null);
+                      onUpgrade?.();
+                    }}
+                    accessibilityRole="menuitem"
+                    accessibilityLabel={t.upgradeToPlus}
+                    style={(state) => [styles.menuItem, isActive(state) && styles.menuItemActive]}>
+                    <View style={styles.menuIcon}>
+                      <Icon name="sparkle" size={22} color={Colors.accentText} strokeWidth={2} />
+                    </View>
+                    <NovaText variant="bodyMedium" style={styles.upgradeText}>
+                      {t.upgradeToPlus}
+                    </NovaText>
+                  </Pressable>
+                </>
+              ) : null}
               {menuItems.map((m) => (
                 <Pressable
                   key={m.source}
                   onPress={() => choose(m.source)}
+                  disabled={attachLocked}
                   accessibilityRole="menuitem"
                   accessibilityLabel={m.label}
-                  style={(state) => [styles.menuItem, isActive(state) && styles.menuItemActive]}>
-                  <Icon name={m.icon} size={20} color={Colors.text} />
-                  <NovaText variant="smallMedium">{m.label}</NovaText>
+                  aria-disabled={attachLocked}
+                  style={(state) => [
+                    styles.menuItem,
+                    !attachLocked && isActive(state) && styles.menuItemActive,
+                    attachLocked && styles.menuItemOff,
+                  ]}>
+                  <View style={styles.menuIcon}>
+                    <Icon name={m.icon} size={20} color={Colors.text} />
+                  </View>
+                  <NovaText variant="bodyMedium">{m.label}</NovaText>
                 </Pressable>
               ))}
             </View>
@@ -447,24 +488,41 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1 },
   menu: {
     position: 'absolute',
-    minWidth: 220,
-    paddingVertical: Spacing.xs + 2,
+    width: MENU_WIDTH,
+    maxWidth: '92%',
+    paddingVertical: Spacing.sm,
     backgroundColor: Colors.surfaceRaised,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }
-      : { elevation: 8, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 16 }),
+      ? { boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }
+      : { elevation: 10, shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 20 }),
+  },
+  menuMessage: {
+    paddingHorizontal: Spacing.xl - 4,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    color: Colors.text,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
-    height: 44,
+    gap: Spacing.md + 2,
+    minHeight: 60,
     paddingHorizontal: Spacing.lg,
   },
   menuItemActive: { backgroundColor: Colors.border },
+  menuItemOff: { opacity: 0.38 },
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+  },
+  upgradeText: { color: Colors.accentText, flex: 1 },
   thumbWrap: { position: 'relative', paddingTop: 6, paddingEnd: 6 },
   thumb: {
     width: THUMB,

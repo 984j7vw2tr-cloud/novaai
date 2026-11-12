@@ -6,6 +6,12 @@ export const ko: Strings = {
   composerPlaceholder: '뭐든 물어봐. 아부는 안 해.',
   send: '보내기',
   stop: '중지',
+  planChatUnlimited: '채팅 무제한',
+  planFilesUnlimited: '사진·파일도 무제한',
+  planFilesPerDay: '사진·파일은 하루 {n}회까지',
+  attachLimitReached:
+    '오늘 사진·파일 첨부 한도에 도달했습니다. PLUS로 업그레이드하면 무제한으로 첨부할 수 있습니다.',
+  upgradeToPlus: 'PLUS로 업그레이드',
   plans: '요금제',
   plansSubtitle: '사용 방식에 맞는 요금제를 고르세요. 언제든 해지할 수 있습니다.',
   priceFree: '무료',

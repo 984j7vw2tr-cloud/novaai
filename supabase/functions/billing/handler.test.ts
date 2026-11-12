@@ -51,6 +51,8 @@ function world(
       row = { ...(row ?? {}), ...JSON.parse(body) };
       return new Response(null, { status: 201 });
     }
+    if (url.includes('/rest/v1/attachment_uses'))
+      return Response.json([{ path: 'a' }, { path: 'b' }]);
     if (url.startsWith('https://api.stripe.com/v1/prices?'))
       return Response.json({ data: opts.prices ?? [] });
     if (url === 'https://api.stripe.com/v1/prices') return Response.json({ id: 'price_new' });
@@ -97,8 +99,10 @@ test('status：無料プラン・値段・テストモードを返す', async ()
   const body = await res.json();
   assert.equal(body.plan, 'free');
   assert.equal(body.mode, 'test');
-  assert.deepEqual(body.prices, { plus: 480, pro: 950 });
-  assert.deepEqual(body.limits, { free: 10, plus: 200, pro: 1000 });
+  assert.deepEqual(body.prices, { plus: 480 });
+  assert.deepEqual(body.limits, { free: 10, plus: null });
+  assert.deepEqual(body.attachmentLimits, { free: 3, plus: null });
+  assert.deepEqual(body.attachments, { limit: 3, used: 2 });
 });
 
 test('checkout：お客様を作って覚え、値段（480円/月）を用意して、支払い画面のURLを返す', async () => {
@@ -127,19 +131,25 @@ test('checkout：お客様を作って覚え、値段（480円/月）を用意�
   assert.match(session, new RegExp(`subscription_data\\[metadata\\]\\[user_id\\]=${ME}`));
 });
 
+test('PRO は販売終了：申し込めない（400）', async () => {
+  const w = world();
+  assert.equal((await w.call({ action: 'checkout', plan: 'pro' })).status, 400);
+  assert.ok(!w.calls.some((c) => c.url.includes('stripe.com')));
+});
+
 test('checkout：同じ値段がすでにあれば作り直さない。値段を変えたら新しく作って目印を移す', async () => {
   const restore = quiet();
   const same = world({
     prices: [
       {
         id: 'price_old',
-        unit_amount: 950,
+        unit_amount: 480,
         currency: 'jpy',
         product: { id: 'prod_1', tax_code: 'txcd_10103000' },
       },
     ],
   });
-  await same.call({ action: 'checkout', plan: 'pro' });
+  await same.call({ action: 'checkout', plan: 'plus' });
   assert.ok(!same.calls.some((c) => c.url === 'https://api.stripe.com/v1/prices'));
   assert.ok(!same.calls.some((c) => c.url.includes('/v1/products/')));
   // 税の種類がない古い商品には付け足す
@@ -147,17 +157,17 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
     prices: [
       {
         id: 'price_old',
-        unit_amount: 950,
+        unit_amount: 480,
         currency: 'jpy',
         product: { id: 'prod_1', tax_code: null },
       },
     ],
   });
-  await noTax.call({ action: 'checkout', plan: 'pro' });
+  await noTax.call({ action: 'checkout', plan: 'plus' });
   const upd = noTax.calls.find((c) => c.url === 'https://api.stripe.com/v1/products/prod_1');
   assert.equal(decodeURIComponent(upd!.body), 'tax_code=txcd_10103000');
-  const changed = world({ prices: [{ id: 'price_old', unit_amount: 1980, currency: 'jpy' }] });
-  await changed.call({ action: 'checkout', plan: 'pro' });
+  const changed = world({ prices: [{ id: 'price_old', unit_amount: 980, currency: 'jpy' }] });
+  await changed.call({ action: 'checkout', plan: 'plus' });
   restore();
   const body = decodeURIComponent(
     changed.calls.find((c) => c.url === 'https://api.stripe.com/v1/prices')!.body,
@@ -176,7 +186,7 @@ test('すでに Stripe で有料プラン中 → 申し込みではなく管理�
       current_period_end: null,
     },
   });
-  const body = await (await w.call({ action: 'checkout', plan: 'pro' })).json();
+  const body = await (await w.call({ action: 'checkout', plan: 'plus' })).json();
   assert.equal(body.portal, true);
   assert.ok(!w.calls.some((c) => c.url.endsWith('/checkout/sessions')));
 });

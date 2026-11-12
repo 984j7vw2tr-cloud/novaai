@@ -6,6 +6,12 @@ export const hi: Strings = {
   composerPlaceholder: 'कुछ भी पूछो। चापलूसी नहीं।',
   send: 'भेजें',
   stop: 'रोकें',
+  planChatUnlimited: 'असीमित चैट',
+  planFilesUnlimited: 'फ़ोटो और फ़ाइलें भी असीमित',
+  planFilesPerDay: 'फ़ोटो और फ़ाइलें: रोज़ {n} तक',
+  attachLimitReached:
+    'आज की फ़ोटो और फ़ाइलों की सीमा पूरी हो गई। PLUS लेकर बिना सीमा के अटैच करें।',
+  upgradeToPlus: 'PLUS में अपग्रेड करें',
   plans: 'प्लान',
   plansSubtitle: 'अपने इस्तेमाल के हिसाब से प्लान चुनें। कभी भी रद्द करें।',
   priceFree: 'मुफ़्त',

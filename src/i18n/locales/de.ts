@@ -6,6 +6,12 @@ export const de: Strings = {
   composerPlaceholder: 'Frag, was du willst. Keine Schmeicheleien.',
   send: 'Senden',
   stop: 'Stopp',
+  planChatUnlimited: 'Unbegrenzt chatten',
+  planFilesUnlimited: 'Fotos und Dateien unbegrenzt',
+  planFilesPerDay: 'Fotos und Dateien: bis zu {n} pro Tag',
+  attachLimitReached:
+    'Du hast das heutige Limit für Fotos und Dateien erreicht. Mit PLUS kannst du unbegrenzt anhängen.',
+  upgradeToPlus: 'Auf PLUS upgraden',
   plans: 'Tarife',
   plansSubtitle: 'Wähl den Tarif, der zu dir passt. Jederzeit kündbar.',
   priceFree: 'Kostenlos',

@@ -24,8 +24,13 @@ const quiet = () => {
   return () => Object.assign(console, orig);
 };
 
-function setup(files: Record<string, Uint8Array> = {}) {
-  const seen = { openai: [] as any[], storage: [] as string[], moderation: [] as any[] };
+function setup(files: Record<string, Uint8Array> = {}, uses: string[] | null = null) {
+  const seen = {
+    openai: [] as any[],
+    storage: [] as string[],
+    moderation: [] as any[],
+    recorded: [] as any[],
+  };
   const env = {
     get: (k: string) =>
       (
@@ -41,6 +46,17 @@ function setup(files: Record<string, Uint8Array> = {}) {
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/auth/v1/user')) return Response.json({ id: USER });
+    if (uses && url.includes('/rest/v1/subscriptions')) return Response.json([]);
+    if (uses && url.includes('/rest/v1/usage_events')) {
+      return new Response('[]', { headers: { 'content-range': '*/0' } });
+    }
+    if (uses && url.includes('/rest/v1/attachment_uses')) {
+      if (init?.method === 'POST') {
+        seen.recorded.push(...JSON.parse(String(init.body)));
+        return new Response(null, { status: 201 });
+      }
+      return Response.json(uses.map((path) => ({ path })));
+    }
     if (url.includes('/storage/v1/object/attachments/')) {
       const path = url.split('/storage/v1/object/attachments/')[1];
       seen.storage.push(path);
@@ -183,4 +199,41 @@ test('PDF はファイルとして、テキストは本文として渡す。古�
   const txtPart = (out[4].content as any[])[0];
   assert.equal(txtPart.type, 'text');
   assert.match(txtPart.text, /memo\.txt[\s\S]*メモの中身/);
+});
+
+const ID2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const ID3 = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const imgAt = (id: string) => ({ ...img(), path: `${USER}/${id}.jpg` });
+
+test('無料プラン：写真・ファイルは1日3つまで。超えたら 429 attachment_limit（AIは呼ばない）', async () => {
+  const restore = quiet();
+  const bytes = new Uint8Array([1]);
+  const files = {
+    [imgAt(FILE_ID).path]: bytes,
+    [imgAt(ID2).path]: bytes,
+    [imgAt(ID3).path]: bytes,
+  };
+  // すでに2つ使っている → 新しく2つ付けると4つ目でオーバー
+  const over = setup(files, ['x/1.jpg', 'x/2.jpg']);
+  const res = await over.send([
+    { role: 'user', content: 'x', attachments: [imgAt(ID2), imgAt(ID3)] },
+  ]);
+  const body = await res.json();
+  assert.equal(res.status, 429);
+  assert.equal(body.code, 'attachment_limit');
+  assert.equal(body.limit, 3);
+  assert.equal(over.seen.openai.length, 0);
+  // 2つ使用済み＋1つ → ちょうど3つでOK。新しく使った分を記録する
+  const ok = setup(files, ['x/1.jpg', 'x/2.jpg']);
+  const r2 = await ok.send([{ role: 'user', content: 'x', attachments: [imgAt(ID2)] }]);
+  await r2.text();
+  assert.equal(r2.status, 200);
+  assert.deepEqual(ok.seen.recorded, [{ user_id: USER, path: imgAt(ID2).path }]);
+  // 同じファイルをもう一度送る（再生成など）は数えない
+  const again = setup(files, ['x/1.jpg', 'x/2.jpg', imgAt(ID2).path]);
+  const r3 = await again.send([{ role: 'user', content: 'x', attachments: [imgAt(ID2)] }]);
+  await r3.text();
+  restore();
+  assert.equal(r3.status, 200);
+  assert.equal(again.seen.recorded.length, 0);
 });

@@ -5,6 +5,11 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
+  planChatUnlimited: string;
+  planFilesUnlimited: string;
+  planFilesPerDay: string;
+  attachLimitReached: string;
+  upgradeToPlus: string;
   plans: string;
   plansSubtitle: string;
   priceFree: string;
