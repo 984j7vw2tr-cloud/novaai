@@ -1,6 +1,7 @@
 import { Inter_300Light } from '@expo-google-fonts/inter/300Light';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono/400Regular';
 import { useFonts } from 'expo-font';
@@ -31,6 +32,7 @@ export default function RootLayout() {
     Inter_300Light,
     Inter_400Regular,
     Inter_500Medium,
+    Inter_700Bold,
     Inter_600SemiBold,
     JetBrainsMono_400Regular,
   });

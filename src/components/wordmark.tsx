@@ -36,7 +36,7 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
       <NovaText
         style={[
           styles.name,
-          { fontSize: size, lineHeight: size * 1.2, letterSpacing: size * 0.16 },
+          { fontSize: size, lineHeight: size * 1.25, letterSpacing: size * 0.12 },
         ]}>
         NAYQO
       </NovaText>
@@ -46,5 +46,10 @@ export function Wordmark({ size = 18, withMark = false }: { size?: number; withM
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end' },
-  name: { color: Colors.text, fontFamily: Fonts.semibold },
+  // 目立つように太字（Web では日本語以外も含めて太さを指定）
+  name: {
+    color: Colors.text,
+    fontFamily: Fonts.bold,
+    ...(Platform.OS === 'web' ? { fontWeight: '700' as const } : null),
+  },
 });
