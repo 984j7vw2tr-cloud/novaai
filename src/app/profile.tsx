@@ -162,6 +162,7 @@ export default function ProfileScreen() {
             onPress={() => router.push('/plans')}
             chevron
           />
+          <ListRow label={t.legalNotice} onPress={() => router.push('/tokushoho')} chevron />
         </Group>
       </Section>
 

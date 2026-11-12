@@ -6,6 +6,8 @@ export const ko: Strings = {
   composerPlaceholder: '뭐든 물어봐. 아부는 안 해.',
   send: '보내기',
   stop: '중지',
+  priceWithTax: '세금 포함 {price}',
+  legalNotice: '특정상거래법에 따른 표기',
   planChatUnlimited: '채팅 무제한',
   planFilesUnlimited: '사진·파일도 무제한',
   planFilesPerDay: '사진·파일은 하루 {n}회까지',

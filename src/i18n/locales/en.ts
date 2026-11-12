@@ -6,6 +6,8 @@ export const en: Strings = {
   composerPlaceholder: 'Ask anything. No flattery.',
   send: 'Send',
   stop: 'Stop',
+  priceWithTax: '{price} incl. tax',
+  legalNotice: 'Legal notice (Japan)',
   planChatUnlimited: 'Unlimited chat',
   planFilesUnlimited: 'Unlimited photos and files',
   planFilesPerDay: 'Photos and files: up to {n} a day',

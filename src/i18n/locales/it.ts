@@ -6,6 +6,8 @@ export const it: Strings = {
   composerPlaceholder: 'Chiedi quello che vuoi. Niente lusinghe.',
   send: 'Invia',
   stop: 'Interrompi',
+  priceWithTax: '{price} tasse incluse',
+  legalNotice: 'Note legali (Giappone)',
   planChatUnlimited: 'Chat illimitata',
   planFilesUnlimited: 'Foto e file illimitati',
   planFilesPerDay: 'Foto e file: fino a {n} al giorno',

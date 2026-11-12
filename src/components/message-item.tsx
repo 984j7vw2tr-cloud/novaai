@@ -7,7 +7,6 @@ import { Markdown } from '@/components/markdown';
 import { MessageAttachments } from '@/components/message-attachments';
 import { NovaText } from '@/components/nova-text';
 import { ThinkingIndicator } from '@/components/thinking-indicator';
-import { BrandMark } from '@/components/wordmark';
 import { Colors, Spacing, Type } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 import type { ChatMessage } from '@/lib/chat-types';
@@ -56,12 +55,6 @@ export const MessageItem = memo(function MessageItem({
 
   return (
     <View style={styles.assistant}>
-      <View style={styles.assistantHead}>
-        <BrandMark size={14} />
-        <NovaText variant="label" tone="secondary">
-          KARAKUCHI
-        </NovaText>
-      </View>
       {streaming && message.content.length === 0 ? (
         <ThinkingIndicator />
       ) : (
@@ -129,14 +122,8 @@ const styles = StyleSheet.create({
   },
   userText: { ...Type.body, lineHeight: 25 },
   assistant: { gap: Spacing.md },
-  // 行の先頭側に寄せる（右から左の言語では右側）
-  assistantHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    alignSelf: 'flex-start',
-  },
-  cursor: { color: Colors.textMuted, fontSize: 10 },
+  // 回答が流れている間の、文の最後のえんじ色の〇
+  cursor: { color: Colors.accent, fontSize: 12 },
   actions: {
     flexDirection: 'row',
     gap: 2,

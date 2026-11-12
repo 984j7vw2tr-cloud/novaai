@@ -6,6 +6,8 @@ export const hi: Strings = {
   composerPlaceholder: 'कुछ भी पूछो। चापलूसी नहीं।',
   send: 'भेजें',
   stop: 'रोकें',
+  priceWithTax: '{price} टैक्स सहित',
+  legalNotice: 'कानूनी सूचना (जापान)',
   planChatUnlimited: 'असीमित चैट',
   planFilesUnlimited: 'फ़ोटो और फ़ाइलें भी असीमित',
   planFilesPerDay: 'फ़ोटो और फ़ाइलें: रोज़ {n} तक',

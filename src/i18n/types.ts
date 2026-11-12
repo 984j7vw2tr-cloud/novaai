@@ -5,6 +5,8 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
+  priceWithTax: string;
+  legalNotice: string;
   planChatUnlimited: string;
   planFilesUnlimited: string;
   planFilesPerDay: string;

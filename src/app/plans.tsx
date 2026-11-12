@@ -1,8 +1,8 @@
 /** 料金プラン画面：FREE・PLUS・PRO を並べ、申し込み（Stripe）・変更・解約へ進む */
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Notice } from '@/components/form';
 import { Icon } from '@/components/icons';
@@ -168,6 +168,12 @@ export default function PlansScreen() {
                     </NovaText>
                   ) : null}
                 </View>
+                {id !== 'free' && status.pricesWithTax ? (
+                  // 総額表示：税込の金額も必ず出す
+                  <NovaText variant="caption" tone="muted" style={styles.taxLine}>
+                    {t.priceWithTax.replace('{price}', yen(status.pricesWithTax[id]))}
+                  </NovaText>
+                ) : null}
                 {features(id).map((f) => (
                   <Feature key={f} text={f} />
                 ))}
@@ -209,6 +215,14 @@ export default function PlansScreen() {
       <NovaText variant="caption" tone="muted" style={styles.note}>
         {t.billingNote}
       </NovaText>
+      <Pressable
+        onPress={() => router.push('/tokushoho')}
+        accessibilityRole="link"
+        style={styles.legalLink}>
+        <NovaText variant="caption" tone="secondary" style={styles.underline}>
+          {t.legalNotice}
+        </NovaText>
+      </Pressable>
     </PageScreen>
   );
 }
@@ -257,4 +271,7 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.xs },
   feature: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   note: { marginTop: Spacing.md },
+  taxLine: { marginTop: -Spacing.sm },
+  legalLink: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
+  underline: { textDecorationLine: 'underline' },
 });
