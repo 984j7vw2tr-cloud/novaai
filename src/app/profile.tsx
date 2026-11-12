@@ -10,6 +10,7 @@ import { getLanguage } from '@/i18n/languages';
 import { authErrorMessage } from '@/lib/auth-messages';
 import { getProfile, updateProfile } from '@/lib/profile';
 import { deleteMyAccount } from '@/lib/account';
+import { getBillingStatus } from '@/lib/billing';
 import { confirmAsync } from '@/lib/confirm';
 import { deleteAllConversations } from '@/lib/conversations';
 
@@ -27,6 +28,20 @@ export default function ProfileScreen() {
   const [dataNotice, setDataNotice] = useState<null | 'historyDeleted' | 'failed'>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<AuthErrorKind | null>(null);
+  /** 今のプラン（FREE / PLUS / PRO） */
+  const [planLabel, setPlanLabel] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    getBillingStatus()
+      .then((s) => {
+        if (active) setPlanLabel(s.plan.toUpperCase());
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // プロフィール（profiles の表）から表示名を読む
   useEffect(() => {
@@ -134,6 +149,20 @@ export default function ProfileScreen() {
             disabled={!!busy || name.trim() === savedName.trim()}
           />
         </View>
+      </Section>
+
+      {/* 料金プラン */}
+      <Section title={t.plans}>
+        <Group>
+          <ListRow
+            first
+            icon="plan"
+            label={t.plans}
+            value={planLabel}
+            onPress={() => router.push('/plans')}
+            chevron
+          />
+        </Group>
       </Section>
 
       {/* 言語 */}

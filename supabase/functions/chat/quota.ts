@@ -6,9 +6,9 @@
  */
 import type { Env } from '../_shared/auth.ts';
 
-export type Plan = 'free' | 'plus' | 'pro';
+import { DEFAULT_LIMITS, limitFor, type Plan } from '../_shared/plans.ts';
 
-export const DEFAULT_LIMITS: Record<Plan, number> = { free: 10, plus: 200, pro: 1000 };
+export { DEFAULT_LIMITS, limitFor, type Plan };
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -20,12 +20,6 @@ export type QuotaStatus = {
   /** 上限に達しているとき、次に使えるようになる時刻（ISO形式） */
   resetAt: string | null;
 };
-
-export function limitFor(plan: Plan, env: Env): number {
-  const raw = env.get(`QUOTA_${plan.toUpperCase()}`);
-  const n = raw === undefined ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : DEFAULT_LIMITS[plan];
-}
 
 /**
  * 今の利用状況を調べる。調べられなかったとき（設定不足・通信エラー）は null。

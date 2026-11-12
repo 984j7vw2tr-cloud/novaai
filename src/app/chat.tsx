@@ -224,7 +224,7 @@ export default function ChatScreen() {
           <NovaText variant="small" tone="danger" style={styles.flex}>
             {errorMessage(error, t, errorDetails, uiLanguage)}
           </NovaText>
-          {/* 回数の上限に達したときは、やり直しても同じなのでボタンを出さない */}
+          {/* 回数の上限に達したときは、やり直しても同じなので「プランを見る」を出す */}
           {error !== 'quota_exceeded' ? (
             <Pressable
               onPress={retry}
@@ -232,7 +232,14 @@ export default function ChatScreen() {
               style={(state) => [styles.retry, isActive(state) && styles.retryActive]}>
               <NovaText variant="smallMedium">{t.retry}</NovaText>
             </Pressable>
-          ) : null}
+          ) : (
+            <Pressable
+              onPress={() => router.push('/plans')}
+              accessibilityRole="button"
+              style={(state) => [styles.retry, isActive(state) && styles.retryActive]}>
+              <NovaText variant="smallMedium">{t.seePlans}</NovaText>
+            </Pressable>
+          )}
         </View>
       ) : null}
       {/* 残りが少なくなったら「今日の残り○回」を出す */}

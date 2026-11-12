@@ -6,7 +6,15 @@ import { createAccountHandler } from './handler.ts';
 
 const ME = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
-function world(opts: { deleteStatus?: number; files?: string[]; listStatus?: number } = {}) {
+function world(
+  opts: {
+    deleteStatus?: number;
+    files?: string[];
+    listStatus?: number;
+    subscription?: Record<string, unknown>;
+    stripeStatus?: number;
+  } = {},
+) {
   const calls: { url: string; method: string; auth: string | null; body?: any }[] = [];
   let files = [...(opts.files ?? [])];
   const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
@@ -28,15 +36,24 @@ function world(opts: { deleteStatus?: number; files?: string[]; listStatus?: num
         ? new Response(JSON.stringify({ id: ME }))
         : new Response('{}', { status: 401 });
     }
+    if (u.includes('/rest/v1/subscriptions'))
+      return Response.json(opts.subscription ? [opts.subscription] : []);
+    if (u.startsWith('https://api.stripe.com/v1/subscriptions/')) {
+      return new Response('{}', { status: opts.stripeStatus ?? 200 });
+    }
     if (u.includes('/auth/v1/admin/users/'))
       return new Response('{}', { status: opts.deleteStatus ?? 200 });
     return new Response('{}', { status: 404 });
   }) as typeof fetch;
   const env = {
     get: (k: string) =>
-      ({ SUPABASE_URL: 'https://proj.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'svc' })[
-        k as 'SUPABASE_URL'
-      ],
+      (
+        ({
+          SUPABASE_URL: 'https://proj.supabase.co',
+          SUPABASE_SERVICE_ROLE_KEY: 'svc',
+          STRIPE_SECRET_KEY: 'sk_test_x',
+        }) as Record<string, string>
+      )[k],
   };
   return { calls, handle: createAccountHandler({ env, fetchImpl }) };
 }
@@ -119,4 +136,54 @@ test('写真の削除に失敗したら 502。アカウントは消さない', a
   restore();
   assert.equal(res.status, 502);
   assert.ok(!calls.some((c) => c.url.includes('/admin/users/')));
+});
+
+test('有料プラン中なら、Stripe で解約してからアカウントを消す', async () => {
+  const restore = quiet();
+  const { calls, handle } = world({
+    subscription: {
+      user_id: ME,
+      plan: 'plus',
+      status: 'active',
+      stripe_subscription_id: 'sub_123',
+    },
+  });
+  const res = await handle(req('good'));
+  restore();
+  assert.equal(res.status, 200);
+  const cancel = calls.findIndex(
+    (c) => c.url === 'https://api.stripe.com/v1/subscriptions/sub_123',
+  );
+  const delUser = calls.findIndex((c) => c.url.includes('/admin/users/'));
+  assert.equal(calls[cancel].method, 'DELETE');
+  assert.equal(calls[cancel].auth, 'Bearer sk_test_x');
+  assert.ok(cancel < delUser);
+});
+
+test('解約に失敗したら 502。アカウントは消さない（請求が続くのを防ぐ）', async () => {
+  const restore = quiet();
+  const { calls, handle } = world({
+    subscription: { user_id: ME, plan: 'pro', status: 'active', stripe_subscription_id: 'sub_9' },
+    stripeStatus: 500,
+  });
+  const res = await handle(req('good'));
+  restore();
+  assert.equal(res.status, 502);
+  assert.ok(!calls.some((c) => c.url.includes('/admin/users/')));
+});
+
+test('すでに解約済み・無料なら Stripe は呼ばない', async () => {
+  const restore = quiet();
+  const { calls, handle } = world({
+    subscription: {
+      user_id: ME,
+      plan: 'plus',
+      status: 'canceled',
+      stripe_subscription_id: 'sub_1',
+    },
+  });
+  const res = await handle(req('good'));
+  restore();
+  assert.equal(res.status, 200);
+  assert.ok(!calls.some((c) => c.url.includes('api.stripe.com')));
 });

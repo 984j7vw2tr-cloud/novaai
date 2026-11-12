@@ -6,9 +6,12 @@
  * - アカウントを消すと、プロフィール・会話・メッセージ・使用量・プランもすべて消える
  *   （データベースの「親が消えたら子も消す」設定による）
  * - 添付した写真・ファイル（Storage）は先に消す（残っているとアカウントを消せないため）
+ * - 有料プラン（Stripe）中なら、先に解約する（アカウントを消したあとも請求が続かないように）
  */
 import { authenticate, type Env, UUID_RE } from '../_shared/auth.ts';
 import { corsHeaders } from '../_shared/http.ts';
+import { createStripe } from '../_shared/stripe.ts';
+import { BILLABLE_STATUSES, createDb } from '../_shared/subscriptions.ts';
 
 type Deps = { env: Env; fetchImpl?: typeof fetch };
 
@@ -49,6 +52,13 @@ export function createAccountHandler({ env, fetchImpl }: Deps) {
     if (!base || !key) {
       console.error('[account] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing');
       return json(503, { type: 'error', code: 'service_unavailable' });
+    }
+
+    try {
+      await cancelPaidPlan(env, doFetch, auth.userId);
+    } catch (e) {
+      console.error('[account] cancel subscription failed', e);
+      return json(502, { type: 'error', code: 'upstream_error' });
     }
 
     try {
@@ -109,4 +119,19 @@ export async function deleteUserFiles(
     if (!del.ok) throw new Error(`delete failed: HTTP ${del.status}`);
   }
   throw new Error('too many files');
+}
+
+/** Stripe のサブスクリプションが続いていれば、すぐに解約する */
+export async function cancelPaidPlan(env: Env, doFetch: typeof fetch, userId: string) {
+  const db = createDb(env, doFetch);
+  const row = await db.byUser(userId);
+  if (!row?.stripe_subscription_id || !BILLABLE_STATUSES.includes(row.status)) return;
+  const stripe = createStripe(env, doFetch);
+  if (!stripe.configured)
+    throw new Error('STRIPE_SECRET_KEY is not set; cannot cancel subscription');
+  await stripe.request(
+    'DELETE',
+    `/v1/subscriptions/${encodeURIComponent(row.stripe_subscription_id)}`,
+  );
+  console.log(JSON.stringify({ event: 'account_subscription_canceled', user_id: userId }));
 }
