@@ -1,6 +1,6 @@
 import { fetch } from 'expo/fetch';
 
-import type { ReplySource } from '@/lib/chat-types';
+import type { Attachment, ReplySource } from '@/lib/chat-types';
 import { getAccessToken } from '@/auth';
 import { getLanguageSettings } from '@/i18n';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
@@ -48,7 +48,7 @@ const toCode = (c: unknown): ChatErrorCode =>
  */
 export const serverReply: ReplySource = async (
   history,
-  { onDelta, onReplace, onQuota, signal, conversationId },
+  { onDelta, onReplace, onQuota, onStatus, onImage, signal, conversationId },
 ) => {
   const settings = await getLanguageSettings();
   // ログインの鍵をつけて送る（サーバーはこれでログイン中の本人か確かめる）
@@ -65,6 +65,7 @@ export const serverReply: ReplySource = async (
       body: JSON.stringify({
         messages: history
           .filter((m) => m.content.trim().length > 0 || (m.attachments?.length ?? 0) > 0)
+          // 作りかけ（まだ何も届いていない）AIの発言は送らない
           .map((m) => ({
             role: m.role,
             content: m.content,
@@ -119,7 +120,15 @@ export const serverReply: ReplySource = async (
 
   const handleLine = (line: string) => {
     if (!line.trim()) return;
-    let ev: { type?: string; text?: string; code?: string; limit?: number; remaining?: number };
+    let ev: {
+      type?: string;
+      text?: string;
+      code?: string;
+      limit?: number;
+      remaining?: number;
+      status?: string;
+      attachment?: Attachment;
+    };
     try {
       ev = JSON.parse(line);
     } catch {
@@ -133,6 +142,15 @@ export const serverReply: ReplySource = async (
       typeof ev.remaining === 'number'
     )
       onQuota?.({ limit: ev.limit, remaining: ev.remaining });
+    else if (ev.type === 'status' && ev.status === 'generating_image')
+      onStatus?.('generating_image');
+    else if (
+      ev.type === 'image' &&
+      ev.attachment &&
+      ev.attachment.kind === 'image' &&
+      typeof ev.attachment.path === 'string'
+    )
+      onImage?.(ev.attachment);
     else if (ev.type === 'done') finished = true;
     else if (ev.type === 'error') throw new ChatError(toCode(ev.code));
   };

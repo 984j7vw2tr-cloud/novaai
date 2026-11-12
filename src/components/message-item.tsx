@@ -55,8 +55,12 @@ export const MessageItem = memo(function MessageItem({
 
   return (
     <View style={styles.assistant}>
+      {/* AIが作った画像 */}
+      {message.attachments?.length ? (
+        <MessageAttachments attachments={message.attachments} align="start" />
+      ) : null}
       {streaming && message.content.length === 0 ? (
-        <ThinkingIndicator />
+        <ThinkingIndicator label={message.pending === 'image' ? t.generatingImage : undefined} />
       ) : (
         <Markdown
           content={message.content}

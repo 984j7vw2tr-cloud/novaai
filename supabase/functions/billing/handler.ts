@@ -21,6 +21,7 @@ import {
 } from '../_shared/stripe.ts';
 import { createDb, PAID_STATUSES, syncSubscription } from '../_shared/subscriptions.ts';
 import { recentAttachmentPaths } from '../_shared/attachment-uses.ts';
+import { imageLimitFor } from '../_shared/image-limits.ts';
 import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts';
 
 type Deps = { env: Env; fetchImpl?: typeof fetch; now?: () => number };
@@ -123,6 +124,10 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
           attachmentLimits: {
             free: finiteOrNull(attachmentLimitFor('free', env)),
             plus: finiteOrNull(attachmentLimitFor('plus', env)),
+          },
+          imageLimits: {
+            free: imageLimitFor('free', env),
+            plus: imageLimitFor('plus', env),
           },
           attachments: {
             limit: finiteOrNull(attachLimit),

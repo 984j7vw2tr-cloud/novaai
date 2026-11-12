@@ -5,6 +5,10 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
+  generatingImage: string;
+  createImage: string;
+  createImagePrefix: string;
+  planImagesPerDay: string;
   appearance: string;
   themeDark: string;
   themeLight: string;

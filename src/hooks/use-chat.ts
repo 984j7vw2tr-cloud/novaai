@@ -104,7 +104,9 @@ export function useChat({
 
       const saveAssistant = () => {
         const msg = messagesRef.current.find((m) => m.id === assistantId);
-        if (msg && msg.content.trim()) enqueue((cid) => saveMessage(cid, msg));
+        if (msg && (msg.content.trim() || msg.attachments?.length)) {
+          enqueue((cid) => saveMessage(cid, msg));
+        }
       };
 
       try {
@@ -112,6 +114,22 @@ export function useChat({
           signal: controller.signal,
           conversationId: conversationIdRef.current,
           onQuota: setQuota,
+          onStatus: () =>
+            update((prev) =>
+              prev.map((m) => (m.id === assistantId ? { ...m, pending: 'image' } : m)),
+            ),
+          onImage: (attachment) =>
+            update((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      pending: undefined,
+                      attachments: [...(m.attachments ?? []), attachment],
+                    }
+                  : m,
+              ),
+            ),
           onDelta: (delta) =>
             update((prev) =>
               prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
@@ -119,14 +137,20 @@ export function useChat({
           onReplace: (text) =>
             update((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: text } : m))),
         });
-        update((prev) => prev.map((m) => (m.id === assistantId ? { ...m, status: 'done' } : m)));
+        update((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, status: 'done', pending: undefined } : m,
+          ),
+        );
         saveAssistant();
       } catch (e) {
         if (controller.signal.aborted) {
           // 停止ボタン：途中まで表示した回答は残す（保存もする）。何も届いていなければ消す。
           update((prev) =>
             prev
-              .filter((m) => !(m.id === assistantId && m.content.length === 0))
+              .filter(
+                (m) => !(m.id === assistantId && m.content.length === 0 && !m.attachments?.length),
+              )
               .map((m) => (m.id === assistantId ? { ...m, status: 'stopped' } : m)),
           );
           if (controllerRef.current === controller) saveAssistant();

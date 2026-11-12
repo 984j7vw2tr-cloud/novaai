@@ -55,6 +55,8 @@ type Props = {
   onUpgrade?: () => void;
   /** 入力欄の案内文（なければ標準の文） */
   placeholder?: string;
+  /** ＋メニューの「画像を作成」を押したとき */
+  onCreateImage?: () => void;
 };
 
 const BUTTON = 36;
@@ -90,6 +92,7 @@ export function Composer({
   attachLocked = false,
   onUpgrade,
   placeholder,
+  onCreateImage,
 }: Props) {
   const window = useWindowDimensions();
   const { t } = useI18n();
@@ -132,18 +135,26 @@ export function Composer({
   const openMenu = () => {
     plusRef.current?.measureInWindow((x: number, y: number) => setMenu({ x, y }));
   };
-  const choose = (source: AttachSource) => {
+  const choose = (source: AttachSource | 'create') => {
     setMenu(null);
+    // 「画像を作成」：入力欄に「画像を作って：」を入れて、続きを打てるようにする
+    if (source === 'create') {
+      onCreateImage?.();
+      return;
+    }
     // メニューが閉じてから選ぶ画面を開く（iPhoneで画面が重なって開かないのを防ぐ）
     setTimeout(() => onAttach?.(source), Platform.OS === 'ios' ? 350 : 0);
   };
 
-  const menuItems: { source: AttachSource; icon: IconName; label: string }[] = [
+  const menuItems: { source: AttachSource | 'create'; icon: IconName; label: string }[] = [
     ...(Platform.OS !== 'web' || isTouchWeb
       ? [{ source: 'camera' as const, icon: 'camera' as const, label: t.attachCamera }]
       : []),
     { source: 'library', icon: 'image', label: t.attachPhoto },
     { source: 'file', icon: 'file', label: t.attachFile },
+    ...(onCreateImage
+      ? [{ source: 'create' as const, icon: 'sparkle' as const, label: t.createImage }]
+      : []),
   ];
 
   // 右側のボタン：回答中＝停止／録音中＝止めて文字にする／内容あり＝送信／空＝マイク
@@ -359,15 +370,18 @@ export function Composer({
                 <Pressable
                   key={m.source}
                   onPress={() => choose(m.source)}
-                  disabled={attachLocked}
+                  disabled={attachLocked && m.source !== 'create'}
                   accessibilityRole="menuitem"
                   accessibilityLabel={m.label}
-                  aria-disabled={attachLocked}
-                  style={(state) => [
-                    styles.menuItem,
-                    !attachLocked && isActive(state) && styles.menuItemActive,
-                    attachLocked && styles.menuItemOff,
-                  ]}>
+                  aria-disabled={attachLocked && m.source !== 'create'}
+                  style={(state) => {
+                    const off = attachLocked && m.source !== 'create';
+                    return [
+                      styles.menuItem,
+                      !off && isActive(state) && styles.menuItemActive,
+                      off && styles.menuItemOff,
+                    ];
+                  }}>
                   <View style={styles.menuIcon}>
                     <Icon name={m.icon} size={20} color={Colors.text} />
                   </View>
