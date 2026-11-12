@@ -100,7 +100,7 @@ test('添付の形チェック：おかしな場所・種類・数は受け付�
   assert.equal(parseAttachments([img(), img(), img(), img(), img()]), null); // 5つ以上
 });
 
-test('写真だけの発言（文章なし）はOK。何もない発言はNG。AIの発言に添付はNG', () => {
+test('写真だけの発言（文章なし）はOK。何もない発言はNG。AIの発言に付けられるのは画像だけ', () => {
   assert.equal(
     validateMessages({ messages: [{ role: 'user', content: '', attachments: [img()] }] }).ok,
     true,
@@ -113,6 +113,26 @@ test('写真だけの発言（文章なし）はOK。何もない発言はNG。A
     validateMessages({
       messages: [
         { role: 'assistant', content: 'a', attachments: [img()] },
+        { role: 'user', content: 'b' },
+      ],
+    }).ok,
+    true,
+  );
+  assert.equal(
+    validateMessages({
+      messages: [
+        {
+          role: 'assistant',
+          content: 'a',
+          attachments: [
+            {
+              kind: 'file',
+              path: `${USER}/${FILE_ID}.pdf`,
+              name: 'a.pdf',
+              mime: 'application/pdf',
+            },
+          ],
+        },
         { role: 'user', content: 'b' },
       ],
     }).ok,

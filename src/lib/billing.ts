@@ -28,6 +28,8 @@ export type BillingStatus = {
   limits: Record<'free' | 'plus', number | null>;
   /** 1日に添付できる写真・ファイルの数（null＝無制限） */
   attachmentLimits: Record<'free' | 'plus', number | null>;
+  /** 1日に作れる画像の枚数 */
+  imageLimits?: Record<'free' | 'plus', number>;
   /** 今の自分の、今日の添付の状況 */
   attachments: { limit: number | null; used: number };
 };

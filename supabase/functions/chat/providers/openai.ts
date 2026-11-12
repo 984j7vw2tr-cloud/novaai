@@ -25,10 +25,32 @@ export function createOpenAIProvider(options: {
         },
         body: JSON.stringify({
           model: req.model,
-          messages: req.messages,
+          // 道具の呼び出し（AIの発言）は OpenAI の形 {id, type, function:{name, arguments}} にして送る
+          messages: req.messages.map((m) =>
+            'tool_calls' in m
+              ? {
+                  role: 'assistant',
+                  content: m.content,
+                  tool_calls: m.tool_calls.map((c) => ({
+                    id: c.id,
+                    type: 'function',
+                    function: { name: c.name, arguments: c.arguments },
+                  })),
+                }
+              : m,
+          ),
           stream: true,
           stream_options: { include_usage: true },
           max_completion_tokens: req.maxOutputTokens,
+          ...(req.reasoningEffort ? { reasoning_effort: req.reasoningEffort } : {}),
+          ...(req.tools?.length
+            ? {
+                tools: req.tools.map((t) => ({
+                  type: 'function',
+                  function: { name: t.name, description: t.description, parameters: t.parameters },
+                })),
+              }
+            : {}),
         }),
         signal: req.signal,
       });
@@ -46,9 +68,21 @@ export function createOpenAIProvider(options: {
         throw new ProviderError(res.status, code, message);
       }
 
+      // 道具の呼び出しは少しずつ届くので、番号ごとに組み立ててから最後にまとめて返す
+      const calls = new Map<number, { id: string; name: string; arguments: string }>();
+      const flushCalls = function* () {
+        for (const c of calls.values()) {
+          if (c.name) yield { type: 'tool_call' as const, call: c };
+        }
+        calls.clear();
+      };
+
       // Server-Sent Events（"data: {...}" の行が続く形式）を1行ずつ読む
       for await (const data of readSseData(res.body)) {
-        if (data === '[DONE]') return;
+        if (data === '[DONE]') {
+          yield* flushCalls();
+          return;
+        }
         let chunk: OpenAIChunk;
         try {
           chunk = JSON.parse(data);
@@ -57,6 +91,13 @@ export function createOpenAIProvider(options: {
         }
         const text = chunk.choices?.[0]?.delta?.content;
         if (text) yield { type: 'delta', text };
+        for (const tc of chunk.choices?.[0]?.delta?.tool_calls ?? []) {
+          const cur = calls.get(tc.index) ?? { id: '', name: '', arguments: '' };
+          if (tc.id) cur.id = tc.id;
+          if (tc.function?.name) cur.name += tc.function.name;
+          if (tc.function?.arguments) cur.arguments += tc.function.arguments;
+          calls.set(tc.index, cur);
+        }
         if (chunk.usage) {
           yield {
             type: 'usage',
@@ -67,12 +108,23 @@ export function createOpenAIProvider(options: {
           };
         }
       }
+      // [DONE] が来ずに終わったときも、組み立てた道具の呼び出しを返す
+      yield* flushCalls();
     },
   };
 }
 
 type OpenAIChunk = {
-  choices?: { delta?: { content?: string | null } }[];
+  choices?: {
+    delta?: {
+      content?: string | null;
+      tool_calls?: {
+        index: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }[];
+    };
+  }[];
   usage?: {
     prompt_tokens?: number;
     completion_tokens?: number;

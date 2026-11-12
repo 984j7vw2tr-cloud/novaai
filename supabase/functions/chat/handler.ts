@@ -23,7 +23,7 @@ import {
   parseAttachments,
 } from './attachments.ts';
 import { recentAttachmentPaths, recordAttachmentPaths } from '../_shared/attachment-uses.ts';
-import { attachmentLimitFor } from '../_shared/plans.ts';
+import { attachmentLimitFor, type Plan } from '../_shared/plans.ts';
 import { getQuotaStatus } from './quota.ts';
 import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
 import type { ModerationInput } from './providers/moderation.ts';
@@ -32,7 +32,10 @@ import {
   type ProviderEvent,
   ProviderError,
   type ProviderMessage,
+  type ToolCall,
 } from './providers/types.ts';
+import { imageLimitFor } from '../_shared/image-limits.ts';
+import { generateImage, IMAGE_TOOL, imagesUsed } from './images.ts';
 import { buildSystemPrompt, LANGUAGE_NAMES, safeFallback } from './system-prompt.ts';
 
 /** 安全チェックを待つ最大時間（これを過ぎたらチェックなしで進める） */
@@ -168,7 +171,66 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       ...recent,
     ];
 
-    const events = provider.stream({ model, messages, maxOutputTokens, signal: upstream.signal });
+    /**
+     * 画像生成の道具が呼ばれたときの処理。結果（AIへの報告文）を返す。
+     * 作れたら {"type":"image", ...} をアプリに送る（回答の下に画像として表示される）。
+     */
+    const handleImageCall = async (
+      call: ToolCall,
+      plan: Plan,
+      send: (obj: unknown) => void,
+    ): Promise<string> => {
+      let prompt = '';
+      try {
+        prompt = String(JSON.parse(call.arguments || '{}').prompt ?? '').trim();
+      } catch {
+        // 形がおかしい
+      }
+      if (!prompt) return 'FAILED: no prompt. Ask the user what image they want.';
+      if (!UUID_RE.test(userId)) return 'FAILED: image creation is not available in this mode.';
+      const limit = imageLimitFor(plan, env);
+      const used = await imagesUsed(env, doFetch, userId, now());
+      if (used !== null && used >= limit) {
+        return plan === 'free'
+          ? `LIMIT_REACHED: the free plan allows ${limit} images per day and the user has used them all. Tell them in your voice, and that PLUS allows ${imageLimitFor('plus', env)} images per day (they can upgrade from the PLUS/upgrade button at the top).`
+          : `LIMIT_REACHED: the user's plan allows ${limit} images per day and they have used them all. Tell them to come back tomorrow.`;
+      }
+      send({ type: 'status', status: 'generating_image' });
+      const img = await generateImage(env, doFetch, userId, prompt, upstream.signal);
+      if (!img.ok) {
+        return img.reason === 'refused'
+          ? 'REFUSED: the image was blocked by the safety policy (e.g. a real person, a copyrighted character, sexual or violent content). Refuse confidently in your voice and suggest an original alternative. Do not apologize.'
+          : 'FAILED: the image could not be created because of a temporary error. Tell the user to try again in a moment. Do not apologize.';
+      }
+      send({
+        type: 'image',
+        attachment: {
+          kind: 'image',
+          path: img.path,
+          name: 'nayqo-image.png',
+          mime: img.mime,
+          width: img.width,
+          height: img.height,
+        },
+      });
+      return 'SUCCESS: the image was created and is shown to the user right below your message. Reply with one short, confident line in your voice (no description of the process, no markdown image links).';
+    };
+
+    // 画像を頼んでいそうなときだけ、画像の道具を渡す。
+    // （このモデルは道具を使うとき「深く考える」を切る必要があるため、普通の会話の質は落とさない）
+    const lastText = parsed.messages[parsed.messages.length - 1].content;
+    const offerImageTool = !selfHarmRisk && looksLikeImageRequest(lastText);
+    const toolOptions = offerImageTool
+      ? { tools: [IMAGE_TOOL], reasoningEffort: env.get('IMAGE_TOOL_REASONING') ?? 'none' }
+      : {};
+
+    const events = provider.stream({
+      model,
+      messages,
+      maxOutputTokens,
+      signal: upstream.signal,
+      ...toolOptions,
+    });
 
     // 最初の反応を待ってから返事を始める。最初で失敗した場合は、正しいHTTPの番号でエラーを返せる。
     let first: IteratorResult<ProviderEvent>;
@@ -201,19 +263,43 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
         }
         let fullText = '';
         let replaced = false;
+        const toolCalls: ToolCall[] = [];
         const handleEvent = (ev: ProviderEvent) => {
           if (ev.type === 'delta') {
             fullText += ev.text;
             send({ type: 'delta', text: ev.text });
+          } else if (ev.type === 'tool_call') {
+            toolCalls.push(ev.call);
           } else {
-            usage.input = ev.inputTokens;
-            usage.output = ev.outputTokens;
-            usage.cached = ev.cachedInputTokens;
+            // 2回目の呼び出し（画像を作ったあとのひと言）もあるので、足していく
+            usage.input = (usage.input ?? 0) + ev.inputTokens;
+            usage.output = (usage.output ?? 0) + ev.outputTokens;
+            usage.cached += ev.cachedInputTokens;
           }
         };
         try {
           if (!first.done) handleEvent(first.value);
           for (let r = await events.next(); !r.done; r = await events.next()) handleEvent(r.value);
+
+          // 画像を作ってと頼まれた（AIが generate_image を呼んだ）
+          const imageCall = toolCalls.find((c) => c.name === IMAGE_TOOL.name);
+          if (imageCall) {
+            const result = await handleImageCall(imageCall, quota?.plan ?? 'free', send);
+            const follow = provider.stream({
+              model,
+              messages: [
+                ...messages,
+                { role: 'assistant', content: fullText || null, tool_calls: [imageCall] },
+                { role: 'tool', tool_call_id: imageCall.id, content: result },
+              ],
+              maxOutputTokens,
+              signal: upstream.signal,
+              reasoningEffort: toolOptions.reasoningEffort,
+            });
+            for (let r = await follow.next(); !r.done; r = await follow.next()) {
+              if (r.value.type !== 'tool_call') handleEvent(r.value);
+            }
+          }
 
           // 出力の安全チェック：差別・脅し・性的な内容などが含まれていたら差し替える
           if (moderator && fullText.trim()) {
@@ -408,7 +494,10 @@ export function validateMessages(body: unknown): ValidationResult {
     if (content.length > MAX_MESSAGE_CHARS) return { ok: false, reason: 'message too long' };
     const attachments = parseAttachments((m as { attachments?: unknown })?.attachments);
     if (!attachments) return { ok: false, reason: 'bad attachments' };
-    if (role === 'assistant' && attachments.length) return { ok: false, reason: 'bad attachments' };
+    // AIの発言に付くのは、AIが作った画像だけ
+    if (role === 'assistant' && attachments.some((a) => a.kind !== 'image')) {
+      return { ok: false, reason: 'bad attachments' };
+    }
     // 写真だけ・ファイルだけの発言はOK（文章なしでも送れる）
     if (role === 'user' && content.trim().length === 0 && attachments.length === 0) {
       return { ok: false, reason: 'empty message' };
@@ -436,12 +525,20 @@ export async function toProviderMessages(
   download: (path: string) => Promise<Uint8Array>,
 ): Promise<ProviderMessage[]> {
   const withFiles = messages
-    .map((m, i) => (m.attachments.length ? i : -1))
+    .map((m, i) => (m.role === 'user' && m.attachments.length ? i : -1))
     .filter((i) => i >= 0)
     .slice(-ATTACHMENT_MESSAGES_WITH_CONTENT);
   return Promise.all(
     messages.map(async (m, i): Promise<ProviderMessage> => {
       if (!m.attachments.length) return { role: m.role, content: m.content };
+      // AIが作った画像は、中身は渡さず「ここで画像を作った」とだけ伝える
+      if (m.role === 'assistant') {
+        const note = `[You created and showed an image here: ${m.attachments.map((a) => a.name).join(', ')}]`;
+        return {
+          role: 'assistant',
+          content: [m.content, note].filter((t) => t.trim()).join('\n\n'),
+        };
+      }
       if (!withFiles.includes(i)) {
         const text = [m.content, attachmentNote(m.attachments)]
           .filter((t) => t.trim())
@@ -523,4 +620,11 @@ function createRateLimiter(perMinute: number, now: () => number) {
       return true;
     },
   };
+}
+
+/** 画像を作ってほしそうな発言か（ゆるめに判定。実際に作るかはAIが決める） */
+export function looksLikeImageRequest(text: string): boolean {
+  return /画像|イラスト|絵|描いて|描け|かいて|生成|写真を作|作画|ロゴ|アイコン|壁紙|image|picture|illustrat|draw|drawing|paint|sketch|logo|wallpaper|이미지|그림|그려|图|画|圖|imagen|dibuj|dessin|bild|zeichne|immagine|disegn|imagem|desenh|картин|рисун|нарисуй|صورة|ارسم|चित्र|gambar|ภาพ|วาด|hình|vẽ/i.test(
+    text,
+  );
 }

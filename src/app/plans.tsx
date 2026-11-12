@@ -100,9 +100,11 @@ export default function PlansScreen() {
     if (!status) return [];
     const chat = status.limits[id];
     const files = status.attachmentLimits[id];
+    const images = status.imageLimits?.[id];
     return [
       chat === null ? t.planChatUnlimited : t.perDayMessages.replace('{n}', count(chat)),
       files === null ? t.planFilesUnlimited : t.planFilesPerDay.replace('{n}', count(files)),
+      ...(images !== undefined ? [t.planImagesPerDay.replace('{n}', count(images))] : []),
     ];
   };
   const current: 'free' | 'plus' = status && status.plan !== 'free' ? 'plus' : 'free';

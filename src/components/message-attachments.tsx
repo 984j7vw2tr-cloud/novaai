@@ -11,14 +11,21 @@ import type { Attachment } from '@/lib/chat-types';
 const MAX_W = 240;
 const MAX_H = 260;
 
-export function MessageAttachments({ attachments }: { attachments: Attachment[] }) {
+export function MessageAttachments({
+  attachments,
+  align = 'end',
+}: {
+  attachments: Attachment[];
+  /** end＝右寄せ（自分の発言） / start＝左寄せ（AIの発言） */
+  align?: 'start' | 'end';
+}) {
   const images = attachments.filter((a) => a.kind === 'image');
   const files = attachments.filter((a) => a.kind === 'file');
   const many = images.length > 1;
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, align === 'start' && styles.rootStart]}>
       {images.length ? (
-        <View style={styles.images}>
+        <View style={[styles.images, align === 'start' && styles.imagesStart]}>
           {images.map((a) => (
             <AttachmentImage key={a.path} attachment={a} square={many} />
           ))}
@@ -111,6 +118,8 @@ function AttachmentFile({ attachment }: { attachment: Attachment }) {
 
 const styles = StyleSheet.create({
   root: { gap: Spacing.sm, alignItems: 'flex-end' },
+  rootStart: { alignItems: 'flex-start' },
+  imagesStart: { justifyContent: 'flex-start' },
   images: {
     flexDirection: 'row',
     flexWrap: 'wrap',

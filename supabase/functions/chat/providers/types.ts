@@ -9,14 +9,28 @@ export type ContentPart =
   | { type: 'image_url'; image_url: { url: string } }
   | { type: 'file'; file: { filename: string; file_data: string } };
 
-export type ProviderMessage = {
-  role: 'system' | 'user' | 'assistant';
-  /** 文章だけなら文字列、写真やファイルが付いていれば部品の一覧 */
-  content: string | ContentPart[];
+/** AIが呼び出した道具（例：画像を作る） */
+export type ToolCall = { id: string; name: string; arguments: string };
+
+export type ProviderMessage =
+  | {
+      role: 'system' | 'user' | 'assistant';
+      /** 文章だけなら文字列、写真やファイルが付いていれば部品の一覧 */
+      content: string | ContentPart[];
+    }
+  | { role: 'assistant'; content: string | null; tool_calls: ToolCall[] }
+  | { role: 'tool'; tool_call_id: string; content: string };
+
+/** AIに渡す道具の説明（OpenAI の function calling の形） */
+export type ToolSpec = {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
 };
 
 export type ProviderEvent =
   | { type: 'delta'; text: string }
+  | { type: 'tool_call'; call: ToolCall }
   | { type: 'usage'; inputTokens: number; outputTokens: number; cachedInputTokens: number };
 
 export type ProviderRequest = {
@@ -24,6 +38,10 @@ export type ProviderRequest = {
   messages: ProviderMessage[];
   maxOutputTokens: number;
   signal: AbortSignal;
+  /** AIが使える道具（なければ文章だけ） */
+  tools?: ToolSpec[];
+  /** 考える深さ（道具を使うときは 'none' が必要なモデルがある） */
+  reasoningEffort?: string;
 };
 
 export interface AIProvider {
