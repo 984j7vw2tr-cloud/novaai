@@ -61,16 +61,6 @@ export const pageStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  swatch: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  swatchDot: { width: 8, height: 8, borderRadius: 4 },
   safe: { flex: 1, backgroundColor: Colors.background },
   flex: { flex: 1 },
   header: {
@@ -119,7 +109,6 @@ export function ListRow({
   first,
   chevron,
   selected,
-  swatch,
 }: {
   icon?: IconName;
   label: string;
@@ -134,18 +123,11 @@ export function ListRow({
   chevron?: boolean;
   /** 選ばれている行（右にチェック） */
   selected?: boolean;
-  /** 行の先頭に出す色見本（外観の選択など） */
-  swatch?: { background: string; accent: string };
 }) {
   const { isRTL } = useI18n();
   const color = tone === 'danger' ? Colors.danger : Colors.text;
   const content = (
     <>
-      {swatch ? (
-        <View style={[styles.swatch, { backgroundColor: swatch.background }]}>
-          <View style={[styles.swatchDot, { backgroundColor: swatch.accent }]} />
-        </View>
-      ) : null}
       {icon ? (
         <Icon
           name={icon}
