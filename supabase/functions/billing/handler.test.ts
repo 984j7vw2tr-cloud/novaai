@@ -64,6 +64,10 @@ function world(
     if (url === 'https://api.stripe.com/v1/billing_portal/sessions')
       return Response.json({ url: 'https://billing.stripe.com/p/session/test_1' });
     if (url.startsWith('https://api.stripe.com/v1/subscriptions/')) return Response.json(opts.sub);
+    if (url.startsWith('https://api.stripe.com/v1/subscriptions?'))
+      return Response.json({
+        data: opts.sub ? [{ id: opts.sub.id, status: opts.sub.status }] : [],
+      });
     return new Response('{}', { status: 404 });
   }) as typeof fetch;
   const billing = createBillingHandler({ env, fetchImpl });
@@ -317,4 +321,39 @@ test('関係ない知らせは何もしないで 200', async () => {
   const res = await deliver(w, { id: 'evt_4', type: 'customer.created', data: { object: {} } });
   assert.equal(res.status, 200);
   assert.ok(!w.calls.some((c) => c.url.includes('stripe.com')));
+});
+
+test('予備の確認：知らせが届いていなくても、料金画面を開けば Stripe に聞いて PLUS を反映', async () => {
+  const restore = quiet();
+  const w = world({
+    row: {
+      user_id: ME,
+      plan: 'free',
+      status: 'active',
+      stripe_customer_id: 'cus_1',
+      stripe_subscription_id: null,
+    },
+    sub: {
+      id: 'sub_9',
+      customer: 'cus_1',
+      status: 'active',
+      cancel_at_period_end: false,
+      metadata: { user_id: ME },
+      items: {
+        data: [
+          { current_period_end: 1_900_000_000, price: { lookup_key: 'karakuchi_plus_monthly' } },
+        ],
+      },
+    },
+  });
+  const body = await (await w.call({ action: 'status', sync: true })).json();
+  restore();
+  assert.equal(body.plan, 'plus');
+  assert.equal(w.getRow().stripe_subscription_id, 'sub_9');
+  // sync なし（チャット画面など）は Stripe に聞かない
+  const w2 = world({
+    row: { user_id: ME, plan: 'free', status: 'active', stripe_customer_id: 'cus_1' },
+  });
+  await w2.call({ action: 'status' });
+  assert.ok(!w2.calls.some((c) => c.url.includes('stripe.com')));
 });

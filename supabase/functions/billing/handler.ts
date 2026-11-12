@@ -11,7 +11,7 @@
 import { authenticate, type Env, UUID_RE } from '../_shared/auth.ts';
 import { corsHeaders } from '../_shared/http.ts';
 import { createStripe, ensurePrice, type Plan, priceFor, StripeError } from '../_shared/stripe.ts';
-import { createDb, PAID_STATUSES } from '../_shared/subscriptions.ts';
+import { createDb, PAID_STATUSES, syncSubscription } from '../_shared/subscriptions.ts';
 import { recentAttachmentPaths } from '../_shared/attachment-uses.ts';
 import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts';
 
@@ -45,7 +45,7 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
     if (req.method !== 'POST') return fail(405, 'invalid_request');
 
-    let body: { action?: unknown; plan?: unknown };
+    let body: { action?: unknown; plan?: unknown; sync?: unknown };
     try {
       body = await req.json();
     } catch {
@@ -63,7 +63,26 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const stripe = createStripe(env, doFetch);
 
     try {
-      const row = await db.byUser(userId);
+      let row = await db.byUser(userId);
+      const isPaid = (r: typeof row) =>
+        Boolean(r) &&
+        r!.plan !== 'free' &&
+        PAID_STATUSES.includes(r!.status) &&
+        (!r!.current_period_end || Date.parse(r!.current_period_end) > now());
+      // 予備の確認：支払い画面から戻ってきたとき（sync=true）、まだ有料になっていなければ
+      // Stripe に直接聞いて反映する（Stripe からの知らせが届かなかった・遅れたときのため）
+      if (body.sync === true && stripe.configured && row?.stripe_customer_id && !isPaid(row)) {
+        const subs = await stripe.request<{ data: { id: string; status: string }[] }>(
+          'GET',
+          '/v1/subscriptions',
+          { customer: row.stripe_customer_id, status: 'all', limit: 5 },
+        );
+        const live = subs.data.find((x) => PAID_STATUSES.includes(x.status));
+        if (live) {
+          row = (await syncSubscription(stripe, db, live.id, userId)) ?? row;
+          console.log(JSON.stringify({ event: 'billing_fallback_sync', user_id: userId }));
+        }
+      }
       const paid =
         Boolean(row) &&
         row!.plan !== 'free' &&

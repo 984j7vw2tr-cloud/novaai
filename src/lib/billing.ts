@@ -59,7 +59,9 @@ async function call<T>(body: Record<string, unknown>): Promise<T> {
   return data as T;
 }
 
-export const getBillingStatus = () => call<BillingStatus>({ action: 'status' });
+/** sync=true：Stripe にも直接確認して反映する（料金プラン画面を開いたとき・支払いから戻ったとき） */
+export const getBillingStatus = (sync = false) =>
+  call<BillingStatus>({ action: 'status', ...(sync ? { sync: true } : {}) });
 
 /** 申し込み：Stripe の支払い画面のURL（すでに有料なら管理画面のURL） */
 export const startCheckout = (plan: PaidPlan) =>
