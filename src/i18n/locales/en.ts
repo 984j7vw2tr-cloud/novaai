@@ -6,6 +6,7 @@ export const en: Strings = {
   composerPlaceholder: 'Ask Karakuchi AI',
   send: 'Send',
   stop: 'Stop',
+  upgradeDone: 'Upgraded',
   appearance: 'Appearance',
   themeDark: 'Dark',
   themeLight: 'Light',

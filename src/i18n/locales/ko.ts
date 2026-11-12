@@ -6,6 +6,7 @@ export const ko: Strings = {
   composerPlaceholder: 'Karakuchi AI에게 물어보기',
   send: '보내기',
   stop: '중지',
+  upgradeDone: '업그레이드 완료',
   appearance: '화면 테마',
   themeDark: '다크',
   themeLight: '라이트',

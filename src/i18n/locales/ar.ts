@@ -6,6 +6,7 @@ export const ar: Strings = {
   composerPlaceholder: 'اسأل Karakuchi AI',
   send: 'إرسال',
   stop: 'إيقاف',
+  upgradeDone: 'تمت الترقية',
   appearance: 'المظهر',
   themeDark: 'داكن',
   themeLight: 'فاتح',
