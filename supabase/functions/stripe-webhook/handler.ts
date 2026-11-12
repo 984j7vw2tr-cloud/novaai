@@ -45,9 +45,42 @@ export const HANDLED_EVENTS = [
 export function createWebhookHandler({ env, fetchImpl, now = Date.now }: Deps) {
   const doFetch = fetchImpl ?? fetch;
 
+  /** 受け付けた結果を billing_events に残す（運営者の確認用。失敗しても止めない） */
+  const audit = async (eventId: string | null, type: string | null, result: string) => {
+    const base = env.get('SUPABASE_URL')?.replace(/\/$/, '');
+    const key = env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!base || !key) return;
+    try {
+      await doFetch(`${base}/rest/v1/billing_events`, {
+        method: 'POST',
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          event_id: eventId?.slice(0, 100) ?? null,
+          type: type?.slice(0, 100) ?? null,
+          result: result.slice(0, 200),
+        }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch {
+      // 記録できなくても続ける
+    }
+  };
+
   return async function handle(req: Request): Promise<Response> {
-    const text = (status: number, body: string) => new Response(body, { status });
-    if (req.method !== 'POST') return text(405, 'method not allowed');
+    const plain = (status: number, body: string) => new Response(body, { status });
+    // 返事と一緒に受付記録も残す
+    let evId: string | null = null;
+    let evType: string | null = null;
+    const text = async (status: number, body: string) => {
+      await audit(evId, evType, `${status} ${body}`);
+      return plain(status, body);
+    };
+    if (req.method !== 'POST') return plain(405, 'method not allowed');
 
     const secret = env.get('STRIPE_WEBHOOK_SECRET');
     if (!secret) {
@@ -55,6 +88,14 @@ export function createWebhookHandler({ env, fetchImpl, now = Date.now }: Deps) {
       return text(503, 'not configured');
     }
     const payload = await req.text();
+    // 記録用に、種類だけ先に読んでおく（署名を確かめるまでは中身を信じない）
+    try {
+      const peek = JSON.parse(payload);
+      evId = typeof peek?.id === 'string' ? peek.id : null;
+      evType = typeof peek?.type === 'string' ? peek.type : null;
+    } catch {
+      // JSONでない
+    }
     const valid = await verifyWebhook(
       payload,
       req.headers.get('stripe-signature'),
@@ -81,11 +122,11 @@ export function createWebhookHandler({ env, fetchImpl, now = Date.now }: Deps) {
       return text(503, 'not configured');
     }
     try {
-      await syncSubscription(stripe, db, id, userId);
-      return text(200, 'ok');
+      const row = await syncSubscription(stripe, db, id, userId);
+      return text(200, row ? `ok ${row.plan} ${row.status}` : 'ok (user not found)');
     } catch (e) {
       console.error(`[stripe-webhook] ${event.type} ${event.id} failed`, e);
-      return text(500, 'sync failed');
+      return text(500, `sync failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 }

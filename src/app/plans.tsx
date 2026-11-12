@@ -32,7 +32,7 @@ export default function PlansScreen() {
 
   const load = useCallback(async () => {
     try {
-      const s = await getBillingStatus();
+      const s = await getBillingStatus(true);
       setStatus(s);
       setLoadFailed(false);
       return s;
@@ -44,7 +44,7 @@ export default function PlansScreen() {
 
   useEffect(() => {
     let active = true;
-    getBillingStatus()
+    getBillingStatus(true)
       .then((s) => {
         if (active) setStatus(s);
       })
