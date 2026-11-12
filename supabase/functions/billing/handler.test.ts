@@ -30,8 +30,8 @@ function world(
           SUPABASE_SERVICE_ROLE_KEY: 'svc',
           STRIPE_SECRET_KEY: opts.noKey ? undefined : 'sk_test_abc',
           STRIPE_WEBHOOK_SECRET: WHSEC,
-          SITE_URL: 'https://karakuchi-ai.vercel.app',
-          ALLOWED_ORIGINS: 'https://karakuchi-ai.vercel.app,http://localhost:8081',
+          SITE_URL: 'https://nayqo.vercel.app',
+          ALLOWED_ORIGINS: 'https://nayqo.vercel.app,http://localhost:8081',
         }) as Record<string, string | undefined>
       )[k],
   };
@@ -72,7 +72,7 @@ function world(
   }) as typeof fetch;
   const billing = createBillingHandler({ env, fetchImpl });
   const webhook = createWebhookHandler({ env, fetchImpl });
-  const call = (body: unknown, token = 'good', origin = 'https://karakuchi-ai.vercel.app') =>
+  const call = (body: unknown, token = 'good', origin = 'https://nayqo.vercel.app') =>
     billing(
       new Request('http://localhost/billing', {
         method: 'POST',
@@ -133,7 +133,7 @@ test('checkout：お客様を作って覚え、値段（480円/月）を用意�
   );
   assert.match(session, /mode=subscription/);
   assert.match(session, new RegExp(`client_reference_id=${ME}`));
-  assert.match(session, /success_url=https:\/\/karakuchi-ai\.vercel\.app\/plans\?checkout=success/);
+  assert.match(session, /success_url=https:\/\/nayqo\.vercel\.app\/plans\?checkout=success/);
   assert.match(session, new RegExp(`subscription_data\\[metadata\\]\\[user_id\\]=${ME}`));
 });
 
@@ -221,7 +221,7 @@ test('戻り先は許可したサイトだけ（知らないサイトなら本�
   const env = world().env;
   const r = (origin: string) => new Request('http://x', { headers: { origin } });
   assert.equal(returnBase(r('http://localhost:8081'), env), 'http://localhost:8081');
-  assert.equal(returnBase(r('https://evil.example'), env), 'https://karakuchi-ai.vercel.app');
+  assert.equal(returnBase(r('https://evil.example'), env), 'https://nayqo.vercel.app');
 });
 
 test('鍵が未設定 → 503（status は mode=off で答える）', async () => {
