@@ -142,8 +142,11 @@ export const serverReply: ReplySource = async (
       typeof ev.remaining === 'number'
     )
       onQuota?.({ limit: ev.limit, remaining: ev.remaining });
-    else if (ev.type === 'status' && ev.status === 'generating_image')
-      onStatus?.('generating_image');
+    else if (
+      ev.type === 'status' &&
+      (ev.status === 'generating_image' || ev.status === 'searching')
+    )
+      onStatus?.(ev.status);
     else if (
       ev.type === 'image' &&
       ev.attachment &&

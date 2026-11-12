@@ -7,6 +7,7 @@ export const vi: Strings = {
   send: 'Gửi',
   stop: 'Dừng',
   generatingImage: 'Đang tạo ảnh…',
+  searchingWeb: 'Đang tìm trên web…',
   createImage: 'Tạo ảnh',
   createImagePrefix: 'Tạo ảnh về: ',
   planImagesPerDay: 'Tối đa {n} ảnh mỗi ngày',

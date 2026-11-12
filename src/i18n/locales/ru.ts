@@ -7,6 +7,7 @@ export const ru: Strings = {
   send: 'Отправить',
   stop: 'Стоп',
   generatingImage: 'Создаём изображение…',
+  searchingWeb: 'Ищем в интернете…',
   createImage: 'Создать изображение',
   createImagePrefix: 'Создай изображение: ',
   planImagesPerDay: 'До {n} изображений в день',

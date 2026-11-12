@@ -7,6 +7,7 @@ export const zhHans: Strings = {
   send: '发送',
   stop: '停止',
   generatingImage: '正在生成图片…',
+  searchingWeb: '正在网上搜索…',
   createImage: '生成图片',
   createImagePrefix: '帮我生成图片：',
   planImagesPerDay: '每天最多生成 {n} 张图片',

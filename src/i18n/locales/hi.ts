@@ -7,6 +7,7 @@ export const hi: Strings = {
   send: 'भेजें',
   stop: 'रोकें',
   generatingImage: 'इमेज बन रही है…',
+  searchingWeb: 'वेब पर खोज रहे हैं…',
   createImage: 'इमेज बनाएँ',
   createImagePrefix: 'इसकी इमेज बनाओ: ',
   planImagesPerDay: 'रोज़ {n} इमेज तक',

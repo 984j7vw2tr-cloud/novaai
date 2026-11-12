@@ -7,6 +7,7 @@ export const zhHant: Strings = {
   send: '傳送',
   stop: '停止',
   generatingImage: '正在產生圖片…',
+  searchingWeb: '正在網路上搜尋…',
   createImage: '產生圖片',
   createImagePrefix: '幫我產生圖片：',
   planImagesPerDay: '每天最多產生 {n} 張圖片',

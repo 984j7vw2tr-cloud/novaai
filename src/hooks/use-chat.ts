@@ -114,9 +114,13 @@ export function useChat({
           signal: controller.signal,
           conversationId: conversationIdRef.current,
           onQuota: setQuota,
-          onStatus: () =>
+          onStatus: (status) =>
             update((prev) =>
-              prev.map((m) => (m.id === assistantId ? { ...m, pending: 'image' } : m)),
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, pending: status === 'searching' ? 'search' : 'image' }
+                  : m,
+              ),
             ),
           onImage: (attachment) =>
             update((prev) =>

@@ -31,6 +31,12 @@ export type ToolSpec = {
 export type ProviderEvent =
   | { type: 'delta'; text: string }
   | { type: 'tool_call'; call: ToolCall }
+  /** ウェブ検索を始めた */
+  | { type: 'status'; status: 'searching' }
+  /** ウェブ検索が1回終わった */
+  | { type: 'search_done' }
+  /** 回答の情報元（ウェブ検索の結果） */
+  | { type: 'source'; url: string; title: string }
   | { type: 'usage'; inputTokens: number; outputTokens: number; cachedInputTokens: number };
 
 export type ProviderRequest = {
@@ -42,10 +48,14 @@ export type ProviderRequest = {
   tools?: ToolSpec[];
   /** 考える深さ（道具を使うときは 'none' が必要なモデルがある） */
   reasoningEffort?: string;
+  /** ウェブ検索を使えるようにする（対応しているプロバイダーだけ） */
+  webSearch?: boolean;
 };
 
 export interface AIProvider {
   readonly name: string;
+  /** 「深く考える」のまま道具を使えるか（Chat Completions の一部のモデルは不可） */
+  readonly toolsWithReasoning?: boolean;
   /** 回答を少しずつ返す（ストリーミング） */
   stream(request: ProviderRequest): AsyncGenerator<ProviderEvent>;
 }

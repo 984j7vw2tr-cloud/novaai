@@ -60,7 +60,15 @@ export const MessageItem = memo(function MessageItem({
         <MessageAttachments attachments={message.attachments} align="start" />
       ) : null}
       {streaming && message.content.length === 0 ? (
-        <ThinkingIndicator label={message.pending === 'image' ? t.generatingImage : undefined} />
+        <ThinkingIndicator
+          label={
+            message.pending === 'image'
+              ? t.generatingImage
+              : message.pending === 'search'
+                ? t.searchingWeb
+                : undefined
+          }
+        />
       ) : (
         <Markdown
           content={message.content}

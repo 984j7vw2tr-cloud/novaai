@@ -7,6 +7,7 @@ export const ja: Strings = {
   send: '送信',
   stop: '停止',
   generatingImage: '画像を作っています…',
+  searchingWeb: 'ウェブで検索しています…',
   createImage: '画像を作成',
   createImagePrefix: '画像を作って：',
   planImagesPerDay: '画像生成は1日{n}枚まで',

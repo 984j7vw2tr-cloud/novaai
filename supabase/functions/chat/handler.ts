@@ -33,6 +33,7 @@ import {
   ProviderError,
   type ProviderMessage,
   type ToolCall,
+  type ToolSpec,
 } from './providers/types.ts';
 import { imageLimitFor } from '../_shared/image-limits.ts';
 import { generateImage, IMAGE_TOOL, imagesUsed } from './images.ts';
@@ -135,7 +136,12 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const model = getModel(env);
     if (!provider || !model) return errorResponse(503, 'service_unavailable', cors);
 
-    const maxOutputTokens = Number(env.get('MAX_OUTPUT_TOKENS') ?? 1500);
+    // 回答の長さの上限（考える分も含む）。Responses API では検索・道具のぶん考える量が増えるので多めにする
+    const maxOutputTokens = Number(
+      provider.toolsWithReasoning
+        ? (env.get('MAX_OUTPUT_TOKENS_RESPONSES') ?? 8000)
+        : (env.get('MAX_OUTPUT_TOKENS') ?? 1500),
+    );
 
     const upstream = new AbortController();
     req.signal?.addEventListener('abort', () => upstream.abort(), { once: true });
@@ -166,8 +172,20 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       console.log(JSON.stringify({ event: 'moderation_input', categories: inputCheck.categories }));
     }
 
+    // ウェブ検索（Responses API のときだけ。WEB_SEARCH=off で止められる）
+    const webSearchOn =
+      Boolean(provider.toolsWithReasoning) &&
+      (env.get('WEB_SEARCH') ?? 'on').toLowerCase() !== 'off';
     const messages: ProviderMessage[] = [
-      { role: 'system', content: buildSystemPrompt({ selfHarmRisk, ...readLanguages(body) }) },
+      {
+        role: 'system',
+        content: buildSystemPrompt({
+          selfHarmRisk,
+          ...readLanguages(body),
+          webSearch: webSearchOn,
+          today: new Date(now()).toISOString().slice(0, 10),
+        }),
+      },
       ...recent,
     ];
 
@@ -216,13 +234,22 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
       return 'SUCCESS: the image was created and is shown to the user right below your message. Reply with one short, confident line in your voice (no description of the process, no markdown image links).';
     };
 
-    // 画像を頼んでいそうなときだけ、画像の道具を渡す。
-    // （このモデルは道具を使うとき「深く考える」を切る必要があるため、普通の会話の質は落とさない）
     const lastText = parsed.messages[parsed.messages.length - 1].content;
-    const offerImageTool = !selfHarmRisk && looksLikeImageRequest(lastText);
-    const toolOptions = offerImageTool
-      ? { tools: [IMAGE_TOOL], reasoningEffort: env.get('IMAGE_TOOL_REASONING') ?? 'none' }
-      : {};
+    let toolOptions: { tools?: ToolSpec[]; reasoningEffort?: string; webSearch?: boolean };
+    if (provider.toolsWithReasoning) {
+      // Responses API：画像の道具とウェブ検索をいつでも渡し、使うかどうかはAIが決める
+      toolOptions = {
+        tools: selfHarmRisk ? [] : [IMAGE_TOOL],
+        webSearch: webSearchOn,
+      };
+    } else {
+      // Chat Completions：画像を頼んでいそうなときだけ、画像の道具を渡す。
+      // （このモデルは道具を使うとき「深く考える」を切る必要があるため、普通の会話の質は落とさない）
+      toolOptions =
+        !selfHarmRisk && looksLikeImageRequest(lastText)
+          ? { tools: [IMAGE_TOOL], reasoningEffort: env.get('IMAGE_TOOL_REASONING') ?? 'none' }
+          : {};
+    }
 
     const events = provider.stream({
       model,
@@ -263,6 +290,8 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
         }
         let fullText = '';
         let replaced = false;
+        let searches = 0;
+        let sources = 0;
         const toolCalls: ToolCall[] = [];
         const handleEvent = (ev: ProviderEvent) => {
           if (ev.type === 'delta') {
@@ -270,6 +299,13 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
             send({ type: 'delta', text: ev.text });
           } else if (ev.type === 'tool_call') {
             toolCalls.push(ev.call);
+          } else if (ev.type === 'status') {
+            // ウェブ検索中（アプリに「ウェブで検索しています…」を出す）
+            send({ type: 'status', status: 'searching' });
+          } else if (ev.type === 'search_done') {
+            searches += 1;
+          } else if (ev.type === 'source') {
+            sources += 1;
           } else {
             // 2回目の呼び出し（画像を作ったあとのひと言）もあるので、足していく
             usage.input = (usage.input ?? 0) + ev.inputTokens;
@@ -296,6 +332,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
               signal: upstream.signal,
               reasoningEffort: toolOptions.reasoningEffort,
             });
+            // （2回目は短いひと言だけなので、検索・道具は渡さない）
             for (let r = await follow.next(); !r.done; r = await follow.next()) {
               if (r.value.type !== 'tool_call') handleEvent(r.value);
             }
@@ -358,6 +395,8 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
               aborted: upstream.signal.aborted,
               self_harm_risk: selfHarmRisk,
               replaced,
+              web_searches: searches,
+              sources,
               ms: now() - startedAt,
             }),
           );

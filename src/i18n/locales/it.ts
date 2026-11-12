@@ -7,6 +7,7 @@ export const it: Strings = {
   send: 'Invia',
   stop: 'Interrompi',
   generatingImage: 'Creazione immagine…',
+  searchingWeb: 'Ricerca sul web…',
   createImage: 'Crea immagine',
   createImagePrefix: 'Crea un’immagine di: ',
   planImagesPerDay: 'Fino a {n} immagini al giorno',

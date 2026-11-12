@@ -12,6 +12,7 @@ function makeEnv(vars: Record<string, string | undefined> = {}) {
   const all: Record<string, string | undefined> = {
     OPENAI_API_KEY: SECRET,
     OPENAI_MODEL: 'test-model',
+    OPENAI_API: 'chat',
     MODERATION: 'off',
     REQUIRE_AUTH: 'false',
     SUPABASE_URL: 'https://proj.supabase.co',
@@ -102,7 +103,10 @@ test('回答を少しずつ返し、最後に done を送る。使用量をロ�
   assert.equal(sentBody.stream, true);
   assert.deepEqual(sentBody.messages[0], {
     role: 'system',
-    content: buildSystemPrompt({ selfHarmRisk: false }),
+    content: buildSystemPrompt({
+      selfHarmRisk: false,
+      today: new Date().toISOString().slice(0, 10),
+    }),
   });
   const usageLog = q.logs.find((l) => l.includes('"usage"'));
   assert.ok(usageLog, 'usage should be logged');

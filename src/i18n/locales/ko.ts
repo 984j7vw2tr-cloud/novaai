@@ -7,6 +7,7 @@ export const ko: Strings = {
   send: '보내기',
   stop: '중지',
   generatingImage: '이미지를 만드는 중…',
+  searchingWeb: '웹에서 검색하는 중…',
   createImage: '이미지 만들기',
   createImagePrefix: '이미지를 만들어 줘: ',
   planImagesPerDay: '이미지 생성은 하루 {n}장까지',
