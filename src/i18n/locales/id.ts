@@ -7,6 +7,7 @@ export const id: Strings = {
   send: 'Kirim',
   stop: 'Hentikan',
   generatingImage: 'Membuat gambar…',
+  searchingWeb: 'Mencari di web…',
   createImage: 'Buat gambar',
   createImagePrefix: 'Buatkan gambar: ',
   planImagesPerDay: 'Hingga {n} gambar per hari',

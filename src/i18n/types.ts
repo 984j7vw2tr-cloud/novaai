@@ -6,6 +6,8 @@ export type Strings = {
   send: string;
   stop: string;
   generatingImage: string;
+  /** ウェブ検索中の表示 */
+  searchingWeb: string;
   createImage: string;
   createImagePrefix: string;
   planImagesPerDay: string;

@@ -7,6 +7,7 @@ export const ar: Strings = {
   send: 'إرسال',
   stop: 'إيقاف',
   generatingImage: 'جارٍ إنشاء الصورة…',
+  searchingWeb: 'جارٍ البحث في الويب…',
   createImage: 'إنشاء صورة',
   createImagePrefix: 'أنشئ صورة لـ: ',
   planImagesPerDay: 'حتى {n} صور يوميًا',

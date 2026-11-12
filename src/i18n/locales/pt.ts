@@ -7,6 +7,7 @@ export const pt: Strings = {
   send: 'Enviar',
   stop: 'Parar',
   generatingImage: 'Criando imagem…',
+  searchingWeb: 'Pesquisando na web…',
   createImage: 'Criar imagem',
   createImagePrefix: 'Crie uma imagem de: ',
   planImagesPerDay: 'Até {n} imagens por dia',

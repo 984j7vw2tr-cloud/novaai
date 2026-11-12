@@ -21,7 +21,7 @@ export type ChatMessage = {
   /** ユーザーが付けた写真・ファイル */
   attachments?: Attachment[];
   /** AIが画像を作っている途中か */
-  pending?: 'image';
+  pending?: 'image' | 'search';
   /** AIの回答の状態。streaming=表示中 / done=完了 / stopped=途中で停止 */
   status?: 'streaming' | 'done' | 'stopped';
 };
@@ -39,7 +39,7 @@ export type ReplySource = (
     /** 今日の残り回数が届いたとき */
     onQuota?: (quota: { limit: number; remaining: number }) => void;
     /** AIが画像を作り始めたとき */
-    onStatus?: (status: 'generating_image') => void;
+    onStatus?: (status: 'generating_image' | 'searching') => void;
     /** AIが作った画像が届いたとき */
     onImage?: (attachment: Attachment) => void;
     signal: AbortSignal;

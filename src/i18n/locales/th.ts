@@ -7,6 +7,7 @@ export const th: Strings = {
   send: 'ส่ง',
   stop: 'หยุด',
   generatingImage: 'กำลังสร้างภาพ…',
+  searchingWeb: 'กำลังค้นหาบนเว็บ…',
   createImage: 'สร้างภาพ',
   createImagePrefix: 'สร้างภาพของ: ',
   planImagesPerDay: 'สร้างภาพได้วันละไม่เกิน {n} ภาพ',

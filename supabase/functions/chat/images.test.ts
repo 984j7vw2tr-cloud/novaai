@@ -32,6 +32,7 @@ function world(
         ({
           OPENAI_API_KEY: 'sk-test',
           OPENAI_MODEL: 'test-model',
+          OPENAI_API: 'chat',
           SUPABASE_URL: 'https://proj.supabase.co',
           SUPABASE_SERVICE_ROLE_KEY: 'svc',
           MODERATION: 'off',

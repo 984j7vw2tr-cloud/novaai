@@ -1,5 +1,6 @@
 import { createOpenAIModerator, type Moderator } from './moderation.ts';
 import { createOpenAIProvider } from './openai.ts';
+import { createOpenAIResponsesProvider } from './openai-responses.ts';
 import type { AIProvider } from './types.ts';
 
 export type Env = { get(name: string): string | undefined };
@@ -18,7 +19,11 @@ export function getProvider(env: Env, fetchImpl?: typeof fetch): AIProvider | nu
         console.error('[chat] OPENAI_API_KEY is not set');
         return null;
       }
-      return createOpenAIProvider({ apiKey, baseUrl: env.get('OPENAI_BASE_URL'), fetchImpl });
+      // OPENAI_API=chat で、以前の Chat Completions に戻せる（ウェブ検索は使えなくなる）
+      const options = { apiKey, baseUrl: env.get('OPENAI_BASE_URL'), fetchImpl };
+      return (env.get('OPENAI_API') ?? 'responses').toLowerCase() === 'chat'
+        ? createOpenAIProvider(options)
+        : createOpenAIResponsesProvider(options);
     }
     default:
       console.error(`[chat] Unknown AI_PROVIDER: ${name}`);

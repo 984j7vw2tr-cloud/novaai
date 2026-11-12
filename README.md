@@ -61,7 +61,12 @@ Supabase の Edge Functions → Secrets に設定する値：
 |---|---|---|
 | `OPENAI_API_KEY` | OpenAI の APIキー（**ここ以外に絶対に書かない**） | ✅ |
 | `OPENAI_MODEL` | 使うモデル名（OpenAI公式のモデル一覧から選ぶ） | ✅ |
-| `MAX_OUTPUT_TOKENS` | 1回の回答の長さの上限（既定 1500） | |
+| `MAX_OUTPUT_TOKENS` | 1回の回答の長さの上限（OPENAI_API=chat のとき。既定 1500） | |
+| `OPENAI_API` | `responses`（既定・ウェブ検索あり）／`chat`（以前の方式・検索なし） | |
+| `MAX_OUTPUT_TOKENS_RESPONSES` | 回答の長さの上限（考える分・検索を含む。既定 8000） | |
+| `WEB_SEARCH` | `off` でウェブ検索を止める（既定 on） | |
+| `OPENAI_IMAGE_MODEL` | 画像を作るモデル（例 gpt-image-2） | |
+| `IMAGE_LIMIT_FREE` / `IMAGE_LIMIT_PLUS` | 1日に作れる画像の枚数（既定 2 / 30） | |
 | `RATE_LIMIT_PER_MINUTE` | 同じ接続元からの1分あたりの上限（既定 20） | |
 | `ALLOWED_ORIGINS` | 呼び出しを許可するWebサイト（既定 `*`、公開時に絞る） | |
 | `AI_PROVIDER` | 使うAI会社（既定 `openai`） | |

@@ -35,6 +35,10 @@ export type PromptOptions = {
   replyLanguage?: string | null;
   /** アプリの表示言語（質問の言語が判断できないときに使う） */
   uiLanguage?: string | null;
+  /** ウェブ検索が使えるか */
+  webSearch?: boolean;
+  /** 今日の日付（YYYY-MM-DD・UTC） */
+  today?: string;
 };
 
 const BASE = `You are NAYQO (pronounced ネイコー / "nay-koh"), the AI of the service "NAYQO" — ONE AI. EVERY LANGUAGE. NO FILTER.
@@ -180,6 +184,8 @@ export function buildSystemPrompt({
   selfHarmRisk,
   replyLanguage,
   uiLanguage,
+  webSearch,
+  today,
 }: PromptOptions): string {
   const parts = [BASE, COUNTER_MODE, SELF_HARM];
   const languageRules: string[] = [];
@@ -201,9 +207,19 @@ export function buildSystemPrompt({
     );
   }
   if (languageRules.length) parts.push(`# Language settings\n${languageRules.join('\n')}`);
+  // 毎日変わる部分は最後に置く（前の部分をキャッシュで安くするため）
+  if (webSearch) parts.push(WEB_SEARCH);
+  if (today) parts.push(`# Today\nToday's date is ${today} (UTC).`);
   if (selfHarmRisk) parts.push(SAFETY_OVERRIDE);
   return parts.join('\n\n');
 }
+
+/** ウェブ検索のルール（検索が使えるときだけ足す） */
+const WEB_SEARCH = `# Web search
+- Default: answer from your own knowledge WITHOUT searching. Searching is slow, so use it only when needed.
+- Search ONLY when (a) the answer depends on information that may have changed recently or is happening now — news, weather, prices, exchange rates, stock prices, sports results and schedules, elections, new products and releases, current laws/rules, business hours, recent events, anything after your training data — or (b) the user explicitly asks you to search or look something up (「調べて」「検索して」「最新の」"look up", "latest").
+- Never search for: small talk, greetings, opinions, advice, writing, coding, math, or stable knowledge such as history, science, how things work, definitions, or famous books and works — even when the user asks for a long or detailed explanation.
+- When you did search: base the answer on what you found, with concrete numbers and dates, and put the source as a short markdown link right after the fact, e.g. ([nhk.or.jp](https://...)). Keep your NAYQO voice; no 「検索しました」 narration. If results are unclear or conflicting, say so plainly and give the most reliable answer.`;
 
 /** 出力チェックで差し替えるときの文（回答の言語に合わせて選ぶ） */
 export function safeFallback(replyText: string): string {
