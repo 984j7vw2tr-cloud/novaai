@@ -76,14 +76,24 @@ const rows = (r) => (Array.isArray(r.data) ? r.data : []);
 // ---- 未ログインの人 ----
 for (const table of ['profiles', 'conversations', 'messages', 'usage_events', 'subscriptions']) {
   const r = await rest('GET', `${table}?select=*`, null, 'anon');
-  check(`未ログインでは ${table} を読めない`, !okStatus(r.status) || rows(r).length === 0, `HTTP ${r.status}`);
+  check(
+    `未ログインでは ${table} を読めない`,
+    !okStatus(r.status) || rows(r).length === 0,
+    `HTTP ${r.status}`,
+  );
 }
 
 // ---- 自分のプロフィール ----
 const profiles = await rest('GET', 'profiles?select=*');
-check('プロフィールは自分の1件だけ見える', rows(profiles).length === 1 && rows(profiles)[0].id === ME);
+check(
+  'プロフィールは自分の1件だけ見える',
+  rows(profiles).length === 1 && rows(profiles)[0].id === ME,
+);
 const upName = await rest('PATCH', `profiles?id=eq.${ME}`, { display_name: 'RLS Test' });
-check('表示名は変えられる', okStatus(upName.status) && rows(upName)[0]?.display_name === 'RLS Test');
+check(
+  '表示名は変えられる',
+  okStatus(upName.status) && rows(upName)[0]?.display_name === 'RLS Test',
+);
 const upEmail = await rest('PATCH', `profiles?id=eq.${ME}`, { email: 'hacker@evil.test' });
 check('メールアドレスは書き換えられない', !okStatus(upEmail.status), `HTTP ${upEmail.status}`);
 
@@ -101,11 +111,17 @@ const rename = await rest('PATCH', `conversations?id=eq.${convId}`, { title: '�
 check('会話の題名は変えられる', okStatus(rename.status) && rows(rename)[0]?.title === '新しい題名');
 
 // ---- メッセージ ----
-const before = rows(await rest('GET', `conversations?id=eq.${convId}&select=updated_at`))[0]?.updated_at;
+const before = rows(await rest('GET', `conversations?id=eq.${convId}&select=updated_at`))[0]
+  ?.updated_at;
 await new Promise((r) => setTimeout(r, 1100));
-const msg = await rest('POST', 'messages', { conversation_id: convId, role: 'user', content: 'こんにちは' });
+const msg = await rest('POST', 'messages', {
+  conversation_id: convId,
+  role: 'user',
+  content: 'こんにちは',
+});
 check('自分の会話にメッセージを書ける', okStatus(msg.status));
-const after = rows(await rest('GET', `conversations?id=eq.${convId}&select=updated_at`))[0]?.updated_at;
+const after = rows(await rest('GET', `conversations?id=eq.${convId}&select=updated_at`))[0]
+  ?.updated_at;
 check('メッセージを書くと会話の最終更新が新しくなる', Boolean(before && after && after > before));
 
 const intoOther = await rest('POST', 'messages', {
@@ -113,17 +129,41 @@ const intoOther = await rest('POST', 'messages', {
   role: 'user',
   content: '他人の会話に書き込み',
 });
-check('自分のものでない会話には書き込めない', !okStatus(intoOther.status), `HTTP ${intoOther.status}`);
-const badRole = await rest('POST', 'messages', { conversation_id: convId, role: 'system', content: 'x' });
-check('role は user / assistant 以外にできない', !okStatus(badRole.status), `HTTP ${badRole.status}`);
+check(
+  '自分のものでない会話には書き込めない',
+  !okStatus(intoOther.status),
+  `HTTP ${intoOther.status}`,
+);
+const badRole = await rest('POST', 'messages', {
+  conversation_id: convId,
+  role: 'system',
+  content: 'x',
+});
+check(
+  'role は user / assistant 以外にできない',
+  !okStatus(badRole.status),
+  `HTTP ${badRole.status}`,
+);
 
 // ---- 使用量・料金プラン（サーバーだけが書く） ----
-const fakeUsage = await rest('POST', 'usage_events', { user_id: ME, model: 'x', input_tokens: 0, output_tokens: 0 });
-check('使用量は自分で書き込めない（ごまかせない）', !okStatus(fakeUsage.status), `HTTP ${fakeUsage.status}`);
+const fakeUsage = await rest('POST', 'usage_events', {
+  user_id: ME,
+  model: 'x',
+  input_tokens: 0,
+  output_tokens: 0,
+});
+check(
+  '使用量は自分で書き込めない（ごまかせない）',
+  !okStatus(fakeUsage.status),
+  `HTTP ${fakeUsage.status}`,
+);
 const fakePlan = await rest('POST', 'subscriptions', { user_id: ME, plan: 'pro' });
 check('料金プランは自分で書き込めない', !okStatus(fakePlan.status), `HTTP ${fakePlan.status}`);
 const usage = await rest('GET', 'usage_events?select=user_id');
-check('使用量は読める（自分の分だけ）', okStatus(usage.status) && rows(usage).every((u) => u.user_id === ME));
+check(
+  '使用量は読める（自分の分だけ）',
+  okStatus(usage.status) && rows(usage).every((u) => u.user_id === ME),
+);
 
 // ---- 削除 ----
 const del = await rest('DELETE', `conversations?id=eq.${convId}`);
@@ -132,7 +172,9 @@ const leftover = await rest('GET', `messages?conversation_id=eq.${convId}&select
 check('会話を消すと、その中のメッセージも消える', rows(leftover).length === 0);
 
 // 後片付け（表示名を元に戻す）
-await rest('PATCH', `profiles?id=eq.${ME}`, { display_name: user.user_metadata?.display_name ?? null });
+await rest('PATCH', `profiles?id=eq.${ME}`, {
+  display_name: user.user_metadata?.display_name ?? null,
+});
 
 console.log(`\n結果：${pass}件OK / ${fail}件NG`);
 process.exit(fail ? 1 : 0);

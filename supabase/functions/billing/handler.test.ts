@@ -152,7 +152,7 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
         unit_amount: 480,
         currency: 'jpy',
         tax_behavior: 'exclusive',
-        product: { id: 'prod_1', tax_code: 'txcd_10103000' },
+        product: { id: 'prod_1', name: 'NAYQO PLUS', tax_code: 'txcd_10103000' },
       },
     ],
   });
@@ -180,7 +180,7 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
         unit_amount: 480,
         currency: 'jpy',
         tax_behavior: 'unspecified',
-        product: { id: 'prod_1', tax_code: 'txcd_10103000' },
+        product: { id: 'prod_1', name: 'NAYQO PLUS', tax_code: 'txcd_10103000' },
       },
     ],
   });
@@ -191,7 +191,7 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
   assert.match(re, /tax_behavior=exclusive/);
   assert.match(re, /transfer_lookup_key=true/);
   const upd = noTax.calls.find((c) => c.url === 'https://api.stripe.com/v1/products/prod_1');
-  assert.equal(decodeURIComponent(upd!.body), 'tax_code=txcd_10103000');
+  assert.equal(decodeURIComponent(upd!.body), 'tax_code=txcd_10103000&name=NAYQO PLUS');
   const changed = world({ prices: [{ id: 'price_old', unit_amount: 980, currency: 'jpy' }] });
   await changed.call({ action: 'checkout', plan: 'plus' });
   restore();

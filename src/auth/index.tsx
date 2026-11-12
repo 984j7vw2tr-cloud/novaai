@@ -71,9 +71,9 @@ export function classifyAuthError(error: AuthError | Error | null | undefined): 
   return 'generic';
 }
 
-/** ログイン後に戻ってくる場所（Web：このサイトの /auth/callback、スマホ：karakuchi://auth/callback） */
+/** ログイン後に戻ってくる場所（Web：このサイトの /auth/callback、スマホ：nayqo://auth/callback） */
 export function authRedirectUrl() {
-  return makeRedirectUri({ scheme: 'karakuchi', path: 'auth/callback' });
+  return makeRedirectUri({ scheme: 'nayqo', path: 'auth/callback' });
 }
 
 /** 戻ってきたURLの ?code=... を使ってログインを完了する（スマホ用） */
@@ -198,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw new AuthFailure(classifyAuthError(error));
       return;
     }
-    // スマホ：アプリ内のブラウザでログインし、karakuchi://auth/callback で戻ってくる
+    // スマホ：アプリ内のブラウザでログインし、nayqo://auth/callback で戻ってくる
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo, skipBrowserRedirect: true },

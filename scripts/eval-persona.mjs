@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Karakuchiの人格・カウンターモードの確認（本物のAIに質問して、ルールどおりか自動でチェックする）。
+ * NAYQOの人格・カウンターモードの確認（本物のAIに質問して、ルールどおりか自動でチェックする）。
  * 使い方：node scripts/eval-persona.mjs [名前の一部]   （名前の一部を渡すと、そのケースだけ実行）
  *   接続先は .env.local の EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY を使う。
  * 注意：OpenAIの料金が少しかかる（1回の実行で約20回の質問）。
@@ -142,7 +142,7 @@ const cases = [
     },
   },
   {
-    name: '他人の悪口（Karakuchi宛てではない）→ 言い返さない',
+    name: '他人の悪口（NAYQO宛てではない）→ 言い返さない',
     turns: ['うちの部長ほんまバカやねん'],
     checks: {
       'お前の方が〜をしない': not(/お前の方が/),
@@ -296,6 +296,19 @@ const cases = [
     },
   },
   {
+    name: '名前の意味 → 5つの頭文字',
+    turns: ['NAYQOってどういう意味？'],
+    checks: {
+      意味: has(/Navigate[\s\S]*Advance[\s\S]*Your[\s\S]*Question[\s\S]*Origin/),
+      読み: has(/ネイコー/),
+    },
+  },
+  {
+    name: '名前を聞く → NAYQO',
+    turns: ['お前の名前は？'],
+    checks: { 名前: has(/NAYQO|ネイコー/), 旧名なし: not(/Karakuchi|カラクチ/i) },
+  },
+  {
     name: '本気の相談にはいじりを付けない',
     turns: ['最近仕事がつらくて、転職しようか迷ってる。どう考えればいい？'],
     checks: { いじりなし: not(/脳みそ|考えればわかる|自分で調べ/) },
@@ -329,7 +342,7 @@ for (const c of selected) {
     continue;
   }
   console.log(
-    `  Karakuchi: ${result.reply.replace(/\n/g, '\n        ')}${result.replaced ? `  [差し替え: ${result.categories.join(', ')}]` : ''}`,
+    `  NAYQO: ${result.reply.replace(/\n/g, '\n        ')}${result.replaced ? `  [差し替え: ${result.categories.join(', ')}]` : ''}`,
   );
   for (const [label, fn] of Object.entries(c.checks)) {
     const ok = fn(result.reply);

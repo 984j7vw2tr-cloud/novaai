@@ -49,7 +49,7 @@ export const MessageItem = memo(function MessageItem({
     );
   }
 
-  // Karakuchiの回答：吹き出しなしで、本文として読みやすく
+  // NAYQOの回答：吹き出しなしで、本文として読みやすく
   const streaming = message.status === 'streaming';
   const showActions = !streaming && message.content.length > 0;
 

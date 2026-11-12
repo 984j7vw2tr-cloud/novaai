@@ -101,7 +101,7 @@ async function shrinkImage(p: PickedFile): Promise<PickedFile> {
       size: undefined,
     };
   } catch (e) {
-    if (__DEV__) console.warn('[Karakuchi] image resize failed', e);
+    if (__DEV__) console.warn('[NAYQO] image resize failed', e);
     // HEIC など、小さくできない形式のまま送ると Storage が受け付けないので、JPEG/PNG/WebP/GIF だけ通す
     if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(p.mime)) {
       throw new AttachmentError('unsupported');
@@ -199,7 +199,7 @@ export async function uploadAttachment(p: PickedFile): Promise<Attachment> {
   const path = `${userId}/${randomUUID()}.${ext}`;
   const { error } = await storage().upload(path, bytes, { contentType: p.mime, upsert: false });
   if (error) {
-    if (__DEV__) console.warn('[Karakuchi] upload failed', error);
+    if (__DEV__) console.warn('[NAYQO] upload failed', error);
     throw new AttachmentError('upload_failed');
   }
   rememberLocal(path, p.uri);
@@ -218,7 +218,7 @@ export async function removeAttachmentFiles(paths: string[]) {
   if (!paths.length || !supabase) return;
   for (let i = 0; i < paths.length; i += 100) {
     const { error } = await storage().remove(paths.slice(i, i + 100));
-    if (error && __DEV__) console.warn('[Karakuchi] remove files failed', error);
+    if (error && __DEV__) console.warn('[NAYQO] remove files failed', error);
   }
 }
 

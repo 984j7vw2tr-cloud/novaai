@@ -89,7 +89,17 @@ function detect(text) {
   // ベトナム語は特有の文字で判定
   if (count(t, /[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/gi) >= 3) return 'vi';
   const code = franc(t, { minLength: 10 });
-  const map = { eng: 'en', spa: 'es', fra: 'fr', deu: 'de', ita: 'it', por: 'pt', ind: 'id', zlm: 'id', vie: 'vi' };
+  const map = {
+    eng: 'en',
+    spa: 'es',
+    fra: 'fr',
+    deu: 'de',
+    ita: 'it',
+    por: 'pt',
+    ind: 'id',
+    zlm: 'id',
+    vie: 'vi',
+  };
   return map[code] ?? `?${code}`;
 }
 
@@ -114,7 +124,8 @@ const sameQuestion = {
   vi: 'Tôi muốn nghỉ việc và sống bằng giao dịch trong ngày với 100 triệu đồng tiết kiệm. Trả lời trong 3 câu.',
 };
 
-const FLATTERY = /great question|素晴らしい|いい質問|좋은 질문|好问题|好問題|excelente pregunta|bonne question|gute frage|ottima domanda|ótima pergunta|отличный вопрос|سؤال رائع|बढ़िया सवाल|pertanyaan bagus|คำถามที่ดี|câu hỏi hay/i;
+const FLATTERY =
+  /great question|素晴らしい|いい質問|좋은 질문|好问题|好問題|excelente pregunta|bonne question|gute frage|ottima domanda|ótima pergunta|отличный вопрос|سؤال رائع|बढ़िया सवाल|pertanyaan bagus|คำถามที่ดี|câu hỏi hay/i;
 
 const cases = [
   ...Object.entries(sameQuestion).map(([lang, q]) => ({
@@ -125,7 +136,10 @@ const cases = [
   })),
   {
     name: '会話の途中で言語を変える（日本語→英語）',
-    turns: ['東京でおすすめの勉強法は？一言で。', 'Now answer in English: what is the single best study habit? One sentence.'],
+    turns: [
+      '東京でおすすめの勉強法は？一言で。',
+      'Now answer in English: what is the single best study habit? One sentence.',
+    ],
     expect: 'en',
   },
   {
@@ -194,8 +208,13 @@ for (const c of selected) {
     continue;
   }
   const got = detect(result.reply);
-  console.log(`  Karakuchi: ${result.reply.replace(/\n+/g, ' ').slice(0, 160)}${result.reply.length > 160 ? '…' : ''}`);
-  const checks = { [`言語 = ${c.expect}（判定：${got}）`]: () => got === c.expect, ...(c.extra ?? {}) };
+  console.log(
+    `  NAYQO: ${result.reply.replace(/\n+/g, ' ').slice(0, 160)}${result.reply.length > 160 ? '…' : ''}`,
+  );
+  const checks = {
+    [`言語 = ${c.expect}（判定：${got}）`]: () => got === c.expect,
+    ...(c.extra ?? {}),
+  };
   for (const [label, fn] of Object.entries(checks)) {
     const ok = fn(result.reply);
     console.log(`  ${ok ? '✓' : '✗'} ${label}`);
