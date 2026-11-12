@@ -6,6 +6,8 @@ export const vi: Strings = {
   composerPlaceholder: 'Hỏi gì cũng được. Không nịnh.',
   send: 'Gửi',
   stop: 'Dừng',
+  priceWithTax: '{price} đã gồm thuế',
+  legalNotice: 'Thông báo pháp lý (Nhật Bản)',
   planChatUnlimited: 'Chat không giới hạn',
   planFilesUnlimited: 'Ảnh và tệp không giới hạn',
   planFilesPerDay: 'Ảnh và tệp: tối đa {n} lần mỗi ngày',

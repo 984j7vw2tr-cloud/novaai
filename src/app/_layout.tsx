@@ -82,6 +82,10 @@ function Screens() {
         <Stack.Screen name="signup" options={{ title: 'Karakuchi AI — Sign up' }} />
       </Stack.Protected>
       <Stack.Screen name="language" options={{ title: 'Karakuchi AI — Language' }} />
+      <Stack.Screen
+        name="tokushoho"
+        options={{ title: 'Karakuchi AI — 特定商取引法に基づく表記' }}
+      />
       <Stack.Screen name="auth/callback" options={{ title: 'Karakuchi AI' }} />
     </Stack>
   );

@@ -6,6 +6,8 @@ export const fr: Strings = {
   composerPlaceholder: 'Demande ce que tu veux. Pas de flatterie.',
   send: 'Envoyer',
   stop: 'Arrêter',
+  priceWithTax: '{price} TTC',
+  legalNotice: 'Mentions légales (Japon)',
   planChatUnlimited: 'Chat illimité',
   planFilesUnlimited: 'Photos et fichiers illimités',
   planFilesPerDay: 'Photos et fichiers : jusqu’à {n} par jour',

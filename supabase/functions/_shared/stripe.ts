@@ -6,7 +6,7 @@ import type { Env } from './auth.ts';
 
 export type Plan = 'plus' | 'pro';
 
-/** 月額の値段（円）。環境変数 PRICE_PLUS_JPY / PRICE_PRO_JPY で変えられる */
+/** 月額の値段（円・税抜）。環境変数 PRICE_PLUS_JPY / PRICE_PRO_JPY で変えられる */
 export const DEFAULT_PRICES_JPY: Record<Plan, number> = { plus: 480, pro: 950 };
 
 export const PLAN_NAMES: Record<Plan, string> = {
@@ -16,6 +16,15 @@ export const PLAN_NAMES: Record<Plan, string> = {
 
 /** Stripe の中で値段を探すための目印（lookup_key） */
 export const lookupKey = (plan: Plan) => `karakuchi_${plan}_monthly`;
+
+/** 消費税率（表示用。環境変数 TAX_RATE で変えられる） */
+export function taxRate(env: Env): number {
+  const n = Number(env.get('TAX_RATE'));
+  return Number.isFinite(n) && n >= 0 && n < 1 ? n : 0.1;
+}
+
+/** 税込の金額（円・端数は切り捨て） */
+export const withTax = (amount: number, rate: number) => Math.floor(amount * (1 + rate) + 1e-9);
 
 export function priceFor(plan: Plan, env: Env): number {
   const n = Number(env.get(`PRICE_${plan.toUpperCase()}_JPY`));
@@ -124,6 +133,7 @@ export async function ensurePrice(
       id: string;
       unit_amount: number;
       currency: string;
+      tax_behavior?: string | null;
       product: { id: string; tax_code: string | { id: string } | null } | string;
     }[];
   }>('GET', '/v1/prices', {
@@ -133,7 +143,13 @@ export async function ensurePrice(
     'expand[]': 'data.product',
   });
   const current = found.data[0];
-  if (current && current.unit_amount === amount && current.currency === 'jpy') {
+  // 値段は「税抜」（消費税はお客さんの支払い時に上乗せ）。税の扱いが違う古い値段は作り直す
+  if (
+    current &&
+    current.unit_amount === amount &&
+    current.currency === 'jpy' &&
+    current.tax_behavior === 'exclusive'
+  ) {
     // 以前に税の種類なしで作った商品なら、ここで付ける
     const product = typeof current.product === 'object' ? current.product : null;
     const code =
@@ -148,6 +164,7 @@ export async function ensurePrice(
   const created = await stripe.request<{ id: string }>('POST', '/v1/prices', {
     currency: 'jpy',
     unit_amount: amount,
+    tax_behavior: 'exclusive',
     recurring: { interval: 'month' },
     lookup_key: lookupKey(plan),
     transfer_lookup_key: current ? 'true' : undefined,

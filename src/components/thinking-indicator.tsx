@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { NovaText } from '@/components/nova-text';
-import { BrandMark } from '@/components/wordmark';
-import { Spacing } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 
+const SIZE = 14;
+
 /**
- * AIが考え中のときの表示：Karakuchi のマーク（炎とハート）が、ゆっくり呼吸するように明滅する。
- * 動きは小さく、ゆっくり（長く見ていても気にならないように）。
+ * AIが考え中のときの表示：えんじ色の〇が、ゆっくり大きく・小さくなりながら点滅する（ChatGPT風）。
+ * 文字やアイコンは出さない（読み上げ用に「考え中」とだけ伝える）。
  */
 export function ThinkingIndicator() {
   const { t } = useI18n();
@@ -19,13 +19,13 @@ export function ThinkingIndicator() {
       Animated.sequence([
         Animated.timing(pulse, {
           toValue: 1,
-          duration: 900,
+          duration: 700,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 0,
-          duration: 900,
+          duration: 700,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
@@ -35,21 +35,17 @@ export function ThinkingIndicator() {
     return () => loop.stop();
   }, [pulse]);
 
-  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] });
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.86, 1.04] });
+  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] });
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.72, 1] });
 
   return (
     <View style={styles.row} accessibilityLabel={t.thinking} accessibilityRole="progressbar">
-      <Animated.View style={{ opacity, transform: [{ scale }] }}>
-        <BrandMark size={16} />
-      </Animated.View>
-      <NovaText variant="small" tone="muted">
-        {t.thinking}
-      </NovaText>
+      <Animated.View style={[styles.dot, { opacity, transform: [{ scale }] }]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm + 2, paddingVertical: 3 },
+  row: { height: 26, justifyContent: 'center', alignSelf: 'flex-start' },
+  dot: { width: SIZE, height: SIZE, borderRadius: SIZE / 2, backgroundColor: Colors.accent },
 });

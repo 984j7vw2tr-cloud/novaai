@@ -6,6 +6,8 @@ export const de: Strings = {
   composerPlaceholder: 'Frag, was du willst. Keine Schmeicheleien.',
   send: 'Senden',
   stop: 'Stopp',
+  priceWithTax: '{price} inkl. Steuer',
+  legalNotice: 'Rechtliche Hinweise (Japan)',
   planChatUnlimited: 'Unbegrenzt chatten',
   planFilesUnlimited: 'Fotos und Dateien unbegrenzt',
   planFilesPerDay: 'Fotos und Dateien: bis zu {n} pro Tag',

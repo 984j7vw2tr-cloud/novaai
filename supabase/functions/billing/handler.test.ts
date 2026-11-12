@@ -104,6 +104,7 @@ test('status：無料プラン・値段・テストモードを返す', async ()
   assert.equal(body.plan, 'free');
   assert.equal(body.mode, 'test');
   assert.deepEqual(body.prices, { plus: 480 });
+  assert.deepEqual(body.pricesWithTax, { plus: 528 });
   assert.deepEqual(body.limits, { free: 10, plus: null });
   assert.deepEqual(body.attachmentLimits, { free: 3, plus: null });
   assert.deepEqual(body.attachments, { limit: 3, used: 2 });
@@ -126,6 +127,7 @@ test('checkout：お客様を作って覚え、値段（480円/月）を用意�
   assert.match(price, /recurring\[interval\]=month/);
   assert.match(price, /lookup_key=karakuchi_plus_monthly/);
   assert.match(price, /product_data\[tax_code\]=txcd_10103000/);
+  assert.match(price, /tax_behavior=exclusive/);
   const session = decodeURIComponent(
     w.calls.find((c) => c.url.endsWith('/checkout/sessions'))!.body,
   );
@@ -149,6 +151,7 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
         id: 'price_old',
         unit_amount: 480,
         currency: 'jpy',
+        tax_behavior: 'exclusive',
         product: { id: 'prod_1', tax_code: 'txcd_10103000' },
       },
     ],
@@ -163,11 +166,30 @@ test('checkout：同じ値段がすでにあれば作り直さない。値段を
         id: 'price_old',
         unit_amount: 480,
         currency: 'jpy',
+        tax_behavior: 'exclusive',
         product: { id: 'prod_1', tax_code: null },
       },
     ],
   });
   await noTax.call({ action: 'checkout', plan: 'plus' });
+  // 税の扱いが「税抜」でない古い値段は作り直す
+  const unspecified = world({
+    prices: [
+      {
+        id: 'p',
+        unit_amount: 480,
+        currency: 'jpy',
+        tax_behavior: 'unspecified',
+        product: { id: 'prod_1', tax_code: 'txcd_10103000' },
+      },
+    ],
+  });
+  await unspecified.call({ action: 'checkout', plan: 'plus' });
+  const re = decodeURIComponent(
+    unspecified.calls.find((c) => c.url === 'https://api.stripe.com/v1/prices')!.body,
+  );
+  assert.match(re, /tax_behavior=exclusive/);
+  assert.match(re, /transfer_lookup_key=true/);
   const upd = noTax.calls.find((c) => c.url === 'https://api.stripe.com/v1/products/prod_1');
   assert.equal(decodeURIComponent(upd!.body), 'tax_code=txcd_10103000');
   const changed = world({ prices: [{ id: 'price_old', unit_amount: 980, currency: 'jpy' }] });

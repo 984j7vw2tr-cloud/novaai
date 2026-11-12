@@ -6,6 +6,8 @@ export const es: Strings = {
   composerPlaceholder: 'Pregunta lo que sea. Sin halagos.',
   send: 'Enviar',
   stop: 'Detener',
+  priceWithTax: '{price} con impuestos',
+  legalNotice: 'Aviso legal (Japón)',
   planChatUnlimited: 'Chat ilimitado',
   planFilesUnlimited: 'Fotos y archivos ilimitados',
   planFilesPerDay: 'Fotos y archivos: hasta {n} al día',

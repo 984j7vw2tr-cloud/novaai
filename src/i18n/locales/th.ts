@@ -6,6 +6,8 @@ export const th: Strings = {
   composerPlaceholder: 'ถามอะไรก็ได้ ไม่มีคำเยินยอ',
   send: 'ส่ง',
   stop: 'หยุด',
+  priceWithTax: '{price} รวมภาษี',
+  legalNotice: 'ประกาศทางกฎหมาย (ญี่ปุ่น)',
   planChatUnlimited: 'แชทไม่จำกัด',
   planFilesUnlimited: 'รูปภาพและไฟล์ไม่จำกัด',
   planFilesPerDay: 'รูปภาพและไฟล์: วันละไม่เกิน {n} ครั้ง',

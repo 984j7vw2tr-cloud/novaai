@@ -83,7 +83,7 @@ export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClos
         ) : null}
       </ScrollView>
 
-      <UserFooter />
+      <UserFooter onNewChat={onNewChat} />
     </View>
   );
 }
@@ -161,8 +161,8 @@ function ConversationRow({
   );
 }
 
-/** 下の部分：ログイン中の人と、設定への入り口 */
-function UserFooter() {
+/** 下の部分：左＝ログイン中の人（押すと設定）、右＝えんじ色の「＋ 新規チャット」 */
+function UserFooter({ onNewChat }: { onNewChat: () => void }) {
   const { t } = useI18n();
   const { session, authRequired } = useAuth();
   const userId = session?.user.id;
@@ -204,7 +204,16 @@ function UserFooter() {
             {t.settings}
           </NovaText>
         </View>
-        <Icon name="settings" size={18} color={Colors.textMuted} />
+      </Pressable>
+      <Pressable
+        onPress={onNewChat}
+        accessibilityRole="button"
+        accessibilityLabel={t.newChat}
+        style={(state) => [styles.newChatPill, isActive(state) && styles.newChatPillActive]}>
+        <Icon name="plus" size={16} color={Colors.onAccent} strokeWidth={2.5} />
+        <NovaText variant="smallMedium" style={styles.newChatText} numberOfLines={1}>
+          {t.newChat}
+        </NovaText>
       </Pressable>
     </View>
   );
@@ -265,17 +274,33 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     padding: Spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.borderSubtle,
   },
   user: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     padding: Spacing.sm,
     borderRadius: Radius.md,
   },
+  newChatPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs + 2,
+    height: 40,
+    paddingHorizontal: Spacing.md + 2,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.accent,
+  },
+  newChatPillActive: { opacity: 0.85 },
+  newChatText: { color: Colors.onAccent },
   avatar: {
     width: 32,
     height: 32,

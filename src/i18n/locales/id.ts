@@ -6,6 +6,8 @@ export const id: Strings = {
   composerPlaceholder: 'Tanya apa saja. Tanpa sanjungan.',
   send: 'Kirim',
   stop: 'Hentikan',
+  priceWithTax: '{price} termasuk pajak',
+  legalNotice: 'Pemberitahuan hukum (Jepang)',
   planChatUnlimited: 'Chat tanpa batas',
   planFilesUnlimited: 'Foto dan file tanpa batas',
   planFilesPerDay: 'Foto dan file: hingga {n} per hari',

@@ -10,7 +10,15 @@
  */
 import { authenticate, type Env, UUID_RE } from '../_shared/auth.ts';
 import { corsHeaders } from '../_shared/http.ts';
-import { createStripe, ensurePrice, type Plan, priceFor, StripeError } from '../_shared/stripe.ts';
+import {
+  createStripe,
+  ensurePrice,
+  type Plan,
+  priceFor,
+  StripeError,
+  taxRate,
+  withTax,
+} from '../_shared/stripe.ts';
 import { createDb, PAID_STATUSES, syncSubscription } from '../_shared/subscriptions.ts';
 import { recentAttachmentPaths } from '../_shared/attachment-uses.ts';
 import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts';
@@ -104,7 +112,9 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
           cancelAtPeriodEnd: paid ? Boolean(row!.cancel_at_period_end) : false,
           manageable: Boolean(row?.stripe_customer_id),
           mode: !stripe.configured ? 'off' : stripe.testMode ? 'test' : 'live',
+          // 値段は税抜。画面には税込の金額も出す（総額表示）
           prices: { plus: priceFor('plus', env) },
+          pricesWithTax: { plus: withTax(priceFor('plus', env), taxRate(env)) },
           // 無制限は null
           limits: {
             free: finiteOrNull(limitFor('free', env)),

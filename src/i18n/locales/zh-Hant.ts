@@ -6,6 +6,8 @@ export const zhHant: Strings = {
   composerPlaceholder: '儘管問。不說客套話。',
   send: '傳送',
   stop: '停止',
+  priceWithTax: '含稅 {price}',
+  legalNotice: '依日本特定商業交易法之標示',
   planChatUnlimited: '聊天無限制',
   planFilesUnlimited: '照片和檔案也無限制',
   planFilesPerDay: '照片和檔案每天最多 {n} 次',

@@ -6,6 +6,8 @@ export const ru: Strings = {
   composerPlaceholder: 'Спрашивай что угодно. Без лести.',
   send: 'Отправить',
   stop: 'Стоп',
+  priceWithTax: '{price} с налогом',
+  legalNotice: 'Правовая информация (Япония)',
   planChatUnlimited: 'Безлимитный чат',
   planFilesUnlimited: 'Фото и файлы без ограничений',
   planFilesPerDay: 'Фото и файлы: до {n} в день',

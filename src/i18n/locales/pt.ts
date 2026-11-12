@@ -6,6 +6,8 @@ export const pt: Strings = {
   composerPlaceholder: 'Pergunte qualquer coisa. Sem bajulação.',
   send: 'Enviar',
   stop: 'Parar',
+  priceWithTax: '{price} com impostos',
+  legalNotice: 'Aviso legal (Japão)',
   planChatUnlimited: 'Chat ilimitado',
   planFilesUnlimited: 'Fotos e arquivos ilimitados',
   planFilesPerDay: 'Fotos e arquivos: até {n} por dia',

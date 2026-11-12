@@ -20,7 +20,10 @@ export type BillingStatus = {
   manageable: boolean;
   /** test=テストモード / live=本番 / off=未設定 */
   mode: 'test' | 'live' | 'off';
+  /** 税抜の値段（円） */
   prices: Record<PaidPlan, number>;
+  /** 税込の値段（円・総額表示用） */
+  pricesWithTax: Record<PaidPlan, number>;
   /** 1日に質問できる回数（null＝無制限） */
   limits: Record<'free' | 'plus', number | null>;
   /** 1日に添付できる写真・ファイルの数（null＝無制限） */

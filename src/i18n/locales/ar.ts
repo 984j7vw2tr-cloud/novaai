@@ -6,6 +6,8 @@ export const ar: Strings = {
   composerPlaceholder: 'اسأل عن أي شيء. بلا مجاملات.',
   send: 'إرسال',
   stop: 'إيقاف',
+  priceWithTax: '{price} شامل الضريبة',
+  legalNotice: 'إشعار قانوني (اليابان)',
   planChatUnlimited: 'دردشة غير محدودة',
   planFilesUnlimited: 'صور وملفات غير محدودة',
   planFilesPerDay: 'الصور والملفات: حتى {n} يوميًا',
