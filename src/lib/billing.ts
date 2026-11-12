@@ -30,6 +30,8 @@ export type BillingStatus = {
   attachmentLimits: Record<'free' | 'plus', number | null>;
   /** 1日に作れる画像の枚数 */
   imageLimits?: Record<'free' | 'plus', number>;
+  /** 1日に音声会話できる時間（分） */
+  voiceMinutes?: Record<'free' | 'plus', number>;
   /** 今の自分の、今日の添付の状況 */
   attachments: { limit: number | null; used: number };
 };

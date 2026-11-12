@@ -57,6 +57,8 @@ type Props = {
   placeholder?: string;
   /** ＋メニューの「画像を作成」を押したとき */
   onCreateImage?: () => void;
+  /** 音声会話（リアルタイム）を始める。なければボタンを出さない */
+  onVoiceMode?: () => void;
 };
 
 const BUTTON = 36;
@@ -93,6 +95,7 @@ export function Composer({
   onUpgrade,
   placeholder,
   onCreateImage,
+  onVoiceMode,
 }: Props) {
   const window = useWindowDimensions();
   const { t } = useI18n();
@@ -186,19 +189,33 @@ export function Composer({
         <ActivityIndicator size="small" color={Colors.textSecondary} />
       </View>
     );
-  } else if (!hasContent && voice) {
+  } else if (!hasContent && (voice || onVoiceMode)) {
+    // 空のとき：マイク（声で入力）と、音声会話のボタン
     action = (
-      <Pressable
-        onPress={voice.start}
-        accessibilityRole="button"
-        accessibilityLabel={t.voiceInput}
-        style={(state) => [
-          styles.button,
-          styles.buttonGhost,
-          isActive(state) && styles.ghostPressed,
-        ]}>
-        <Icon name="mic" size={20} color={Colors.text} />
-      </Pressable>
+      <>
+        {voice ? (
+          <Pressable
+            onPress={voice.start}
+            accessibilityRole="button"
+            accessibilityLabel={t.voiceInput}
+            style={(state) => [
+              styles.button,
+              styles.buttonGhost,
+              isActive(state) && styles.ghostPressed,
+            ]}>
+            <Icon name="mic" size={20} color={Colors.text} />
+          </Pressable>
+        ) : null}
+        {onVoiceMode ? (
+          <Pressable
+            onPress={onVoiceMode}
+            accessibilityRole="button"
+            accessibilityLabel={t.voiceMode}
+            style={(state) => [styles.button, styles.buttonOn, isActive(state) && styles.pressed]}>
+            <Icon name="voiceMode" size={19} strokeWidth={2.25} color={Colors.onAccent} />
+          </Pressable>
+        ) : null}
+      </>
     );
   } else {
     action = (

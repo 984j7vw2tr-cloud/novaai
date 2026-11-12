@@ -8,6 +8,26 @@ export type Strings = {
   generatingImage: string;
   /** ウェブ検索中の表示 */
   searchingWeb: string;
+  /** 音声会話（リアルタイム） */
+  voiceMode: string;
+  voiceConnecting: string;
+  voiceListening: string;
+  voiceUserSpeaking: string;
+  voiceSpeaking: string;
+  voiceRemaining: string;
+  voiceMute: string;
+  voiceUnmute: string;
+  voiceEnd: string;
+  voiceMicDenied: string;
+  voiceLimitFree: string;
+  voiceLimitPlus: string;
+  voiceCallFailed: string;
+  voiceUnsupported: string;
+  voiceDropped: string;
+  voiceTimeUp: string;
+  voiceTitle: string;
+  planVoicePerDay: string;
+  voiceClose: string;
   createImage: string;
   createImagePrefix: string;
   planImagesPerDay: string;

@@ -4,6 +4,7 @@
  */
 import {
   ArrowUp,
+  AudioLines,
   Camera,
   Check,
   ChevronLeft,
@@ -20,6 +21,7 @@ import {
   MessageCircleDashed,
   MessageCircleCheck,
   Mic,
+  MicOff,
   PanelLeft,
   Paperclip,
   Plus,
@@ -98,6 +100,8 @@ export const Icons = {
   file: FileText,
   attach: Paperclip,
   mic: Mic,
+  micOff: MicOff,
+  voiceMode: AudioLines,
   plan: CreditCard,
   sparkle: Sparkles,
 } satisfies Record<string, LucideIcon>;

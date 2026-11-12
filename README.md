@@ -67,6 +67,9 @@ Supabase の Edge Functions → Secrets に設定する値：
 | `WEB_SEARCH` | `off` でウェブ検索を止める（既定 on） | |
 | `OPENAI_IMAGE_MODEL` | 画像を作るモデル（例 gpt-image-2） | |
 | `IMAGE_LIMIT_FREE` / `IMAGE_LIMIT_PLUS` | 1日に作れる画像の枚数（既定 2 / 30） | |
+| `OPENAI_REALTIME_MODEL` | 音声会話のモデル（既定 gpt-realtime-2.1-mini） | |
+| `OPENAI_REALTIME_VOICE` | 音声会話の声（既定 cedar＝低めの落ち着いた男性声） | |
+| `VOICE_MINUTES_FREE` / `VOICE_MINUTES_PLUS` | 1日に音声会話できる時間・分（既定 3 / 30） | |
 | `RATE_LIMIT_PER_MINUTE` | 同じ接続元からの1分あたりの上限（既定 20） | |
 | `ALLOWED_ORIGINS` | 呼び出しを許可するWebサイト（既定 `*`、公開時に絞る） | |
 | `AI_PROVIDER` | 使うAI会社（既定 `openai`） | |
