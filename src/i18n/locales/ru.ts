@@ -6,6 +6,12 @@ export const ru: Strings = {
   composerPlaceholder: 'Спрашивай что угодно. Без лести.',
   send: 'Отправить',
   stop: 'Стоп',
+  planChatUnlimited: 'Безлимитный чат',
+  planFilesUnlimited: 'Фото и файлы без ограничений',
+  planFilesPerDay: 'Фото и файлы: до {n} в день',
+  attachLimitReached:
+    'Ты достиг сегодняшнего лимита на фото и файлы. Перейди на PLUS, чтобы прикреплять без ограничений.',
+  upgradeToPlus: 'Перейти на PLUS',
   plans: 'Тарифы',
   plansSubtitle: 'Выбери тариф под себя. Отменить можно в любой момент.',
   priceFree: 'Бесплатно',

@@ -22,6 +22,8 @@ import {
   ownsAll,
   parseAttachments,
 } from './attachments.ts';
+import { recentAttachmentPaths, recordAttachmentPaths } from '../_shared/attachment-uses.ts';
+import { attachmentLimitFor } from '../_shared/plans.ts';
 import { getQuotaStatus } from './quota.ts';
 import { BLOCKED_OUTPUT_CATEGORIES, hasAny, SELF_HARM_CATEGORIES } from './providers/moderation.ts';
 import type { ModerationInput } from './providers/moderation.ts';
@@ -51,7 +53,8 @@ export type ErrorCode =
   | 'service_unavailable'
   | 'upstream_error'
   | 'unauthorized'
-  | 'quota_exceeded';
+  | 'quota_exceeded'
+  | 'attachment_limit';
 
 type Deps = {
   env: Env;
@@ -106,6 +109,23 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     if (allAttachments.length && (!UUID_RE.test(userId) || !ownsAll(allAttachments, userId))) {
       console.warn('[chat] invalid request: attachment not owned by user');
       return errorResponse(400, 'invalid_request', cors);
+    }
+
+    // 写真・ファイルの1日の上限（無料プランは3回まで）。今回の発言で新しく付けたものだけ数える
+    const newPaths = parsed.messages[parsed.messages.length - 1].attachments.map((a) => a.path);
+    if (newPaths.length && quota) {
+      const attachLimit = attachmentLimitFor(quota.plan, env);
+      const recent = await recentAttachmentPaths(env, doFetch, userId, now());
+      if (recent) {
+        const fresh = newPaths.filter((p) => !recent.includes(p));
+        if (Number.isFinite(attachLimit) && recent.length + fresh.length > attachLimit) {
+          return errorResponse(429, 'attachment_limit', cors, undefined, {
+            limit: attachLimit,
+            used: recent.length,
+          });
+        }
+        await recordAttachmentPaths(env, doFetch, userId, fresh);
+      }
     }
 
     const provider = getProvider(env, fetchImpl);
@@ -171,7 +191,7 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
           cached: 0,
         };
         // 最初に、今日の残り回数を知らせる（アプリに「残り○回」を出すため）
-        if (quota) {
+        if (quota && Number.isFinite(quota.limit)) {
           send({
             type: 'quota',
             plan: quota.plan,

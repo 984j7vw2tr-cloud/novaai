@@ -19,7 +19,7 @@ import {
   startCheckout,
 } from '@/lib/billing';
 
-const PLAN_LABEL: Record<PlanId, string> = { free: 'FREE', plus: 'PLUS', pro: 'PRO' };
+const PLAN_LABEL: Record<PlanId, string> = { free: 'FREE', plus: 'PLUS', pro: 'PLUS' };
 
 export default function PlansScreen() {
   const { t, uiLanguage } = useI18n();
@@ -43,8 +43,18 @@ export default function PlansScreen() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let active = true;
+    getBillingStatus()
+      .then((s) => {
+        if (active) setStatus(s);
+      })
+      .catch(() => {
+        if (active) setLoadFailed(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 支払いから戻ってきた直後は、Stripe からの知らせが届くまで数秒待って何度か読み直す
   useEffect(() => {
@@ -83,7 +93,19 @@ export default function PlansScreen() {
   const date = (iso: string) =>
     new Intl.DateTimeFormat(uiLanguage, { dateStyle: 'medium' }).format(new Date(iso));
 
-  const current = status?.plan ?? 'free';
+  // 以前の PRO 契約は PLUS として表示する
+  const count = (n: number) => n.toLocaleString(uiLanguage);
+  /** プランの説明：回数（無制限なら「無制限」）と、写真・ファイルの数 */
+  const features = (id: 'free' | 'plus') => {
+    if (!status) return [];
+    const chat = status.limits[id];
+    const files = status.attachmentLimits[id];
+    return [
+      chat === null ? t.planChatUnlimited : t.perDayMessages.replace('{n}', count(chat)),
+      files === null ? t.planFilesUnlimited : t.planFilesPerDay.replace('{n}', count(files)),
+    ];
+  };
+  const current: 'free' | 'plus' = status && status.plan !== 'free' ? 'plus' : 'free';
   const paid = current !== 'free';
 
   return (
@@ -114,7 +136,7 @@ export default function PlansScreen() {
 
       {status ? (
         <View style={styles.cards}>
-          {(['free', 'plus', 'pro'] as const).map((id) => {
+          {(['free', 'plus'] as const).map((id) => {
             const isCurrent = current === id;
             const highlight = id === 'plus';
             return (
@@ -146,13 +168,9 @@ export default function PlansScreen() {
                     </NovaText>
                   ) : null}
                 </View>
-                <Feature
-                  text={t.perDayMessages.replace(
-                    '{n}',
-                    status.limits[id].toLocaleString(uiLanguage),
-                  )}
-                />
-                <Feature text={t.planFeatureAll} />
+                {features(id).map((f) => (
+                  <Feature key={f} text={f} />
+                ))}
 
                 {isCurrent && paid && status.currentPeriodEnd ? (
                   <NovaText variant="caption" tone="muted">

@@ -7,8 +7,9 @@ import { fetch } from 'expo/fetch';
 import { getAccessToken } from '@/auth';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/config';
 
-export type PaidPlan = 'plus' | 'pro';
-export type PlanId = 'free' | PaidPlan;
+/** 販売しているのは PLUS だけ（PRO は販売終了。以前の契約は PLUS と同じ扱い） */
+export type PaidPlan = 'plus';
+export type PlanId = 'free' | 'plus' | 'pro';
 
 export type BillingStatus = {
   plan: PlanId;
@@ -20,7 +21,12 @@ export type BillingStatus = {
   /** test=テストモード / live=本番 / off=未設定 */
   mode: 'test' | 'live' | 'off';
   prices: Record<PaidPlan, number>;
-  limits: Record<PlanId, number>;
+  /** 1日に質問できる回数（null＝無制限） */
+  limits: Record<'free' | 'plus', number | null>;
+  /** 1日に添付できる写真・ファイルの数（null＝無制限） */
+  attachmentLimits: Record<'free' | 'plus', number | null>;
+  /** 今の自分の、今日の添付の状況 */
+  attachments: { limit: number | null; used: number };
 };
 
 export class BillingError extends Error {

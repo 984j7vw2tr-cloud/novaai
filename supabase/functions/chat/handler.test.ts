@@ -753,10 +753,10 @@ test('残りがあれば使える。最初の行で残り回数を知らせる�
   assert.equal(seen.chat, 1);
 });
 
-test('有効なPLUSなら上限200。期限切れ・停止中のPLUSは無料扱い', async () => {
+test('有効なPLUSなら無制限（何回使っても通る・回数は知らせない）。期限切れ・停止中は無料扱い', async () => {
   const q = quiet();
   const plus = fakeQuotaWorld({
-    used: 50,
+    used: 5000,
     sub: { plan: 'plus', status: 'active', current_period_end: '2026-12-01T00:00:00Z' },
   });
   const r1 = await readLines(
@@ -779,7 +779,8 @@ test('有効なPLUSなら上限200。期限切れ・停止中のPLUSは無料扱
     now: () => NOW,
   })(authed());
   q.restore();
-  assert.deepEqual(r1[0], { type: 'quota', plan: 'plus', limit: 200, remaining: 149 });
+  assert.notEqual(r1[0].type, 'quota');
+  assert.equal(r1.at(-1).type, 'done');
   assert.equal(r2.status, 429);
   assert.equal((await r2.json()).plan, 'free');
   assert.equal(r3.status, 429);

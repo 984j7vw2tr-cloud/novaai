@@ -6,6 +6,12 @@ export const pt: Strings = {
   composerPlaceholder: 'Pergunte qualquer coisa. Sem bajulação.',
   send: 'Enviar',
   stop: 'Parar',
+  planChatUnlimited: 'Chat ilimitado',
+  planFilesUnlimited: 'Fotos e arquivos ilimitados',
+  planFilesPerDay: 'Fotos e arquivos: até {n} por dia',
+  attachLimitReached:
+    'Você atingiu o limite de hoje para fotos e arquivos. Assine o PLUS para anexar sem limites.',
+  upgradeToPlus: 'Assinar o PLUS',
   plans: 'Planos',
   plansSubtitle: 'Escolha o plano que combina com você. Cancele quando quiser.',
   priceFree: 'Grátis',

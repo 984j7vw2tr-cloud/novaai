@@ -54,6 +54,8 @@ export async function getQuotaStatus(
       (!sub.current_period_end || Date.parse(sub.current_period_end) > now);
     const plan: Plan = active && (sub.plan === 'plus' || sub.plan === 'pro') ? sub.plan : 'free';
     const limit = limitFor(plan, env);
+    // 無制限のプランは数えない
+    if (!Number.isFinite(limit)) return { plan, limit, used: 0, resetAt: null };
 
     // 2) 直近24時間の回数（いちばん古い1件と、全体の件数）
     const since = new Date(now - WINDOW_MS).toISOString();

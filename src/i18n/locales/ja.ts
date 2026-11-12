@@ -6,6 +6,12 @@ export const ja: Strings = {
   composerPlaceholder: '何でも聞いて。お世辞は言わない。',
   send: '送信',
   stop: '停止',
+  planChatUnlimited: 'チャット無制限',
+  planFilesUnlimited: '写真・ファイルも無制限',
+  planFilesPerDay: '写真・ファイルは1日{n}回まで',
+  attachLimitReached:
+    '今日の写真・ファイルの上限に達しました。PLUSにアップグレードすると、無制限に添付できます。',
+  upgradeToPlus: 'PLUSにアップグレード',
   plans: '料金プラン',
   plansSubtitle: '使い方に合うプランを選んで。いつでも解約できる。',
   priceFree: '無料',

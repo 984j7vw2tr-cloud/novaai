@@ -6,6 +6,12 @@ export const es: Strings = {
   composerPlaceholder: 'Pregunta lo que sea. Sin halagos.',
   send: 'Enviar',
   stop: 'Detener',
+  planChatUnlimited: 'Chat ilimitado',
+  planFilesUnlimited: 'Fotos y archivos ilimitados',
+  planFilesPerDay: 'Fotos y archivos: hasta {n} al día',
+  attachLimitReached:
+    'Has alcanzado el límite de hoy para fotos y archivos. Pásate a PLUS para adjuntar sin límites.',
+  upgradeToPlus: 'Pasar a PLUS',
   plans: 'Planes',
   plansSubtitle: 'Elige el plan que se ajuste a tu uso. Cancela cuando quieras.',
   priceFree: 'Gratis',

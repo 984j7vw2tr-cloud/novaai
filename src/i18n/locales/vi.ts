@@ -6,6 +6,12 @@ export const vi: Strings = {
   composerPlaceholder: 'Hỏi gì cũng được. Không nịnh.',
   send: 'Gửi',
   stop: 'Dừng',
+  planChatUnlimited: 'Chat không giới hạn',
+  planFilesUnlimited: 'Ảnh và tệp không giới hạn',
+  planFilesPerDay: 'Ảnh và tệp: tối đa {n} lần mỗi ngày',
+  attachLimitReached:
+    'Bạn đã đạt giới hạn ảnh và tệp hôm nay. Nâng lên PLUS để đính kèm không giới hạn.',
+  upgradeToPlus: 'Nâng lên PLUS',
   plans: 'Gói',
   plansSubtitle: 'Chọn gói phù hợp với cách bạn dùng. Hủy bất cứ lúc nào.',
   priceFree: 'Miễn phí',

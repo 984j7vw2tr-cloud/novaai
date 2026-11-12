@@ -12,7 +12,8 @@ import { authenticate, type Env, UUID_RE } from '../_shared/auth.ts';
 import { corsHeaders } from '../_shared/http.ts';
 import { createStripe, ensurePrice, type Plan, priceFor, StripeError } from '../_shared/stripe.ts';
 import { createDb, PAID_STATUSES } from '../_shared/subscriptions.ts';
-import { limitFor } from '../_shared/plans.ts';
+import { recentAttachmentPaths } from '../_shared/attachment-uses.ts';
+import { attachmentLimitFor, finiteOrNull, limitFor } from '../_shared/plans.ts';
 
 type Deps = { env: Env; fetchImpl?: typeof fetch; now?: () => number };
 
@@ -71,18 +72,32 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
       const viaStripe = paid && Boolean(row!.stripe_subscription_id);
 
       if (body.action === 'status') {
+        const plan = paid ? row!.plan : 'free';
+        const attachLimit = attachmentLimitFor(plan, env);
+        // 無料プランなら、今日あと何回写真・ファイルを付けられるか
+        const recent = Number.isFinite(attachLimit)
+          ? await recentAttachmentPaths(env, doFetch, userId, now())
+          : null;
         return json(200, {
-          plan: paid ? row!.plan : 'free',
+          plan,
           status: row?.status ?? null,
           currentPeriodEnd: paid ? row!.current_period_end : null,
           cancelAtPeriodEnd: paid ? Boolean(row!.cancel_at_period_end) : false,
           manageable: Boolean(row?.stripe_customer_id),
           mode: !stripe.configured ? 'off' : stripe.testMode ? 'test' : 'live',
-          prices: { plus: priceFor('plus', env), pro: priceFor('pro', env) },
+          prices: { plus: priceFor('plus', env) },
+          // 無制限は null
           limits: {
-            free: limitFor('free', env),
-            plus: limitFor('plus', env),
-            pro: limitFor('pro', env),
+            free: finiteOrNull(limitFor('free', env)),
+            plus: finiteOrNull(limitFor('plus', env)),
+          },
+          attachmentLimits: {
+            free: finiteOrNull(attachmentLimitFor('free', env)),
+            plus: finiteOrNull(attachmentLimitFor('plus', env)),
+          },
+          attachments: {
+            limit: finiteOrNull(attachLimit),
+            used: recent?.length ?? 0,
           },
         });
       }
@@ -106,7 +121,8 @@ export function createBillingHandler({ env, fetchImpl, now = Date.now }: Deps) {
 
       if (body.action === 'checkout') {
         const plan = body.plan;
-        if (plan !== 'plus' && plan !== 'pro') return fail(400, 'invalid_request');
+        // PRO は販売終了。新しく申し込めるのは PLUS だけ
+        if (plan !== 'plus') return fail(400, 'invalid_request');
 
         // Stripe の「お客様」を用意（初めてならここで作って覚えておく）
         let customerId = row?.stripe_customer_id ?? null;
