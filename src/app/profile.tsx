@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { type AuthErrorKind, useAuth } from '@/auth';
 import { Button, Field, Notice, Section } from '@/components/form';
+import { NovaText } from '@/components/nova-text';
 import { Group, ListRow, PageScreen } from '@/components/page-screen';
 import { useI18n } from '@/i18n';
 import { getLanguage } from '@/i18n/languages';
@@ -11,7 +12,7 @@ import { authErrorMessage } from '@/lib/auth-messages';
 import { getProfile, updateProfile } from '@/lib/profile';
 import { deleteMyAccount } from '@/lib/account';
 import { getBillingStatus } from '@/lib/billing';
-import { Palettes, THEME_NAMES, type ThemeName } from '@/constants/theme';
+import { Spacing, THEME_NAMES, type ThemeName } from '@/constants/theme';
 import { setTheme, useTheme } from '@/lib/theme-store';
 import { confirmAsync } from '@/lib/confirm';
 import { deleteAllConversations } from '@/lib/conversations';
@@ -31,6 +32,8 @@ export default function ProfileScreen() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<AuthErrorKind | null>(null);
   const theme = useTheme();
+  /** 外観の選択肢を開いているか */
+  const [themeOpen, setThemeOpen] = useState(false);
   const themeLabel: Record<ThemeName, string> = {
     dark: t.themeDark,
     light: t.themeLight,
@@ -172,23 +175,30 @@ export default function ProfileScreen() {
             onPress={() => router.push('/plans')}
             chevron
           />
-          <ListRow label={t.legalNotice} onPress={() => router.push('/tokushoho')} chevron />
         </Group>
       </Section>
 
       {/* 外観（テーマ） */}
+      {/* 「外観」を押したときだけ、選択肢を開く（選んでいるものに✓） */}
       <Section title={t.appearance}>
         <Group>
-          {THEME_NAMES.map((name, i) => (
-            <ListRow
-              key={name}
-              first={i === 0}
-              label={themeLabel[name]}
-              swatch={{ background: Palettes[name].background, accent: Palettes[name].accent }}
-              selected={theme === name}
-              onPress={() => setTheme(name)}
-            />
-          ))}
+          <ListRow
+            first
+            label={t.appearance}
+            value={themeLabel[theme]}
+            onPress={() => setThemeOpen((v) => !v)}
+            chevron
+          />
+          {themeOpen
+            ? THEME_NAMES.map((name) => (
+                <ListRow
+                  key={name}
+                  label={themeLabel[name]}
+                  selected={theme === name}
+                  onPress={() => setTheme(name)}
+                />
+              ))
+            : null}
         </Group>
       </Section>
 
@@ -248,10 +258,22 @@ export default function ProfileScreen() {
         busy={busy === 'signout'}
         disabled={!!busy}
       />
+
+      {/* いちばん下に小さく：特定商取引法に基づく表記 */}
+      <Pressable
+        onPress={() => router.push('/tokushoho')}
+        accessibilityRole="link"
+        style={styles.legal}>
+        <NovaText variant="caption" tone="muted" style={styles.legalText}>
+          {t.legalNotice}
+        </NovaText>
+      </Pressable>
     </PageScreen>
   );
 }
 
 const styles = StyleSheet.create({
   saveRow: { alignItems: 'flex-end' },
+  legal: { alignSelf: 'center', paddingVertical: Spacing.sm, marginTop: Spacing.md },
+  legalText: { textDecorationLine: 'underline' },
 });

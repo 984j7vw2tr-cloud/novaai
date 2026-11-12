@@ -159,25 +159,33 @@ export default function ChatScreen() {
   };
 
   const discardDraft = draft.discard;
-  const newChat = useCallback(() => {
-    reset();
-    discardDraft();
-    clearTempFiles();
-    setTemporary(false);
-    shownIdRef.current = null;
-    setActiveId(null);
-    router.setParams({ id: undefined });
-    setText('');
-    setDrawerOpen(false);
-    // すぐ文字を打てるように入力欄にカーソルを置く（スマホでキーボードが開くよう、押した瞬間にも呼ぶ）
-    inputRef.current?.focus();
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, [reset, discardDraft, clearTempFiles]);
+  /** 新しいチャットにする。focus=true なら、すぐ打てるよう入力欄にカーソルを置く */
+  const startNewChat = useCallback(
+    (focus: boolean) => {
+      reset();
+      discardDraft();
+      clearTempFiles();
+      setTemporary(false);
+      shownIdRef.current = null;
+      setActiveId(null);
+      router.setParams({ id: undefined });
+      setText('');
+      setDrawerOpen(false);
+      if (!focus) return;
+      // すぐ文字を打てるように入力欄にカーソルを置く（スマホでキーボードが開くよう、押した瞬間にも呼ぶ）
+      inputRef.current?.focus();
+      requestAnimationFrame(() => inputRef.current?.focus());
+    },
+    [reset, discardDraft, clearTempFiles],
+  );
+  const newChat = useCallback(() => startNewChat(true), [startNewChat]);
 
   /** 一時チャットの切り替え：いつも新しい会話から始める（ChatGPTと同じ） */
   const toggleTemporary = () => {
     const next = !temporary;
-    newChat();
+    // 切り替えるだけ。入力欄にカーソルは置かない（キーボードが開いて画面が動かないように）
+    inputRef.current?.blur();
+    startNewChat(false);
     setTemporary(next);
   };
 
@@ -324,21 +332,18 @@ export default function ChatScreen() {
               />
             ) : null}
           </View>
-          {/* 真ん中：無料プランなら「アップグレードする」。PLUSなら何も出さない */}
-          {allowance.plan === 'free' ? (
-            <Pressable
-              onPress={() => router.push('/plans')}
-              accessibilityRole="button"
-              accessibilityLabel={t.upgrade}
-              style={(state) => [styles.upgradePill, isActive(state) && styles.upgradePillActive]}>
-              <BrandMark size={20} />
-              <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
-                {t.upgrade}
-              </NovaText>
-            </Pressable>
-          ) : (
-            <View />
-          )}
+          {/* 真ん中：ロゴ＋「アップグレードする」（押すと料金プランの画面） */}
+          <Pressable
+            onPress={() => router.push('/plans')}
+            accessibilityRole="button"
+            accessibilityLabel={t.upgrade}
+            style={(state) => [styles.upgradePill, isActive(state) && styles.upgradePillActive]}>
+            <BrandMark size={20} />
+            <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
+              {t.upgrade}
+            </NovaText>
+          </Pressable>
+
           <View style={[styles.headerSide, styles.headerEnd]}>
             <IconButton
               icon={temporary ? 'temporaryOn' : 'temporary'}
