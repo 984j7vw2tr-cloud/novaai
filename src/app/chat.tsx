@@ -27,10 +27,11 @@ import { useAttachmentAllowance } from '@/hooks/use-attachment-allowance';
 import { useAttachmentDraft } from '@/hooks/use-attachment-draft';
 import { type ChatErrorKind, useChat } from '@/hooks/use-chat';
 import { useConversations } from '@/hooks/use-conversations';
+import { useHorizontalSwipe } from '@/hooks/use-horizontal-swipe';
 import { useVoiceInput } from '@/hooks/use-voice-input';
 import { useI18n } from '@/i18n';
 import type { Strings } from '@/i18n/types';
-import type { AttachError } from '@/lib/attachments';
+import { type AttachError, removeAttachmentFiles } from '@/lib/attachments';
 import type { ChatMessage } from '@/lib/chat-types';
 import { isDemoMode } from '@/lib/config';
 import { confirmAsync } from '@/lib/confirm';
@@ -48,6 +49,16 @@ export default function ChatScreen() {
 
   const conversations = useConversations();
   const refreshConversations = conversations.refresh;
+
+  /** 一時チャット（履歴に残さない会話）中か */
+  const [temporary, setTemporary] = useState(false);
+  /** 一時チャットで送った写真・ファイル（やめるときに置き場所から消す） */
+  const tempFilesRef = useRef<string[]>([]);
+  const clearTempFiles = useCallback(() => {
+    const paths = tempFilesRef.current;
+    tempFilesRef.current = [];
+    void removeAttachmentFiles(paths);
+  }, []);
 
   /** 今この画面に読み込んである（または自分で作った）会話のID */
   const shownIdRef = useRef<string | null>(null);
@@ -77,6 +88,8 @@ export default function ChatScreen() {
     reset,
     load,
   } = useChat({
+    // 一時チャット中は保存しない（履歴に残らない）
+    persist: !isDemoMode && !temporary,
     onConversationCreated,
     attachmentTitle: (list) =>
       list.every((a) => a.kind === 'image') ? t.photo : (list[0]?.name ?? t.attachedFile),
@@ -96,6 +109,10 @@ export default function ChatScreen() {
   );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  // スマホ：画面を右にスワイプ（右から左の言語では左へ）すると、左のメニューが開く
+  const openSwipe = useHorizontalSwipe(isRTL ? 'left' : 'right', openDrawer);
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const inputRef = useRef<TextInputInstance>(null);
   const consumedQuery = useRef(false);
@@ -137,6 +154,7 @@ export default function ChatScreen() {
       setText('');
       draft.clear();
       if (attached.length) allowance.addUsed(attached.length);
+      if (temporary) tempFilesRef.current.push(...attached.map((a) => a.path));
     }
   };
 
@@ -144,16 +162,29 @@ export default function ChatScreen() {
   const newChat = useCallback(() => {
     reset();
     discardDraft();
+    clearTempFiles();
+    setTemporary(false);
     shownIdRef.current = null;
     setActiveId(null);
     router.setParams({ id: undefined });
     setText('');
     setDrawerOpen(false);
     requestAnimationFrame(() => inputRef.current?.focus());
-  }, [reset, discardDraft]);
+  }, [reset, discardDraft, clearTempFiles]);
+
+  /** 一時チャットの切り替え：いつも新しい会話から始める（ChatGPTと同じ） */
+  const toggleTemporary = () => {
+    const next = !temporary;
+    newChat();
+    setTemporary(next);
+  };
 
   const selectConversation = (convId: string) => {
     setDrawerOpen(false);
+    if (temporary) {
+      clearTempFiles();
+      setTemporary(false);
+    }
     if (convId === shownIdRef.current) return;
     router.setParams({ id: convId });
   };
@@ -206,6 +237,7 @@ export default function ChatScreen() {
       onRemoveAttachment={draft.remove}
       attachFull={draft.full}
       voice={voice}
+      placeholder={temporary ? t.temporaryChat : undefined}
     />
   );
 
@@ -273,13 +305,16 @@ export default function ChatScreen() {
         </View>
       ) : null}
 
-      <SafeAreaView style={styles.main} edges={['top', 'bottom', 'left', 'right']}>
+      <SafeAreaView
+        style={styles.main}
+        edges={['top', 'bottom', 'left', 'right']}
+        {...(isDesktop ? {} : openSwipe.panHandlers)}>
         {/* 上の帯 */}
         <View style={styles.header}>
           <View style={styles.headerSide}>
             {!isDesktop || !sidebarOpen ? (
               <IconButton
-                icon={isDesktop ? 'sidebar' : 'menu'}
+                icon={isDesktop ? 'sidebar' : 'menu2'}
                 label={t.openSidebar}
                 onPress={() => (isDesktop ? setSidebarOpen(true) : setDrawerOpen(true))}
                 isRTL={isRTL}
@@ -287,11 +322,30 @@ export default function ChatScreen() {
               />
             ) : null}
           </View>
-          {!isDesktop || !sidebarOpen ? <Wordmark size={15} /> : <View />}
+          {/* 真ん中：無料プランなら「アップグレードする」、PLUSならロゴ */}
+          {allowance.plan === 'free' ? (
+            <Pressable
+              onPress={() => router.push('/plans')}
+              accessibilityRole="button"
+              accessibilityLabel={t.upgrade}
+              style={(state) => [styles.upgradePill, isActive(state) && styles.upgradePillActive]}>
+              <BrandMark size={20} />
+              <NovaText variant="smallMedium" style={styles.upgradeText} numberOfLines={1}>
+                {t.upgrade}
+              </NovaText>
+            </Pressable>
+          ) : allowance.plan ? (
+            <Wordmark size={15} />
+          ) : (
+            <View />
+          )}
           <View style={[styles.headerSide, styles.headerEnd]}>
-            {!isDesktop || !sidebarOpen ? (
-              <IconButton icon="newChat" label={t.newChat} onPress={newChat} />
-            ) : null}
+            <IconButton
+              icon={temporary ? 'temporaryOn' : 'temporary'}
+              label={temporary ? t.temporaryChatOff : t.temporaryChatOn}
+              onPress={toggleTemporary}
+              color={temporary ? Colors.text : undefined}
+            />
           </View>
         </View>
 
@@ -304,15 +358,17 @@ export default function ChatScreen() {
               style={styles.flex}
               contentContainerStyle={[styles.hero, !isDesktop && styles.heroMobile]}
               keyboardShouldPersistTaps="handled">
-              <View style={styles.heroInner}>
-                <BrandMark size={36} />
-                <NovaText variant="display" style={styles.center} accessibilityRole="header">
-                  {t.homeHeadline}
-                </NovaText>
-                <NovaText variant="body" tone="secondary" style={styles.center}>
-                  {t.homeSubline}
-                </NovaText>
-              </View>
+              {temporary ? (
+                // 一時チャット：真ん中に説明だけ出す
+                <View style={styles.heroInner}>
+                  <NovaText variant="heading" style={styles.center} accessibilityRole="header">
+                    {t.temporaryChat}
+                  </NovaText>
+                  <NovaText variant="small" tone="secondary" style={styles.center}>
+                    {t.temporaryChatNote}
+                  </NovaText>
+                </View>
+              ) : null}
               {isDesktop ? (
                 <View style={styles.heroComposer}>
                   {notices}
@@ -374,11 +430,7 @@ export default function ChatScreen() {
       </SafeAreaView>
 
       {!isDesktop ? (
-        <Drawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          isRTL={isRTL}
-          closeLabel={t.closeSidebar}>
+        <Drawer open={drawerOpen} onClose={closeDrawer} isRTL={isRTL} closeLabel={t.closeSidebar}>
           {sidebar('drawer')}
         </Drawer>
       ) : null}
@@ -404,6 +456,8 @@ function Drawer({
   const panelWidth = Math.min(Layout.sidebarWidth + 24, width * 0.86);
   const [progress] = useState(() => new Animated.Value(0));
   const [mounted, setMounted] = useState(open);
+  // メニューを左にスワイプ（右から左の言語では右へ）すると閉じる
+  const closeSwipe = useHorizontalSwipe(isRTL ? 'right' : 'left', onClose, true);
 
   if (open && !mounted) setMounted(true);
 
@@ -438,7 +492,8 @@ function Drawer({
           styles.drawer,
           isRTL ? styles.drawerRTL : styles.drawerLTR,
           { width: panelWidth, transform: [{ translateX }] },
-        ]}>
+        ]}
+        {...closeSwipe.panHandlers}>
         <SafeAreaView style={styles.flex} edges={['top', 'bottom', 'left', 'right']}>
           {children}
         </SafeAreaView>
@@ -507,6 +562,21 @@ const styles = StyleSheet.create({
   },
   headerSide: { width: 88, flexDirection: 'row' },
   headerEnd: { justifyContent: 'flex-end' },
+  upgradePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    height: 40,
+    paddingStart: Spacing.sm + 2,
+    paddingEnd: Spacing.lg,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flexShrink: 1,
+  },
+  upgradePillActive: { backgroundColor: Colors.surfaceRaised },
+  upgradeText: { color: Colors.accentText },
   hero: {
     flexGrow: 1,
     justifyContent: 'center',

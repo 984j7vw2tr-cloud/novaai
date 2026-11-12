@@ -54,6 +54,8 @@ type Props = {
   attachLocked?: boolean;
   /** 「PLUSにアップグレード」を押したとき */
   onUpgrade?: () => void;
+  /** 入力欄の案内文（なければ標準の文） */
+  placeholder?: string;
 };
 
 const BUTTON = 36;
@@ -88,6 +90,7 @@ export function Composer({
   voice,
   attachLocked = false,
   onUpgrade,
+  placeholder,
 }: Props) {
   const window = useWindowDimensions();
   const { t } = useI18n();
@@ -292,7 +295,7 @@ export function Composer({
             }}
             value={value}
             onChangeText={onChangeText}
-            placeholder={t.composerPlaceholder}
+            placeholder={placeholder ?? t.composerPlaceholder}
             placeholderTextColor={Colors.textMuted}
             multiline
             autoFocus={autoFocus}

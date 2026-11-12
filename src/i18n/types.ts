@@ -5,6 +5,11 @@ export type Strings = {
   composerPlaceholder: string;
   send: string;
   stop: string;
+  upgrade: string;
+  temporaryChat: string;
+  temporaryChatNote: string;
+  temporaryChatOn: string;
+  temporaryChatOff: string;
   priceWithTax: string;
   legalNotice: string;
   planChatUnlimited: string;

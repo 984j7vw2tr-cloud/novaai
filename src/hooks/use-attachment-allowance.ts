@@ -9,12 +9,15 @@ import { getBillingStatus } from '@/lib/billing';
 export function useAttachmentAllowance() {
   const [limit, setLimit] = useState<number | null>(null);
   const [used, setUsed] = useState(0);
+  /** 今のプラン（読み込むまでは null） */
+  const [plan, setPlan] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const s = await getBillingStatus();
       setLimit(s.attachments.limit);
       setUsed(s.attachments.used);
+      setPlan(s.plan);
     } catch {
       // 調べられないときは制限しない（送ったときにサーバーが判定する）
     }
@@ -28,6 +31,7 @@ export function useAttachmentAllowance() {
         if (!active) return;
         setLimit(s.attachments.limit);
         setUsed(s.attachments.used);
+        setPlan(s.plan);
       })
       .catch(() => {});
     return () => {
@@ -39,5 +43,5 @@ export function useAttachmentAllowance() {
   const addUsed = useCallback((n: number) => setUsed((u) => u + n), []);
 
   const remaining = limit === null ? Infinity : Math.max(0, limit - used);
-  return { limit, used, remaining, refresh, addUsed };
+  return { limit, used, remaining, plan, refresh, addUsed };
 }

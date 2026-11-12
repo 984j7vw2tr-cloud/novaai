@@ -17,6 +17,8 @@ import {
   LogOut,
   type LucideIcon,
   Menu,
+  MessageCircleDashed,
+  MessageCircleCheck,
   Mic,
   PanelLeft,
   Paperclip,
@@ -30,13 +32,53 @@ import {
   X,
 } from 'lucide-react-native';
 
+import Svg, { Line } from 'react-native-svg';
+
 import { Colors } from '@/constants/theme';
+
+/** 2本線のメニューアイコン（上が長く、下が短い） */
+function TwoLines({
+  size = 24,
+  color = 'currentColor',
+  strokeWidth = 2,
+}: {
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Line
+        x1={3.5}
+        y1={8}
+        x2={20.5}
+        y2={8}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={3.5}
+        y1={16}
+        x2={14}
+        y2={16}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
 
 export const Icons = {
   send: ArrowUp,
   stop: Square,
   newChat: SquarePen,
   menu: Menu,
+  /** ChatGPT風の2本線（下の線が短い） */
+  menu2: TwoLines as unknown as LucideIcon,
+  temporary: MessageCircleDashed,
+  temporaryOn: MessageCircleCheck,
   sidebar: PanelLeft,
   close: X,
   copy: Copy,
