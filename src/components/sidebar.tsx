@@ -4,19 +4,19 @@
  */
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/auth';
 import { IconButton } from '@/components/form';
 import { Icon } from '@/components/icons';
+import { NayqoLogo } from '@/components/nayqo-logo';
 import { NovaText } from '@/components/nova-text';
-import { Colors, isLightTheme, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 import { groupByDate } from '@/hooks/use-conversations';
 import { useI18n } from '@/i18n';
 import type { ConversationSummary } from '@/lib/conversations';
 import { isActive } from '@/lib/pressable';
 import { getProfile } from '@/lib/profile';
-import { useTheme } from '@/lib/theme-store';
 
 type Props = {
   items: ConversationSummary[];
@@ -31,27 +31,14 @@ type Props = {
 
 export function Sidebar({ items, activeId, onSelect, onNewChat, onDelete, onClose, mode }: Props) {
   const { t, isRTL } = useI18n();
-  const theme = useTheme();
   const groups = groupByDate(items);
 
   return (
     <View style={styles.root}>
       <View style={styles.top}>
-        {/* NAYQO のロゴ。明るいテーマでは黒いカードに載せて読みやすくする */}
-        <View style={styles.brand} accessibilityRole="header" accessibilityLabel="NAYQO">
-          {isLightTheme(theme) ? (
-            <Image
-              source={require('@/assets/images/nayqo-logo-card.png')}
-              style={[styles.logo, styles.logoCard]}
-              resizeMode="contain"
-            />
-          ) : (
-            <Image
-              source={require('@/assets/images/nayqo-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          )}
+        {/* NAYQO のロゴ（文字だけ） */}
+        <View style={styles.brand}>
+          <NayqoLogo width={150} />
         </View>
         <IconButton
           icon={mode === 'drawer' ? 'close' : 'sidebar'}
@@ -216,8 +203,6 @@ const styles = StyleSheet.create({
     paddingEnd: Spacing.sm,
   },
   brand: { paddingTop: 2 },
-  logo: { width: 176, height: 89 },
-  logoCard: { borderRadius: Radius.md },
   pad: { paddingHorizontal: Spacing.sm, paddingBottom: Spacing.sm },
   row: {
     flexDirection: 'row',
