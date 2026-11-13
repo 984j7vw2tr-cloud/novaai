@@ -10,8 +10,10 @@ import { PageScreen } from '@/components/page-screen';
 import { Colors, Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 
-/** 問い合わせ先のメールアドレス（決まったらここに入れる。空なら「準備中」と表示） */
-const CONTACT_EMAIL = '';
+import { OPERATOR } from '@/legal/operator';
+
+/** 問い合わせ先のメールアドレス（src/legal/operator.ts で設定。空なら「準備中」と表示） */
+const CONTACT_EMAIL = OPERATOR.contactEmail;
 
 const DISCLOSE = '請求があれば遅滞なく開示します。';
 
@@ -27,7 +29,10 @@ const ROWS: [string, string][] = [
     'PLUS プラン：月額480円（税抜）／528円（税込）\n各プランの価格は「料金プラン」画面に表示しています。',
   ],
   ['商品代金以外の必要料金', 'インターネット接続料金・通信料金はお客様のご負担となります。'],
-  ['お支払い方法', 'クレジットカード（決済は Stripe により処理されます）'],
+  [
+    'お支払い方法',
+    'Web：クレジットカード（決済は Stripe により処理されます）\niPhoneアプリ：App Store の決済\nAndroidアプリ：Google Play の決済',
+  ],
   [
     'お支払い時期',
     'お申し込み時に初回の料金をお支払いいただき、以後は1か月ごとに自動で更新・請求されます。',
@@ -35,13 +40,16 @@ const ROWS: [string, string][] = [
   ['サービスの提供時期', 'お支払いの完了後、すぐにご利用いただけます。'],
   [
     '解約について',
-    'いつでも「料金プラン」画面の「プランの変更・解約」から解約できます。解約後も、お支払い済みの期間の終わりまでご利用いただけ、次回以降の請求は発生しません。',
+    'いつでも解約できます。Webでお申し込みの場合は「料金プラン」画面の「プランの変更・解約」から、アプリでお申し込みの場合は App Store または Google Play の定期購入の設定から解約してください。解約後も、お支払い済みの期間の終わりまでご利用いただけ、次回以降の請求は発生しません。',
   ],
   [
     '返品・返金について',
     'デジタルサービスの性質上、お支払い済みの料金の返金には応じておりません。ただし、当社の責めに帰すべき事由によりサービスを提供できなかった場合はこの限りではありません。',
   ],
-  ['動作環境', '最新版の主要なブラウザ（Safari・Chrome・Edge・Firefox）'],
+  [
+    '動作環境',
+    '最新版の主要なブラウザ（Safari・Chrome・Edge・Firefox）、iPhoneアプリ、Androidアプリ',
+  ],
 ];
 
 export default function LegalScreen() {

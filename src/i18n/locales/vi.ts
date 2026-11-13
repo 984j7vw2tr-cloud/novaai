@@ -8,6 +8,9 @@ export const vi: Strings = {
   stop: 'Dừng',
   generatingImage: 'Đang tạo ảnh…',
   searchingWeb: 'Đang tìm trên web…',
+  termsTitle: 'Điều khoản dịch vụ',
+  privacyTitle: 'Chính sách quyền riêng tư',
+  signupAgree: 'Khi đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư.',
   memoryTitle: 'Trí nhớ của NAYQO',
   memoryIntro:
     'NAYQO ghi nhớ thông tin về bạn, mục tiêu và những gì bạn nói sẽ làm, rồi dùng cho lần sau. Khi hết hạn, nó sẽ hỏi bạn đã làm chưa. Trò chuyện tạm thời không được ghi nhớ.',

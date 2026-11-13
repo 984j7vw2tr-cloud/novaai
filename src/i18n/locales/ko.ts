@@ -8,6 +8,9 @@ export const ko: Strings = {
   stop: '중지',
   generatingImage: '이미지를 만드는 중…',
   searchingWeb: '웹에서 검색하는 중…',
+  termsTitle: '이용약관',
+  privacyTitle: '개인정보처리방침',
+  signupAgree: '가입하면 이용약관과 개인정보처리방침에 동의하는 것으로 간주됩니다.',
   memoryTitle: 'NAYQO의 기억',
   memoryIntro:
     'NAYQO는 당신에 대한 것, 목표, 당신이 "하겠다"고 한 일을 기억해 다음 대화에 활용합니다. 기한이 지나면 "했어?"라고 물어봅니다. 임시 채팅은 기억하지 않습니다.',

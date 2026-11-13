@@ -87,6 +87,8 @@ function Screens() {
       </Stack.Protected>
       <Stack.Screen name="language" options={{ title: 'NAYQO — Language' }} />
       <Stack.Screen name="tokushoho" options={{ title: 'NAYQO — 特定商取引法に基づく表記' }} />
+      <Stack.Screen name="terms" options={{ title: 'NAYQO — Terms' }} />
+      <Stack.Screen name="privacy" options={{ title: 'NAYQO — Privacy' }} />
       <Stack.Screen name="auth/callback" options={{ title: 'NAYQO' }} />
     </Stack>
   );

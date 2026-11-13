@@ -8,6 +8,9 @@ export const en: Strings = {
   stop: 'Stop',
   generatingImage: 'Creating image…',
   searchingWeb: 'Searching the web…',
+  termsTitle: 'Terms of Service',
+  privacyTitle: 'Privacy Policy',
+  signupAgree: 'By signing up, you agree to the Terms of Service and Privacy Policy.',
   memoryTitle: 'NAYQO’s memory',
   memoryIntro:
     'NAYQO remembers things about you, your goals and what you said you’d do, and uses them next time. When the deadline passes, it will ask if you did it. Temporary chats are not remembered.',

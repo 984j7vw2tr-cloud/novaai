@@ -8,6 +8,9 @@ export const id: Strings = {
   stop: 'Hentikan',
   generatingImage: 'Membuat gambar…',
   searchingWeb: 'Mencari di web…',
+  termsTitle: 'Ketentuan Layanan',
+  privacyTitle: 'Kebijakan Privasi',
+  signupAgree: 'Dengan mendaftar, kamu menyetujui Ketentuan Layanan dan Kebijakan Privasi.',
   memoryTitle: 'Ingatan NAYQO',
   memoryIntro:
     'NAYQO mengingat hal tentangmu, tujuanmu, dan apa yang kamu bilang akan kamu lakukan, lalu memakainya di obrolan berikutnya. Saat tenggat lewat, ia akan menanyakan apakah sudah dilakukan. Obrolan sementara tidak diingat.',

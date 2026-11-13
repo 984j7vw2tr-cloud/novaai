@@ -8,6 +8,10 @@ export type Strings = {
   generatingImage: string;
   /** ウェブ検索中の表示 */
   searchingWeb: string;
+  /** 利用規約・プライバシーポリシー */
+  termsTitle: string;
+  privacyTitle: string;
+  signupAgree: string;
   /** NAYQOの記憶と宿題 */
   memoryTitle: string;
   memoryIntro: string;

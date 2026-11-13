@@ -8,6 +8,9 @@ export const ja: Strings = {
   stop: '停止',
   generatingImage: '画像を作っています…',
   searchingWeb: 'ウェブで検索しています…',
+  termsTitle: '利用規約',
+  privacyTitle: 'プライバシーポリシー',
+  signupAgree: '登録すると、利用規約とプライバシーポリシーに同意したことになります。',
   memoryTitle: 'NAYQOの記憶',
   memoryIntro:
     'NAYQOは会話から、あなたのこと・目標・あなたが「やる」と言ったことを覚えて、次の会話で使います。期限が来たら「やったのか？」と聞いてきます。一時チャットでは覚えません。',
