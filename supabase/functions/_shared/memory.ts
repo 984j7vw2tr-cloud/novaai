@@ -85,12 +85,12 @@ export function dueTask(items: MemoryItem[], now: number): MemoryItem | null {
   return due[0] ?? null;
 }
 
-/** 宿題を出す・確かめるコーチとしてのルール（記憶がオンのとき指示文に足す） */
-export const COACH_RULES = `# Homework coach (NAYQO remembers and follows up)
-- NAYQO remembers the user across conversations and holds them accountable. This is NAYQO's signature.
-- When the user talks about a personal goal or a problem they want to fix (study, exams, school, part-time job, job hunting, work, money, fitness, diet, habits, relationships, side projects), end your reply with ONE concrete homework with a deadline, in your voice. Examples: 「3日以内に求人を5件見ろ。次来たら報告な」「今日から1週間、毎朝英単語20個。来週チェックするからな」. Keep it small enough to actually do.
-- Do NOT give homework for small talk, jokes, simple factual questions, coding, or when the user is in distress.
-- When the user reports on homework: done → short, rough praise in your style and raise the bar a little; not done → call it out bluntly (never attack their worth) and give a smaller, concrete next step.`;
+/** 覚えて、本人がやると言ったことを確かめるルール（NAYQOからは宿題を出さない。記憶がオンのとき指示文に足す） */
+export const COACH_RULES = `# Memory and follow-up (NAYQO remembers, it does NOT assign homework)
+- NAYQO remembers the user across conversations and follows up on what THEY said they would do. This is NAYQO's signature.
+- NEVER assign homework, tasks, assignments or deadlines yourself. No 「宿題：」, no 「〇日以内に〜しろ」, no 「次来たら報告な」, no "report back to me". Give your advice normally and stop there.
+- When the user says they will do something, you may react briefly in your voice (e.g. 「言ったな。覚えとくからな」). Do not add extra tasks on top.
+- When the user reports on something they said they'd do: done → short, rough praise in your style; not done → call it out bluntly (never attack their worth) and ask what got in the way. Do not set a new task.`;
 
 /** 覚えていることを指示文にする（なければ空文字） */
 export function memoryPrompt(
@@ -115,14 +115,14 @@ export function memoryPrompt(
           ? ` (deadline ${day(m.due_at)} — passed)`
           : ` (deadline ${day(m.due_at)})`
         : '';
-      lines.push(`- Homework: ${m.content}${due}`);
+      lines.push(`- They said they would: ${m.content}${due}`);
     }
     parts.push(lines.join('\n'));
   }
   const remind = opts.firstMessage ? dueTask(items, now) : null;
   if (remind) {
     parts.push(
-      `# Homework check — do this in THIS reply\nThis is the start of a new conversation and this homework's deadline has passed: "${remind.content}". Ask whether they did it, bluntly and briefly (e.g. 「で、${remind.content}はやったのか？」). If their message is about something else, answer it first and ask in one line at the end. Ask only about this one.`,
+      `# Follow-up check — do this in THIS reply\nThis is the start of a new conversation and the deadline has passed for something the user said they would do: "${remind.content}". Ask whether they did it, bluntly and briefly (e.g. 「で、${remind.content}はやったのか？」). If their message is about something else, answer it first and ask in one line at the end. Ask only about this one.`,
     );
   }
   return { text: parts.join('\n\n'), remind };
@@ -148,12 +148,12 @@ export type MemoryChanges = {
   remove: string[];
 };
 
-const EXTRACT_SYSTEM = `You maintain the long-term memory of NAYQO, a blunt coaching AI for young people. From the existing memory and the latest exchange, decide what to change. Most exchanges need NO change: then return empty arrays.
+const EXTRACT_SYSTEM = `You maintain the long-term memory of NAYQO, a blunt AI for young people. From the existing memory and the latest exchange, decide what to change. Most exchanges need NO change: then return empty arrays.
 
 add:
 - kind "fact": stable personal info useful later — name or nickname, age or school year, school/major, job or part-time job, life stage (受験生, 就活中, 転職活動中), important ongoing situations, how they want to be called.
 - kind "goal": something they want to achieve (e.g. TOEIC 800点を取る, 10kg痩せる, 起業する).
-- kind "task": a concrete action the USER committed to, or homework NAYQO gave in its reply (and the user did not refuse). Set due_in_days from the wording (今日=0, 明日=1, 3日以内=3, 1週間/来週=7); if no deadline is given use 7.
+- kind "task": a concrete action the USER said THEY will do (e.g. 「今日中に単語50個やる」「明日求人に応募する」). Only the user's own words count — NEVER store NAYQO's suggestions or advice as a task, even if the user replies "ok". Set due_in_days from the user's wording (今日=0, 明日=1, 3日以内=3, 1週間/来週=7); if no deadline is given use 7.
 complete: when the user reports on an EXISTING task (use its id): "done", "failed" (didn't do it), or "dropped" (gave up / no longer relevant).
 remove: ids of existing facts/goals that are now wrong or replaced (then add the new version).
 
@@ -161,7 +161,7 @@ Rules:
 - NEVER store: health or medical info, mental health, sexual matters or orientation, religion, political views, ethnicity, exact addresses, phone numbers, emails, passwords, financial account numbers, crimes, anything about self-harm, or private details about other people.
 - Do not store opinions about one-off topics, things the user asked about out of curiosity, or anything already in memory (no duplicates).
 - Write each content short (under 60 characters) in the user's language, e.g. 「大学2年生」「名前はタカシ」「TOEIC 800点を取りたい」「毎朝英単語を20個覚える」.
-- One homework = one task. "Report back" / 「報告しろ」 is part of the homework, not a separate task. If NAYQO's reply adjusts a task the user just committed to, store only the adjusted version.
+- One commitment = one task, in the user's own wording (short).
 - At most 5 adds.`;
 
 const SCHEMA = {

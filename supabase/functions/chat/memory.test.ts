@@ -59,17 +59,20 @@ test('memoryPrompt：覚えていること・目標・宿題。宿題の確認�
     item({ kind: 'task', content: '毎朝英単語を20個覚える', due_at: iso(NOW - DAY) }),
   ];
   const first = memoryPrompt(items, NOW, { firstMessage: true });
-  assert.match(first.text, /# Homework coach/);
+  assert.match(first.text, /# Memory and follow-up/);
   assert.match(first.text, /- 名前はタカシ/);
   assert.match(first.text, /- Goal: TOEIC 800点を取りたい/);
-  assert.match(first.text, /- Homework: 毎朝英単語を20個覚える \(deadline 2026-11-12 — passed\)/);
-  assert.match(first.text, /# Homework check/);
+  assert.match(
+    first.text,
+    /- They said they would: 毎朝英単語を20個覚える \(deadline 2026-11-12 — passed\)/,
+  );
+  assert.match(first.text, /# Follow-up check/);
   assert.equal(first.remind?.content, '毎朝英単語を20個覚える');
   const later = memoryPrompt(items, NOW, { firstMessage: false });
-  assert.doesNotMatch(later.text, /# Homework check/);
+  assert.doesNotMatch(later.text, /# Follow-up check/);
   assert.equal(later.remind, null);
   // 何も覚えていなくても、コーチのルールは入る
-  assert.match(memoryPrompt([], NOW, { firstMessage: true }).text, /# Homework coach/);
+  assert.match(memoryPrompt([], NOW, { firstMessage: true }).text, /# Memory and follow-up/);
 });
 
 function db() {
@@ -237,7 +240,7 @@ test('チャット：記憶を指示文に入れ、期限の来た宿題を聞�
   restore();
   const system = w.seen.chat[0].messages[0].content as string;
   assert.match(system, /- 名前はタカシ/);
-  assert.match(system, /# Homework check/);
+  assert.match(system, /# Follow-up check/);
   assert.match(system, /毎朝英単語を20個覚える/);
   // 聞いた時刻を記録
   assert.ok(w.seen.patches.some((p) => p.body.reminded_at && p.url.includes(task.id)));
@@ -262,7 +265,7 @@ test('チャット：会話の2通目以降は宿題を聞かない', async () =
     ],
   });
   restore();
-  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /# Homework check/);
+  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /# Follow-up check/);
   assert.ok(!w.seen.patches.some((p) => p.body.reminded_at));
 });
 
@@ -273,7 +276,7 @@ test('チャット：一時チャットでは記憶を読まない・保存し�
   restore();
   assert.equal(w.seen.memoryReads, 0);
   assert.equal(w.seen.extract.length, 0);
-  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /Homework coach/);
+  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /Memory and follow-up/);
 });
 
 test('チャット：記憶がオフなら読まない・保存しない', async () => {
@@ -281,6 +284,6 @@ test('チャット：記憶がオフなら読まない・保存しない', async
   const w = world({ enabled: false, items: [item({ kind: 'fact', content: '名前はタカシ' })] });
   await w.send({ messages: [{ role: 'user', content: '就活がうまくいかない' }] });
   restore();
-  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /名前はタカシ|Homework coach/);
+  assert.doesNotMatch(w.seen.chat[0].messages[0].content, /名前はタカシ|Memory and follow-up/);
   assert.equal(w.seen.extract.length, 0);
 });

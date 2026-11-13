@@ -10,13 +10,13 @@ export const id: Strings = {
   searchingWeb: 'Mencari di web…',
   memoryTitle: 'Ingatan NAYQO',
   memoryIntro:
-    'NAYQO mengingat hal tentangmu, tujuan, dan PR dari obrolan, lalu memakainya di obrolan berikutnya. Saat tenggat lewat, ia akan menanyakan apakah sudah kamu kerjakan. Obrolan sementara tidak diingat.',
+    'NAYQO mengingat hal tentangmu, tujuanmu, dan apa yang kamu bilang akan kamu lakukan, lalu memakainya di obrolan berikutnya. Saat tenggat lewat, ia akan menanyakan apakah sudah dilakukan. Obrolan sementara tidak diingat.',
   memoryUse: 'Gunakan ingatan',
   memoryOn: 'Aktif',
   memoryOff: 'Nonaktif',
   memoryOffNote:
     'Selama nonaktif, NAYQO tidak mengingat apa pun dan tidak memakai yang sudah diingat.',
-  memoryHomework: 'PR',
+  memoryHomework: 'Yang kamu bilang akan dilakukan',
   memoryKnows: 'Yang diingat NAYQO',
   memoryGoal: 'Tujuan: {s}',
   memoryDue: 'Tenggat {d}',
@@ -25,9 +25,10 @@ export const id: Strings = {
   memoryFailed: 'Tidak selesai',
   memoryDropped: 'Dibatalkan',
   memoryEmpty:
-    'Belum ada yang diingat. Ceritakan tujuan atau masalahmu, NAYQO akan mengingat dan memberi PR.',
+    'Belum ada yang diingat. Ceritakan tujuanmu atau apa yang akan kamu lakukan, NAYQO akan mengingat dan menanyakannya nanti.',
   memoryDeleteAll: 'Hapus semua ingatan',
-  memoryDeleteAllConfirm: 'Hapus semua ingatan NAYQO termasuk PR? Tidak bisa dibatalkan.',
+  memoryDeleteAllConfirm:
+    'Hapus semua ingatan NAYQO termasuk yang kamu bilang akan dilakukan? Tidak bisa dibatalkan.',
   voiceMode: 'Obrolan suara',
   voiceConnecting: 'Menghubungkan…',
   voiceListening: 'Mulai bicara',

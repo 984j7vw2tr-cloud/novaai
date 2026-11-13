@@ -190,10 +190,12 @@ export function createHandler({ env, fetchImpl, now = Date.now, waitUntil }: Dep
     }
 
     // ウェブ検索（Responses API のときだけ。WEB_SEARCH=off で止められる）
+    // 自傷の可能性があるときは検索しない（海外の相談窓口が出てしまうのを防ぎ、決めた案内を使う）
     const webSearchOn =
       Boolean(provider.toolsWithReasoning) &&
+      !selfHarmRisk &&
       (env.get('WEB_SEARCH') ?? 'on').toLowerCase() !== 'off';
-    // 記憶を指示文に入れる（会話の最初の発言なら、期限の来た宿題を「どうなった？」と聞かせる）
+    // 記憶を指示文に入れる（会話の最初の発言なら、本人がやると言ったことの期限が来ていれば「やったのか？」と聞かせる）
     const firstMessage = parsed.messages.filter((m) => m.role === 'user').length === 1;
     const mem =
       memory.enabled && !selfHarmRisk

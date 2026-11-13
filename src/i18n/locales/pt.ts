@@ -10,12 +10,12 @@ export const pt: Strings = {
   searchingWeb: 'Pesquisando na web…',
   memoryTitle: 'Memória do NAYQO',
   memoryIntro:
-    'O NAYQO lembra de coisas sobre você, suas metas e tarefas a partir das conversas e usa isso na próxima vez. Quando o prazo vence, ele pergunta se você fez. Chats temporários não são lembrados.',
+    'O NAYQO lembra de coisas sobre você, suas metas e o que você disse que faria, e usa isso na próxima vez. Quando o prazo vence, ele pergunta se você fez. Chats temporários não são lembrados.',
   memoryUse: 'Usar memória',
   memoryOn: 'Ativada',
   memoryOff: 'Desativada',
   memoryOffNote: 'Desativada, o NAYQO não lembra nada nem usa o que lembrou.',
-  memoryHomework: 'Tarefas',
+  memoryHomework: 'O que você disse que faria',
   memoryKnows: 'O que o NAYQO lembra',
   memoryGoal: 'Meta: {s}',
   memoryDue: 'Prazo {d}',
@@ -24,10 +24,10 @@ export const pt: Strings = {
   memoryFailed: 'Não feita',
   memoryDropped: 'Desistiu',
   memoryEmpty:
-    'Ainda não lembra de nada. Fale das suas metas ou problemas e o NAYQO vai lembrar e passar tarefas.',
+    'Ainda não lembra de nada. Conte suas metas ou o que vai fazer e o NAYQO vai lembrar e perguntar depois.',
   memoryDeleteAll: 'Apagar toda a memória',
   memoryDeleteAllConfirm:
-    'Apagar toda a memória do NAYQO, incluindo tarefas? Não dá para desfazer.',
+    'Apagar toda a memória do NAYQO, incluindo o que você disse que faria? Não dá para desfazer.',
   voiceMode: 'Chat de voz',
   voiceConnecting: 'Conectando…',
   voiceListening: 'Comece a falar',

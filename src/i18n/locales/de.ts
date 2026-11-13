@@ -10,12 +10,12 @@ export const de: Strings = {
   searchingWeb: 'Suche im Web…',
   memoryTitle: 'NAYQOs Gedächtnis',
   memoryIntro:
-    'NAYQO merkt sich aus euren Chats Dinge über dich, deine Ziele und Hausaufgaben und nutzt sie beim nächsten Mal. Nach Ablauf einer Frist fragt es nach, ob du es erledigt hast. Temporäre Chats werden nicht gemerkt.',
+    'NAYQO merkt sich Dinge über dich, deine Ziele und was du dir vorgenommen hast, und nutzt sie beim nächsten Mal. Nach Ablauf der Frist fragt es nach, ob du es getan hast. Temporäre Chats werden nicht gemerkt.',
   memoryUse: 'Gedächtnis nutzen',
   memoryOn: 'An',
   memoryOff: 'Aus',
   memoryOffNote: 'Solange es aus ist, merkt sich NAYQO nichts und nutzt nichts Gemerktes.',
-  memoryHomework: 'Hausaufgaben',
+  memoryHomework: 'Was du dir vorgenommen hast',
   memoryKnows: 'Was NAYQO sich merkt',
   memoryGoal: 'Ziel: {s}',
   memoryDue: 'Fällig {d}',
@@ -24,10 +24,10 @@ export const de: Strings = {
   memoryFailed: 'Nicht erledigt',
   memoryDropped: 'Verworfen',
   memoryEmpty:
-    'Noch nichts gemerkt. Erzähl von deinen Zielen oder Problemen – NAYQO merkt sie sich und gibt dir Hausaufgaben.',
+    'Noch nichts gemerkt. Erzähl NAYQO von deinen Zielen oder Vorhaben – es merkt sie sich und hakt später nach.',
   memoryDeleteAll: 'Gesamtes Gedächtnis löschen',
   memoryDeleteAllConfirm:
-    'Das gesamte Gedächtnis von NAYQO inkl. Hausaufgaben löschen? Das kann nicht rückgängig gemacht werden.',
+    'Das gesamte Gedächtnis von NAYQO inkl. deiner Vorhaben löschen? Das kann nicht rückgängig gemacht werden.',
   voiceMode: 'Sprachchat',
   voiceConnecting: 'Verbinde…',
   voiceListening: 'Sprich los',
