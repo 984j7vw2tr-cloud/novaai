@@ -83,7 +83,6 @@ export default function ChatScreen() {
     loadFailed,
     send,
     stop,
-    regenerate,
     retry,
     reset,
     load,
@@ -217,7 +216,6 @@ export default function ChatScreen() {
     }
   };
 
-  const latestAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
   const empty = messages.length === 0;
   const showHero = empty && !loading && !loadFailed;
 
@@ -423,12 +421,7 @@ export default function ChatScreen() {
               }
               renderItem={({ item }) => (
                 <View style={styles.column}>
-                  <MessageItem
-                    message={item}
-                    isLatestAssistant={item.id === latestAssistantId}
-                    busy={busy}
-                    onRegenerate={regenerate}
-                  />
+                  <MessageItem message={item} />
                 </View>
               )}
             />

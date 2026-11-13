@@ -13,22 +13,12 @@ import type { ChatMessage } from '@/lib/chat-types';
 
 type Props = {
   message: ChatMessage;
-  /** 一番新しいAIの回答かどうか（再生成ボタンはこれにだけ出す） */
-  isLatestAssistant: boolean;
-  /** AIが回答中かどうか（回答中は再生成できない） */
-  busy: boolean;
-  onRegenerate: () => void;
 };
 
 /** Webで、文章の向き（アラビア語なら右から左）を中身に合わせて自動で決める */
 const autoDir = (Platform.OS === 'web' ? { dir: 'auto' } : {}) as object;
 
-export const MessageItem = memo(function MessageItem({
-  message,
-  isLatestAssistant,
-  busy,
-  onRegenerate,
-}: Props) {
+export const MessageItem = memo(function MessageItem({ message }: Props) {
   const { t } = useI18n();
 
   // ユーザーの発言：右側の吹き出し
@@ -83,10 +73,8 @@ export const MessageItem = memo(function MessageItem({
       ) : null}
       {showActions ? (
         <View style={styles.actions}>
+          {/* 回答の下はコピーだけ（再生成ボタンはなし） */}
           <CopyButton text={message.content} />
-          {isLatestAssistant && !busy ? (
-            <IconButton icon="regenerate" label={t.regenerate} onPress={onRegenerate} size="sm" />
-          ) : null}
         </View>
       ) : null}
     </View>
