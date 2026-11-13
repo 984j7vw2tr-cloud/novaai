@@ -8,6 +8,9 @@ export const zhHans: Strings = {
   stop: '停止',
   generatingImage: '正在生成图片…',
   searchingWeb: '正在网上搜索…',
+  termsTitle: '服务条款',
+  privacyTitle: '隐私政策',
+  signupAgree: '注册即表示你同意服务条款和隐私政策。',
   memoryTitle: 'NAYQO 的记忆',
   memoryIntro:
     'NAYQO 会记住关于你的信息、你的目标以及你说过要做的事，并在下次对话中使用。到期后会问你"做了没有？"。临时聊天不会被记住。',

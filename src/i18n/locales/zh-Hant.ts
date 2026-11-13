@@ -8,6 +8,9 @@ export const zhHant: Strings = {
   stop: '停止',
   generatingImage: '正在產生圖片…',
   searchingWeb: '正在網路上搜尋…',
+  termsTitle: '服務條款',
+  privacyTitle: '隱私權政策',
+  signupAgree: '註冊即表示你同意服務條款和隱私權政策。',
   memoryTitle: 'NAYQO 的記憶',
   memoryIntro:
     'NAYQO 會記住關於你的資訊、你的目標以及你說過要做的事，並在下次對話中使用。到期後會問你「做了沒有？」。臨時聊天不會被記住。',

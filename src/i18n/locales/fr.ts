@@ -8,6 +8,10 @@ export const fr: Strings = {
   stop: 'Arrêter',
   generatingImage: 'Création de l’image…',
   searchingWeb: 'Recherche sur le web…',
+  termsTitle: 'Conditions d’utilisation',
+  privacyTitle: 'Politique de confidentialité',
+  signupAgree:
+    'En vous inscrivant, vous acceptez les Conditions d’utilisation et la Politique de confidentialité.',
   memoryTitle: 'Mémoire de NAYQO',
   memoryIntro:
     'NAYQO retient des choses sur toi, tes objectifs et ce que tu as dit que tu ferais, et s’en sert la fois suivante. À l’échéance, il te demandera si tu l’as fait. Les chats temporaires ne sont pas retenus.',

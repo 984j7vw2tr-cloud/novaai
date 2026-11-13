@@ -1,11 +1,12 @@
 /** 料金プラン画面：FREE・PLUS・PRO を並べ、申し込み（Stripe）・変更・解約へ進む */
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Notice } from '@/components/form';
 import { Icon } from '@/components/icons';
+import { LegalLinks } from '@/components/legal-links';
 import { NovaText } from '@/components/nova-text';
 import { PageScreen } from '@/components/page-screen';
 import { Colors, Radius, Spacing } from '@/constants/theme';
@@ -18,6 +19,13 @@ import {
   type PlanId,
   startCheckout,
 } from '@/lib/billing';
+
+/**
+ * Stripe（Web）での申し込み・管理ボタンを出すか。
+ * アプリ（iPhone・Android）では、App Store・Google Play の決済を使う決まりなので、
+ * そちらを組み込むまで申し込みボタンは出さない（プランの内容と、今のプランだけ表示）。
+ */
+const WEB_BILLING = Platform.OS === 'web';
 
 const PLAN_LABEL: Record<PlanId, string> = { free: 'FREE', plus: 'PLUS', pro: 'PLUS' };
 
@@ -191,7 +199,7 @@ export default function PlansScreen() {
                   </NovaText>
                 ) : null}
 
-                {id !== 'free' && !isCurrent && !paid ? (
+                {WEB_BILLING && id !== 'free' && !isCurrent && !paid ? (
                   <Button
                     label={t.choosePlan.replace('{plan}', PLAN_LABEL[id])}
                     variant={highlight ? 'primary' : 'secondary'}
@@ -206,7 +214,7 @@ export default function PlansScreen() {
         </View>
       ) : null}
 
-      {status && (paid || status.manageable) ? (
+      {WEB_BILLING && status && (paid || status.manageable) ? (
         <Button
           label={t.managePlan}
           variant="secondary"
@@ -219,14 +227,7 @@ export default function PlansScreen() {
       <NovaText variant="caption" tone="muted" style={styles.note}>
         {t.billingNote}
       </NovaText>
-      <Pressable
-        onPress={() => router.push('/tokushoho')}
-        accessibilityRole="link"
-        style={styles.legalLink}>
-        <NovaText variant="caption" tone="secondary" style={styles.underline}>
-          {t.legalNotice}
-        </NovaText>
-      </Pressable>
+      <LegalLinks align="start" />
     </PageScreen>
   );
 }
@@ -276,6 +277,4 @@ const styles = StyleSheet.create({
   feature: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   note: { marginTop: Spacing.md },
   taxLine: { marginTop: -Spacing.sm },
-  legalLink: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
-  underline: { textDecorationLine: 'underline' },
 });

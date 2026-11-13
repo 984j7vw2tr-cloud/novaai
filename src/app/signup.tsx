@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { AuthFailure, type AuthErrorKind, useAuth } from '@/auth';
 import { AuthScreen } from '@/components/auth-screen';
 import { Button, Field, Notice } from '@/components/form';
+import { LegalLinks } from '@/components/legal-links';
 import { NovaText } from '@/components/nova-text';
 import { Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
@@ -75,6 +76,10 @@ export default function SignupScreen() {
             onSubmitEditing={submit}
           />
           <Button label={t.signupButton} onPress={submit} busy={busy} />
+          <NovaText variant="caption" tone="muted" style={styles.agree}>
+            {t.signupAgree}
+          </NovaText>
+          <LegalLinks tokushoho={false} />
         </View>
       )}
 
@@ -93,6 +98,7 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
+  agree: { textAlign: 'center', lineHeight: 18 },
   form: { gap: Spacing.md },
   switchRow: {
     flexDirection: 'row',

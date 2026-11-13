@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { type AuthErrorKind, useAuth } from '@/auth';
 import { Button, Field, Notice, Section } from '@/components/form';
-import { NovaText } from '@/components/nova-text';
+import { LegalLinks } from '@/components/legal-links';
 import { Group, ListRow, PageScreen } from '@/components/page-screen';
 import { useI18n } from '@/i18n';
 import { getLanguage } from '@/i18n/languages';
@@ -12,7 +12,7 @@ import { authErrorMessage } from '@/lib/auth-messages';
 import { getProfile, updateProfile } from '@/lib/profile';
 import { deleteMyAccount } from '@/lib/account';
 import { getBillingStatus } from '@/lib/billing';
-import { Spacing, THEME_NAMES, type ThemeName } from '@/constants/theme';
+import { THEME_NAMES, type ThemeName } from '@/constants/theme';
 import { setTheme, useTheme } from '@/lib/theme-store';
 import { confirmAsync } from '@/lib/confirm';
 import { deleteAllConversations } from '@/lib/conversations';
@@ -272,21 +272,12 @@ export default function ProfileScreen() {
         disabled={!!busy}
       />
 
-      {/* いちばん下に小さく：特定商取引法に基づく表記 */}
-      <Pressable
-        onPress={() => router.push('/tokushoho')}
-        accessibilityRole="link"
-        style={styles.legal}>
-        <NovaText variant="caption" tone="muted" style={styles.legalText}>
-          {t.legalNotice}
-        </NovaText>
-      </Pressable>
+      {/* いちばん下に小さく：利用規約・プライバシーポリシー・特定商取引法に基づく表記 */}
+      <LegalLinks />
     </PageScreen>
   );
 }
 
 const styles = StyleSheet.create({
   saveRow: { alignItems: 'flex-end' },
-  legal: { alignSelf: 'center', paddingVertical: Spacing.sm, marginTop: Spacing.md },
-  legalText: { textDecorationLine: 'underline' },
 });
