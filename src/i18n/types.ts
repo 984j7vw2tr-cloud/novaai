@@ -8,6 +8,24 @@ export type Strings = {
   generatingImage: string;
   /** ウェブ検索中の表示 */
   searchingWeb: string;
+  /** NAYQOの記憶と宿題 */
+  memoryTitle: string;
+  memoryIntro: string;
+  memoryUse: string;
+  memoryOn: string;
+  memoryOff: string;
+  memoryOffNote: string;
+  memoryHomework: string;
+  memoryKnows: string;
+  memoryGoal: string;
+  memoryDue: string;
+  memoryOverdue: string;
+  memoryDone: string;
+  memoryFailed: string;
+  memoryDropped: string;
+  memoryEmpty: string;
+  memoryDeleteAll: string;
+  memoryDeleteAllConfirm: string;
   /** 音声会話（リアルタイム） */
   voiceMode: string;
   voiceConnecting: string;

@@ -5,6 +5,7 @@
 import {
   ArrowUp,
   AudioLines,
+  Brain,
   Camera,
   Check,
   ChevronLeft,
@@ -102,6 +103,7 @@ export const Icons = {
   mic: Mic,
   micOff: MicOff,
   voiceMode: AudioLines,
+  memory: Brain,
   plan: CreditCard,
   sparkle: Sparkles,
 } satisfies Record<string, LucideIcon>;

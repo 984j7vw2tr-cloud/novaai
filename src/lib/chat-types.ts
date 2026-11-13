@@ -45,5 +45,7 @@ export type ReplySource = (
     signal: AbortSignal;
     /** 保存中の会話のID（使用量の記録に使う。まだなければ null） */
     conversationId?: string | null;
+    /** 一時チャット（記憶を使わない・残さない） */
+    temporary?: boolean;
   },
 ) => Promise<void>;

@@ -113,6 +113,8 @@ export function useChat({
         await replySource(history, {
           signal: controller.signal,
           conversationId: conversationIdRef.current,
+          // 一時チャットでは、NAYQOは覚えない・思い出さない
+          temporary: !persist,
           onQuota: setQuota,
           onStatus: (status) =>
             update((prev) =>
@@ -174,7 +176,7 @@ export function useChat({
         }
       }
     },
-    [replySource, update, enqueue],
+    [replySource, update, enqueue, persist],
   );
 
   const send = useCallback(

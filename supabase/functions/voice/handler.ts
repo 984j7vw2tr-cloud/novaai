@@ -19,6 +19,7 @@ import { corsHeaders } from '../_shared/http.ts';
 import { getActivePlan } from '../_shared/active-plan.ts';
 import { voiceMinutesFor } from '../_shared/voice-limits.ts';
 import { buildSystemPrompt, LANGUAGE_NAMES } from '../_shared/system-prompt.ts';
+import { loadMemory, markReminded, memoryPrompt } from '../_shared/memory.ts';
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 /** これより残りが少なければ、新しい通話は始めない */
@@ -168,7 +169,15 @@ export function createVoiceHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const lang = (v: unknown) => (typeof v === 'string' && v in LANGUAGE_NAMES ? v : null);
     const model = env.get('OPENAI_REALTIME_MODEL') ?? 'gpt-realtime-2.1-mini';
     const voice = env.get('OPENAI_REALTIME_VOICE') ?? 'cedar';
+    // NAYQOの記憶（声でも、覚えていることを使い、期限の来た宿題を聞く）。一時チャットからは使わない
+    const memory =
+      body.temporary === true
+        ? { enabled: false, items: [] }
+        : await loadMemory(env, doFetch, userId);
+    const mem = memory.enabled ? memoryPrompt(memory.items, t, { firstMessage: true }) : null;
+    if (mem?.remind) await markReminded(env, doFetch, userId, mem.remind.id);
     const instructions = buildSystemPrompt({
+      memory: mem?.text || undefined,
       selfHarmRisk: false,
       replyLanguage: lang(s?.replyLanguage),
       uiLanguage: lang(s?.uiLanguage),
