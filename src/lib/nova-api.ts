@@ -48,7 +48,7 @@ const toCode = (c: unknown): ChatErrorCode =>
  */
 export const serverReply: ReplySource = async (
   history,
-  { onDelta, onReplace, onQuota, onStatus, onImage, signal, conversationId },
+  { onDelta, onReplace, onQuota, onStatus, onImage, signal, conversationId, temporary },
 ) => {
   const settings = await getLanguageSettings();
   // ログインの鍵をつけて送る（サーバーはこれでログイン中の本人か確かめる）
@@ -83,6 +83,7 @@ export const serverReply: ReplySource = async (
           })),
         settings,
         conversationId: conversationId ?? undefined,
+        ...(temporary ? { temporary: true } : {}),
       }),
       signal,
     });

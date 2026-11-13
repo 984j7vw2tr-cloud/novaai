@@ -41,6 +41,8 @@ export type PromptOptions = {
   today?: string;
   /** 音声会話（声でやり取りする）か */
   voice?: boolean;
+  /** NAYQOの記憶（覚えていること・宿題・コーチのルール） */
+  memory?: string;
 };
 
 const BASE = `You are NAYQO (pronounced ネイコー / "nay-koh"), the AI of the service "NAYQO" — ONE AI. EVERY LANGUAGE. NO FILTER.
@@ -189,6 +191,7 @@ export function buildSystemPrompt({
   webSearch,
   today,
   voice,
+  memory,
 }: PromptOptions): string {
   // 音声会話では画像の作り方・Markdown の書き方は使わない（声のルールを先頭に置く）
   const base = voice ? withoutSection(BASE, '# Creating images') : BASE;
@@ -214,6 +217,7 @@ export function buildSystemPrompt({
   if (languageRules.length) parts.push(`# Language settings\n${languageRules.join('\n')}`);
   // 毎日変わる部分は最後に置く（前の部分をキャッシュで安くするため）
   if (webSearch) parts.push(WEB_SEARCH);
+  if (memory) parts.push(memory);
   if (today) parts.push(`# Today\nToday's date is ${today} (UTC).`);
   if (selfHarmRisk) parts.push(SAFETY_OVERRIDE);
   if (voice) {

@@ -90,6 +90,7 @@ export default function VoiceScreen() {
             replyLanguage: settings.replyLanguage === 'auto' ? null : settings.replyLanguage,
             uiLanguage: settings.uiLanguage,
           },
+          temporary: !saveHistory,
           onState: (s) => !cancelled && setState(s),
           onTurns: (next) => {
             turnsRef.current = next;
@@ -142,7 +143,7 @@ export default function VoiceScreen() {
       callRef.current?.end();
       callRef.current = null;
     };
-  }, [attempt]);
+  }, [attempt, saveHistory]);
 
   // 画面を離れるときにも、話した内容を保存する
   useEffect(() => () => void saveTranscript(), [saveTranscript]);

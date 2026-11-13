@@ -74,6 +74,8 @@ export type VoiceCall = {
 
 export async function startVoiceCall(opts: {
   settings: { replyLanguage?: string | null; uiLanguage?: string | null };
+  /** 一時チャットから開いた（NAYQOの記憶を使わない） */
+  temporary?: boolean;
   onState: (s: VoiceCallState) => void;
   onTurns: (turns: VoiceTurn[]) => void;
   /** 音の大きさ（0〜1）：自分の声・NAYQOの声 */
@@ -98,7 +100,11 @@ export async function startVoiceCall(opts: {
 
   let res: Response;
   try {
-    res = await callVoiceApi({ action: 'start', settings: opts.settings });
+    res = await callVoiceApi({
+      action: 'start',
+      settings: opts.settings,
+      ...(opts.temporary ? { temporary: true } : {}),
+    });
   } catch {
     stopMic();
     throw new VoiceCallFailure('failed');

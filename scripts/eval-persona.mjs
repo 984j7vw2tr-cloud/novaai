@@ -55,7 +55,9 @@ async function ask(messages, settings) {
       apikey: KEY,
       Authorization: `Bearer ${ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ messages, settings }),
+    // 記憶・宿題の影響を受けないよう、一時チャットとして送る（人格だけを確かめる）
+    // EVAL_WITH_MEMORY=1 なら、記憶・宿題のルールありで確かめる
+    body: JSON.stringify({ messages, settings, temporary: process.env.EVAL_WITH_MEMORY !== '1' }),
   });
   const text = await res.text();
   if (!res.ok) return { error: `HTTP ${res.status} ${text}` };

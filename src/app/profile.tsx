@@ -178,6 +178,19 @@ export default function ProfileScreen() {
         </Group>
       </Section>
 
+      {/* NAYQOの記憶（覚えたこと・宿題） */}
+      <Section title={t.memoryTitle}>
+        <Group>
+          <ListRow
+            first
+            icon="memory"
+            label={t.memoryTitle}
+            onPress={() => router.push('/memory')}
+            chevron
+          />
+        </Group>
+      </Section>
+
       {/* 外観（テーマ） */}
       {/* 「外観」を押したときだけ、選択肢を開く（選んでいるものに✓） */}
       <Section title={t.appearance}>

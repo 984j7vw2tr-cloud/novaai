@@ -37,6 +37,14 @@ import {
 } from './providers/types.ts';
 import { imageLimitFor } from '../_shared/image-limits.ts';
 import { generateImage, IMAGE_TOOL, imagesUsed } from './images.ts';
+import {
+  applyMemoryChanges,
+  extractMemoryChanges,
+  loadMemory,
+  markReminded,
+  type MemoryItem,
+  memoryPrompt,
+} from '../_shared/memory.ts';
 import { buildSystemPrompt, LANGUAGE_NAMES, safeFallback } from './system-prompt.ts';
 
 /** 安全チェックを待つ最大時間（これを過ぎたらチェックなしで進める） */
@@ -64,9 +72,11 @@ type Deps = {
   env: Env;
   fetchImpl?: typeof fetch;
   now?: () => number;
+  /** 返事を返したあとも裏で続ける処理（Supabase の EdgeRuntime.waitUntil）。なければその場で待つ */
+  waitUntil?: (p: Promise<unknown>) => void;
 };
 
-export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
+export function createHandler({ env, fetchImpl, now = Date.now, waitUntil }: Deps) {
   const doFetch = fetchImpl ?? fetch;
   const limiter = createRateLimiter(Number(env.get('RATE_LIMIT_PER_MINUTE') ?? 20), now);
 
@@ -161,12 +171,19 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     // 入力の安全チェック：自傷の可能性があれば、カウンターモードを止めて安全モードにする
     // （写真が付いていれば、1枚目の写真も一緒に見る）
     const moderator = getModerator(env, fetchImpl);
-    const inputCheck = moderator
-      ? await withTimeout(
-          moderator.check(moderationInput(recent[recent.length - 1]), upstream.signal),
-          MODERATION_TIMEOUT_MS,
-        )
-      : null;
+    // NAYQOの記憶（一時チャット・ログインなしでは使わない）。安全チェックと同時に読む
+    const temporary = (body as { temporary?: unknown })?.temporary === true;
+    const [inputCheck, memory] = await Promise.all([
+      moderator
+        ? withTimeout(
+            moderator.check(moderationInput(recent[recent.length - 1]), upstream.signal),
+            MODERATION_TIMEOUT_MS,
+          )
+        : Promise.resolve(null),
+      !temporary && UUID_RE.test(userId)
+        ? loadMemory(env, doFetch, userId)
+        : Promise.resolve({ enabled: false, items: [] as MemoryItem[] }),
+    ]);
     const selfHarmRisk = hasAny(inputCheck, SELF_HARM_CATEGORIES);
     if (inputCheck?.flagged) {
       console.log(JSON.stringify({ event: 'moderation_input', categories: inputCheck.categories }));
@@ -176,10 +193,22 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
     const webSearchOn =
       Boolean(provider.toolsWithReasoning) &&
       (env.get('WEB_SEARCH') ?? 'on').toLowerCase() !== 'off';
+    // 記憶を指示文に入れる（会話の最初の発言なら、期限の来た宿題を「どうなった？」と聞かせる）
+    const firstMessage = parsed.messages.filter((m) => m.role === 'user').length === 1;
+    const mem =
+      memory.enabled && !selfHarmRisk
+        ? memoryPrompt(memory.items, now(), { firstMessage })
+        : { text: '', remind: null };
+    if (mem.remind) {
+      const p = markReminded(env, doFetch, userId, mem.remind.id);
+      if (waitUntil) waitUntil(p);
+      else await p;
+    }
     const messages: ProviderMessage[] = [
       {
         role: 'system',
         content: buildSystemPrompt({
+          memory: mem.text || undefined,
           selfHarmRisk,
           ...readLanguages(body),
           webSearch: webSearchOn,
@@ -368,6 +397,32 @@ export function createHandler({ env, fetchImpl, now = Date.now }: Deps) {
             }
           }
           send({ type: 'done' });
+
+          // 答えたあと：覚えること・宿題を抜き出して保存（裏で行う。失敗してもチャットは止めない）
+          if (memory.enabled && !selfHarmRisk && !replaced && fullText.trim()) {
+            const task = (async () => {
+              const changes = await extractMemoryChanges(env, doFetch, {
+                items: memory.items,
+                userText: lastText,
+                assistantText: fullText,
+                today: new Date(now()).toISOString().slice(0, 10),
+              });
+              if (!changes) return;
+              const r = await applyMemoryChanges(
+                env,
+                doFetch,
+                userId,
+                memory.items,
+                changes,
+                now(),
+              );
+              if (r.added || r.completed || r.removed) {
+                console.log(JSON.stringify({ event: 'memory_update', user_id: userId, ...r }));
+              }
+            })().catch((e) => console.error('[memory] update failed', e));
+            if (waitUntil) waitUntil(task);
+            else await task;
+          }
         } catch (e) {
           if (!upstream.signal.aborted) {
             const { code, reason } = classifyError(e);

@@ -710,6 +710,13 @@ function fakeQuotaWorld(opts: {
       seen.inserts.push(JSON.parse(String(init?.body)));
       return new Response(null, { status: 201 });
     }
+    // NAYQOの記憶（空）と、覚えることの抜き出し（変更なし）
+    if (u.includes('/rest/v1/profiles') || u.includes('/rest/v1/memories')) {
+      return new Response('[]');
+    }
+    if (u.endsWith('/responses')) {
+      return Response.json({ output_text: '{"add":[],"complete":[],"remove":[]}' });
+    }
     seen.chat++;
     return sseResponse([delta('ok'), opts.usageChunk ?? usage, 'data: [DONE]\n\n']);
   }) as typeof fetch;

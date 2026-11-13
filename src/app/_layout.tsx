@@ -79,6 +79,7 @@ function Screens() {
         <Stack.Screen name="history" options={{ title: 'NAYQO — History' }} />
         <Stack.Screen name="plans" options={{ title: 'NAYQO — Plans' }} />
         <Stack.Screen name="voice" options={{ title: 'NAYQO — Voice' }} />
+        <Stack.Screen name="memory" options={{ title: 'NAYQO — Memory' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="login" options={{ title: 'NAYQO — Log in' }} />
