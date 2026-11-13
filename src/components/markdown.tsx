@@ -13,6 +13,10 @@ import { NovaText } from '@/components/nova-text';
 import { Colors, Fonts, Radius, Spacing, Type } from '@/constants/theme';
 
 /** Webで、文章の向き（アラビア語なら右から左）を中身に合わせて自動で決める */
+/** 出典リンクを囲む丸かっこを外す：([nhk.or.jp](https://...)) → [nhk.or.jp](https://...)（かっこを使わない指定のため） */
+export const unwrapLinks = (text: string) =>
+  text.replace(/[(（]\s*(\[[^\]\n]+\]\(https?:\/\/[^)\s]+\))\s*[)）]/g, ' $1');
+
 const autoDir = (Platform.OS === 'web' ? { dir: 'auto' } : {}) as object;
 
 type Labels = { copy: string; copied: string };
@@ -29,7 +33,7 @@ export const Markdown = memo(function Markdown({
 }) {
   const tokens = useMemo(() => {
     try {
-      return lexer(content, { gfm: true, breaks: false });
+      return lexer(unwrapLinks(content), { gfm: true, breaks: false });
     } catch {
       return null;
     }
