@@ -10,12 +10,12 @@ export const ko: Strings = {
   searchingWeb: '웹에서 검색하는 중…',
   memoryTitle: 'NAYQO의 기억',
   memoryIntro:
-    'NAYQO는 대화에서 당신에 대한 것, 목표, 숙제를 기억해 다음 대화에 활용합니다. 마감이 지나면 "했어?"라고 물어봅니다. 임시 채팅은 기억하지 않습니다.',
+    'NAYQO는 당신에 대한 것, 목표, 당신이 "하겠다"고 한 일을 기억해 다음 대화에 활용합니다. 기한이 지나면 "했어?"라고 물어봅니다. 임시 채팅은 기억하지 않습니다.',
   memoryUse: '기억 사용',
   memoryOn: '켜짐',
   memoryOff: '꺼짐',
   memoryOffNote: '꺼져 있는 동안 NAYQO는 아무것도 기억하지 않고, 기억한 것도 쓰지 않습니다.',
-  memoryHomework: '숙제',
+  memoryHomework: '하겠다고 한 일',
   memoryKnows: 'NAYQO가 기억하는 것',
   memoryGoal: '목표: {s}',
   memoryDue: '마감 {d}',
@@ -23,9 +23,11 @@ export const ko: Strings = {
   memoryDone: '완료',
   memoryFailed: '미완료',
   memoryDropped: '포기',
-  memoryEmpty: '아직 기억한 게 없습니다. 목표나 고민을 말하면 NAYQO가 기억하고 숙제를 냅니다.',
+  memoryEmpty:
+    '아직 기억한 게 없습니다. 목표나 할 일을 말하면 NAYQO가 기억했다가 나중에 확인합니다.',
   memoryDeleteAll: '기억 모두 지우기',
-  memoryDeleteAllConfirm: '숙제를 포함한 NAYQO의 기억을 모두 지울까요? 되돌릴 수 없습니다.',
+  memoryDeleteAllConfirm:
+    '하겠다고 한 일을 포함해 NAYQO의 기억을 모두 지울까요? 되돌릴 수 없습니다.',
   voiceMode: '음성 대화',
   voiceConnecting: '연결 중…',
   voiceListening: '말해 보세요',

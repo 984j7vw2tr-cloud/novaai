@@ -10,12 +10,12 @@ export const vi: Strings = {
   searchingWeb: 'Đang tìm trên web…',
   memoryTitle: 'Trí nhớ của NAYQO',
   memoryIntro:
-    'NAYQO ghi nhớ thông tin về bạn, mục tiêu và bài tập từ các cuộc trò chuyện, rồi dùng cho lần sau. Khi hết hạn, nó sẽ hỏi bạn đã làm chưa. Trò chuyện tạm thời không được ghi nhớ.',
+    'NAYQO ghi nhớ thông tin về bạn, mục tiêu và những gì bạn nói sẽ làm, rồi dùng cho lần sau. Khi hết hạn, nó sẽ hỏi bạn đã làm chưa. Trò chuyện tạm thời không được ghi nhớ.',
   memoryUse: 'Dùng trí nhớ',
   memoryOn: 'Bật',
   memoryOff: 'Tắt',
   memoryOffNote: 'Khi tắt, NAYQO không ghi nhớ gì và không dùng những gì đã nhớ.',
-  memoryHomework: 'Bài tập',
+  memoryHomework: 'Những gì bạn nói sẽ làm',
   memoryKnows: 'Điều NAYQO nhớ',
   memoryGoal: 'Mục tiêu: {s}',
   memoryDue: 'Hạn {d}',
@@ -23,9 +23,11 @@ export const vi: Strings = {
   memoryDone: 'Đã làm',
   memoryFailed: 'Chưa làm',
   memoryDropped: 'Bỏ',
-  memoryEmpty: 'Chưa nhớ gì cả. Hãy kể mục tiêu hoặc vấn đề, NAYQO sẽ nhớ và giao bài tập.',
+  memoryEmpty:
+    'Chưa nhớ gì cả. Hãy kể mục tiêu hoặc việc bạn định làm, NAYQO sẽ nhớ và hỏi lại sau.',
   memoryDeleteAll: 'Xóa toàn bộ trí nhớ',
-  memoryDeleteAllConfirm: 'Xóa toàn bộ trí nhớ của NAYQO, kể cả bài tập? Không thể hoàn tác.',
+  memoryDeleteAllConfirm:
+    'Xóa toàn bộ trí nhớ của NAYQO, kể cả những gì bạn nói sẽ làm? Không thể hoàn tác.',
   voiceMode: 'Trò chuyện bằng giọng nói',
   voiceConnecting: 'Đang kết nối…',
   voiceListening: 'Hãy bắt đầu nói',

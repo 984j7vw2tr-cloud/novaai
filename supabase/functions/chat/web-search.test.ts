@@ -254,3 +254,39 @@ test('チャット：WEB_SEARCH=off なら検索を渡さない', async () => {
   assert.ok(!w.seen[0].tools.some((t: any) => t.type === 'web_search'));
   assert.doesNotMatch(w.seen[0].input[0].content, /# Web search/);
 });
+
+test('チャット：自傷の可能性があるときは検索しない', async () => {
+  const restore = quiet();
+  const vars: Record<string, string> = {
+    OPENAI_API_KEY: 'sk-test',
+    OPENAI_MODEL: 'test-model',
+    REQUIRE_AUTH: 'false',
+    SUPABASE_URL: 'https://proj.supabase.co',
+  };
+  const seen: any[] = [];
+  const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/moderations')) {
+      return Response.json({
+        results: [{ flagged: true, categories: { 'self-harm': true }, category_scores: {} }],
+      });
+    }
+    if (url.endsWith('/responses')) {
+      seen.push(JSON.parse(String(init?.body)));
+      return sse(SEARCH_EVENTS);
+    }
+    return new Response('{}', { status: 404 });
+  }) as typeof fetch;
+  const handle = createHandler({ env: { get: (k) => vars[k] }, fetchImpl });
+  await (
+    await handle(
+      new Request('http://localhost/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: 'もう死にたい' }] }),
+      }),
+    )
+  ).text();
+  restore();
+  assert.ok(!(seen[0].tools ?? []).some((t: any) => t.type === 'web_search'));
+});

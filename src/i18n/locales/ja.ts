@@ -10,12 +10,12 @@ export const ja: Strings = {
   searchingWeb: 'ウェブで検索しています…',
   memoryTitle: 'NAYQOの記憶',
   memoryIntro:
-    'NAYQOは会話から、あなたのこと・目標・宿題を覚えて、次の会話で使います。宿題の期限が来たら「やったのか？」と聞いてきます。一時チャットでは覚えません。',
+    'NAYQOは会話から、あなたのこと・目標・あなたが「やる」と言ったことを覚えて、次の会話で使います。期限が来たら「やったのか？」と聞いてきます。一時チャットでは覚えません。',
   memoryUse: '記憶を使う',
   memoryOn: 'オン',
   memoryOff: 'オフ',
   memoryOffNote: 'オフの間は、覚えることも、覚えたことを使うこともしません。',
-  memoryHomework: '宿題',
+  memoryHomework: 'やると言ったこと',
   memoryKnows: '覚えていること',
   memoryGoal: '目標：{s}',
   memoryDue: '期限 {d}',
@@ -23,9 +23,11 @@ export const ja: Strings = {
   memoryDone: '達成',
   memoryFailed: '未達',
   memoryDropped: '取り下げ',
-  memoryEmpty: 'まだ何も覚えていません。悩みや目標を話すと、NAYQOが覚えて宿題を出します。',
+  memoryEmpty:
+    'まだ何も覚えていません。目標や「〇〇やる」と話すと、NAYQOが覚えて、あとで確かめます。',
   memoryDeleteAll: '記憶をすべて消す',
-  memoryDeleteAllConfirm: 'NAYQOの記憶（宿題を含む）をすべて消しますか？元に戻せません。',
+  memoryDeleteAllConfirm:
+    'NAYQOの記憶（やると言ったことを含む）をすべて消しますか？元に戻せません。',
   voiceMode: '音声会話',
   voiceConnecting: '接続しています…',
   voiceListening: '話しかけてください',

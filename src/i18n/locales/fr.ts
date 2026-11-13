@@ -10,12 +10,12 @@ export const fr: Strings = {
   searchingWeb: 'Recherche sur le web…',
   memoryTitle: 'Mémoire de NAYQO',
   memoryIntro:
-    'NAYQO retient des choses sur toi, tes objectifs et tes devoirs à partir des conversations, et s’en sert la fois suivante. À l’échéance, il te demandera si tu l’as fait. Les chats temporaires ne sont pas retenus.',
+    'NAYQO retient des choses sur toi, tes objectifs et ce que tu as dit que tu ferais, et s’en sert la fois suivante. À l’échéance, il te demandera si tu l’as fait. Les chats temporaires ne sont pas retenus.',
   memoryUse: 'Utiliser la mémoire',
   memoryOn: 'Activée',
   memoryOff: 'Désactivée',
   memoryOffNote: 'Désactivée, NAYQO ne retient rien et n’utilise pas ce qu’il a retenu.',
-  memoryHomework: 'Devoirs',
+  memoryHomework: 'Ce que tu as dit que tu ferais',
   memoryKnows: 'Ce que NAYQO retient',
   memoryGoal: 'Objectif : {s}',
   memoryDue: 'Échéance {d}',
@@ -24,10 +24,10 @@ export const fr: Strings = {
   memoryFailed: 'Pas fait',
   memoryDropped: 'Abandonné',
   memoryEmpty:
-    'Rien de retenu pour l’instant. Parle de tes objectifs ou problèmes et NAYQO s’en souviendra et te donnera des devoirs.',
+    'Rien de retenu pour l’instant. Parle de tes objectifs ou de ce que tu vas faire, NAYQO s’en souviendra et te relancera.',
   memoryDeleteAll: 'Effacer toute la mémoire',
   memoryDeleteAllConfirm:
-    'Effacer toute la mémoire de NAYQO, devoirs compris ? Action irréversible.',
+    'Effacer toute la mémoire de NAYQO, y compris ce que tu as dit que tu ferais ? Action irréversible.',
   voiceMode: 'Chat vocal',
   voiceConnecting: 'Connexion…',
   voiceListening: 'Parlez',

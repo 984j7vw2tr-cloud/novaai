@@ -10,12 +10,12 @@ export const en: Strings = {
   searchingWeb: 'Searching the web…',
   memoryTitle: 'NAYQO’s memory',
   memoryIntro:
-    'NAYQO remembers things about you, your goals and your homework from your chats, and uses them next time. When a deadline passes, it will ask if you did it. Temporary chats are not remembered.',
+    'NAYQO remembers things about you, your goals and what you said you’d do, and uses them next time. When the deadline passes, it will ask if you did it. Temporary chats are not remembered.',
   memoryUse: 'Use memory',
   memoryOn: 'On',
   memoryOff: 'Off',
   memoryOffNote: 'While off, NAYQO won’t remember anything or use what it remembered.',
-  memoryHomework: 'Homework',
+  memoryHomework: 'What you said you’d do',
   memoryKnows: 'What NAYQO remembers',
   memoryGoal: 'Goal: {s}',
   memoryDue: 'Due {d}',
@@ -24,9 +24,10 @@ export const en: Strings = {
   memoryFailed: 'Not done',
   memoryDropped: 'Dropped',
   memoryEmpty:
-    'Nothing remembered yet. Talk about your goals or problems and NAYQO will remember and give you homework.',
+    'Nothing remembered yet. Tell NAYQO your goals or what you’re going to do, and it will remember and check in later.',
   memoryDeleteAll: 'Delete all memory',
-  memoryDeleteAllConfirm: 'Delete all of NAYQO’s memory, including homework? This can’t be undone.',
+  memoryDeleteAllConfirm:
+    'Delete all of NAYQO’s memory, including what you said you’d do? This can’t be undone.',
   voiceMode: 'Voice chat',
   voiceConnecting: 'Connecting…',
   voiceListening: 'Start talking',
