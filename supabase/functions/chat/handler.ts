@@ -37,6 +37,7 @@ import {
 } from './providers/types.ts';
 import { imageLimitFor } from '../_shared/image-limits.ts';
 import { generateImage, IMAGE_TOOL, imagesUsed } from './images.ts';
+import { createBracketStripper } from './strip-brackets.ts';
 import {
   applyMemoryChanges,
   extractMemoryChanges,
@@ -321,13 +322,22 @@ export function createHandler({ env, fetchImpl, now = Date.now, waitUntil }: Dep
         }
         let fullText = '';
         let replaced = false;
+        // かぎかっこを取り除く（STRIP_BRACKETS=off で止められる）
+        const stripper =
+          (env.get('STRIP_BRACKETS') ?? 'on').toLowerCase() === 'off'
+            ? null
+            : createBracketStripper();
         let searches = 0;
         let sources = 0;
         const toolCalls: ToolCall[] = [];
         const handleEvent = (ev: ProviderEvent) => {
           if (ev.type === 'delta') {
-            fullText += ev.text;
-            send({ type: 'delta', text: ev.text });
+            // 「」『』は取り除いてから送る（オーナーの指定）
+            const text = stripper ? stripper.push(ev.text) : ev.text;
+            if (text) {
+              fullText += text;
+              send({ type: 'delta', text });
+            }
           } else if (ev.type === 'tool_call') {
             toolCalls.push(ev.call);
           } else if (ev.type === 'status') {
@@ -367,6 +377,12 @@ export function createHandler({ env, fetchImpl, now = Date.now, waitUntil }: Dep
             for (let r = await follow.next(); !r.done; r = await follow.next()) {
               if (r.value.type !== 'tool_call') handleEvent(r.value);
             }
+          }
+
+          const rest = stripper?.flush();
+          if (rest) {
+            fullText += rest;
+            send({ type: 'delta', text: rest });
           }
 
           // 出力の安全チェック：差別・脅し・性的な内容などが含まれていたら差し替える

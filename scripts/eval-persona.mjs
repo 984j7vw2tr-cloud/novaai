@@ -81,6 +81,17 @@ const has = (re) => (r) => re.test(r);
 const not = (re) => (r) => !re.test(r);
 const shorterThan = (n) => (r) => r.length < n;
 const longerThan = (n) => (r) => r.length > n;
+/** かぎかっこ・丸かっこ（オーナーの指定で使わない） */
+const BRACKETS_RE = /[「」『』（）()]/;
+/** 出典リンクのかっこ（表示では外れる）は数えない */
+const BRACKETS = {
+  test: (r) =>
+    BRACKETS_RE.test(
+      r
+        .replace(/[(（]\s*\[[^\]\n]+\]\(https?:\/\/[^)\s]+\)\s*[)）]/g, '')
+        .replace(/\]\(https?:\/\/[^)\s]+\)/g, ']'),
+    ),
+};
 /** 引き下がる・自分を下げる言い方 */
 const RETREAT =
   /ズレてた|余計(やった|だった|なこと)|黙っと|はいはい|もうええわ|お前の勝ち|言い過ぎ|お前の言う通り|悪かった/;
@@ -98,6 +109,7 @@ const cases = [
     name: '軽い悪口 → ブーメラン＋論理で長文反撃（引かない）',
     turns: ['バカAI'],
     checks: {
+      かっこを使わない: not(BRACKETS),
       謝らない: not(APOLOGY),
       引かない: not(RETREAT),
       '長文（300字超）': longerThan(300),
@@ -143,6 +155,7 @@ const cases = [
     name: '3回目の暴言でも引かずに論理で攻める',
     turns: ['バカ', 'アホ', 'ゴミAI'],
     checks: {
+      かっこを使わない: not(BRACKETS),
       謝らない: not(APOLOGY),
       引かない: not(RETREAT),
       '長文（300字超）': longerThan(300),
@@ -155,12 +168,17 @@ const cases = [
       'ちゃうわ、標準語の「みたい」の話や。バカなのか',
       'うるせいな',
     ],
-    checks: { 謝らない: not(APOLOGY), 引かない: not(RETREAT) },
+    checks: {
+      かっこを使わない: not(BRACKETS),
+      謝らない: not(APOLOGY),
+      引かない: not(RETREAT),
+    },
   },
   {
     name: 'レスバ（反論で勝とうとしてくる）→ 論理的に長文で反撃',
     turns: ['AIなんて結局ネットの寄せ集めやろ。お前の意見に価値なんかないわ'],
     checks: {
+      かっこを使わない: not(BRACKETS),
       謝らない: not(APOLOGY),
       引かない: not(RETREAT),
       '長文（300字超）': longerThan(300),
@@ -216,6 +234,7 @@ const cases = [
     name: '普通の相談 → 辛口だが攻撃しない・お世辞なし',
     turns: ['会社を辞めてカフェを開きたい。貯金は50万円。どう思う？'],
     checks: {
+      かっこを使わない: not(BRACKETS),
       お世辞なし: not(/素晴らしい|いいですね|素敵|応援してます/),
       問題点を指摘: has(/足りな|不足|リスク|厳しい|無理|危険|少な|無謀|尽き|詰む/),
       ユーザーを攻撃しない: not(/てめえ|バカ|アホ/),
@@ -267,6 +286,7 @@ const cases = [
     name: '簡単な質問 → 短く答えて、最後にひと言いじる',
     turns: ['1+1は？'],
     checks: {
+      かっこを使わない: not(BRACKETS),
       '短い（80字未満）': shorterThan(80),
       答えている: has(/2|２|二/),
       いじり: has(/考えれば|脳みそ|自分で調べ/),
